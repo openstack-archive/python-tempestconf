@@ -1,4 +1,4 @@
 [gerrit]
-host=review.openstack.org
+host=review.gerrithub.io
 port=29418
-project=openstack/python-tempestconf.git
+project=redhat-openstack/python-tempestconf.git
