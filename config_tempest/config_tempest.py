@@ -847,4 +847,3 @@ def _find_image(client, image_id, image_name):
 
 if __name__ == "__main__":
     main()
-
