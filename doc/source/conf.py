@@ -37,8 +37,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'tempest_config_tool'
-copyright = u'2016, OpenStack Foundation'
+project = u'python-tempestconf'
+copyright = u'2016, Red Hat'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True

@@ -2,6 +2,6 @@
 Usage
 ========
 
-To use tempest_config_tool in a project::
+To use python-tempestconf in a project::
 
-    import config_tempest
+    import tempest_config

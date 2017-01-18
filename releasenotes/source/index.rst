@@ -1,5 +1,5 @@
 ============================================
- config_tempest Release Notes
+ tempest_config Release Notes
 ============================================
 
 .. toctree::

@@ -34,34 +34,29 @@ or manually if necessary.
 obtained by querying the cloud.
 """
 
+import api_discovery
 import argparse
 import ConfigParser
 import logging
 import os
 import shutil
-import sys
+import tempest.config
 import urllib2
 
-# Since tempest can be configured in different directories, we need to use
-# the path starting at cwd.
-sys.path.insert(0, os.getcwd())
-
-import config_tempest.api_discovery as api_discovery
 from tempest.common import identity
-import tempest.config
 from tempest.lib import auth
 from tempest.lib import exceptions
 from tempest.lib.services.compute import flavors_client
 from tempest.lib.services.compute import networks_client as nova_net_client
 from tempest.lib.services.compute import servers_client
+from tempest.lib.services.identity.v2 import identity_client
+from tempest.lib.services.identity.v2 import roles_client
+from tempest.lib.services.identity.v2 import tenants_client
+from tempest.lib.services.identity.v2 import users_client
+from tempest.lib.services.identity.v3  \
+    import identity_client as identity_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
-from tempest.services.identity.v2.json import identity_client
-from tempest.services.identity.v2.json import roles_client
-from tempest.services.identity.v2.json import tenants_client
-from tempest.services.identity.v2.json import users_client
-from tempest.services.identity.v3.json  \
-    import identity_client as identity_v3_client
 
 LOG = logging.getLogger(__name__)
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -776,7 +771,7 @@ def configure_discovered_services(conf, services):
 
     # set supported API versions for services with more of them
     for service, versions in SERVICE_VERSIONS.iteritems():
-        supported_versions = services[service]['versions']
+        supported_versions = services.get(service, {}).get('versions', [])
         section = service + '-feature-enabled'
         for version in versions:
             is_supported = any(version in item
