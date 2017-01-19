@@ -696,6 +696,7 @@ def create_tempest_networks(clients, conf, has_neutron, public_network_id):
                 if network['router:external'] and network['subnets']:
                     LOG.info("Found network, using: {0}".format(network['id']))
                     public_network_id = network['id']
+                    public_network_name = network['name']
                     break
 
             # Couldn't find an existing external network
@@ -706,6 +707,8 @@ def create_tempest_networks(clients, conf, has_neutron, public_network_id):
 
         if public_network_id is not None:
             conf.set('network', 'public_network_id', public_network_id)
+        if public_network_name is not None:
+            conf.set('network', 'floating_network_name', public_network_name)
 
     else:
         client = clients.get_nova_net_client()
