@@ -13,13 +13,13 @@
 # under the License.
 
 """
-test_tempest_config
+test_config_tempest
 ----------------------------------
 
-Tests for `tempest_config` module.
+Tests for `config_tempest` module.
 """
 
-from tempest_config.tests import base
+from config_tempest.tests import base
 
 
 class TestTempest_config(base.TestCase):
