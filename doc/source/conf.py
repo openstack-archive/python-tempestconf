@@ -68,7 +68,7 @@ latex_documents = [
     ('index',
      '%s.tex' % project,
      u'%s Documentation' % project,
-     u'OpenStack Foundation', 'manual'),
+     u'Red Hat, Inc.', 'manual'),
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
