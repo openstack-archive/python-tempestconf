@@ -78,6 +78,7 @@ SERVICE_NAMES = {
     'network': 'neutron',
     'object-store': 'swift',
     'orchestration': 'heat',
+    'share': 'manila',
     'telemetry': 'ceilometer',
     'volume': 'cinder',
     'messaging': 'zaqar',

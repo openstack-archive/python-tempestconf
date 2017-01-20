@@ -1,0 +1,9 @@
+---
+prelude: >
+    Added the ability to enable the testing of the
+    shared file system service (manila) by default
+    if the service is enabled.
+fixes:
+  - Added the ability to enable the testing of the
+    shared file system service (manila) by default
+    if the service is enabled.
