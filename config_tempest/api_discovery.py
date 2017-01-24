@@ -202,7 +202,7 @@ def discover(auth_provider, region, object_store_discovery=True,
                                 disable_ssl_certificate_validation)
         if name == 'object-store' and not object_store_discovery:
             services[name]['extensions'] = []
-        else:
+        elif 'v3' not in ep['publicURL']:  # is not v3 url
             services[name]['extensions'] = service.get_extensions()
         services[name]['versions'] = service.get_versions()
     return services

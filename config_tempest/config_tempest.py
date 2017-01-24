@@ -786,12 +786,12 @@ def configure_discovered_services(conf, services):
     keystone_v3_support = conf.get('identity-feature-enabled', 'api_v3')
     for service, ext_key in SERVICE_EXTENSION_KEY.iteritems():
         if service in services:
-            extensions = ','.join(services[service]['extensions'])
+            extensions = ','.join(services[service].get('extensions', ""))
             if service == 'object-store':
                 # tempest.conf is inconsistent and uses 'object-store' for the
                 # catalog name but 'object-storage-feature-enabled'
                 service = 'object-storage'
-            if service == 'identity' and keystone_v3_support:
+            elif service == 'identity' and keystone_v3_support:
                 identity_v3_ext = api_discovery.get_identity_v3_extensions(
                     conf.get("identity", "uri_v3"))
                 extensions = list(set(extensions.split(',') + identity_v3_ext))
