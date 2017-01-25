@@ -176,7 +176,7 @@ def main():
     configure_discovered_services(conf, services)
     configure_boto(conf, services)
     configure_horizon(conf)
-    LOG.info("Creating configuration file %s" % os.path.abspath(args.out))
+    LOG.info("Creating configuration file %s", os.path.abspath(args.out))
     with open(args.out, 'w') as f:
         conf.write(f)
 
@@ -505,7 +505,7 @@ def give_role_to_user(tenants_client, roles_client, users_client, username,
     if not role_ids:
         if role_required:
             raise Exception("required role %s not found" % role_name)
-        LOG.debug("%s role not required" % role_name)
+        LOG.debug("%s role not required", role_name)
         return
     role_id = role_ids[0]
     try:
@@ -809,7 +809,7 @@ def _download_file(url, destination):
 
 def _download_image(client, id, path):
     """Download file from glance."""
-    LOG.info("Downloading image %s to %s" % (id, path))
+    LOG.info("Downloading image %s to %s", (id, path))
     body = client.show_image_file(id)
     LOG.debug(type(body.data))
     with open(path, 'wb') as out:

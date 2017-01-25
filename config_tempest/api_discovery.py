@@ -53,7 +53,7 @@ class Service(object):
                 http = urllib3.PoolManager()
             r = http.request('GET', url, headers=self.headers)
         except Exception as e:
-            LOG.error("Request on service '%s' with url '%s' failed" %
+            LOG.error("Request on service '%s' with url '%s' failed",
                       (self.name, url))
             raise e
         if r.status >= 400:
@@ -153,8 +153,8 @@ def get_identity_v3_extensions(keystone_v3_url):
                          verify=False,
                          headers={'Accept': 'application/json-home'})
     except requests.exceptions.RequestException as re:
-        LOG.error("Request on service '%s' with url '%s' failed" %
-                  ('identity', keystone_v3_url))
+        LOG.error("Request on service '%s' with url '%s' failed",
+                  'identity', keystone_v3_url)
         raise re
     ext_h = 'http://docs.openstack.org/api/openstack-identity/3/ext/'
     res = [x for x in json.loads(r.content)['resources'].keys()]
