@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-# Copyright 2014 Red Hat, Inc.
+# Copyright 2016 Red Hat, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -61,9 +59,11 @@ from tempest.lib.services.network import networks_client
 LOG = logging.getLogger(__name__)
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-TEMPEST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# Get the current tempest workspace path
+TEMPEST_WORKSPACE = os.getcwd()
 
-DEFAULTS_FILE = os.path.join(TEMPEST_DIR, "etc", "default-overrides.conf")
+DEFAULTS_FILE = os.path.join(TEMPEST_WORKSPACE, "etc",
+                             "default-overrides.conf")
 DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.4/"
                  "cirros-0.3.4-x86_64-disk.img")
 DEFAULT_IMAGE_FORMAT = 'qcow2'
