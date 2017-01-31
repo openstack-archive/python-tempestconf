@@ -1,0 +1,6 @@
+---
+prelude: >
+    Added new unit tests.
+other:
+  - |
+    Added new unit tests for api discovery module.
