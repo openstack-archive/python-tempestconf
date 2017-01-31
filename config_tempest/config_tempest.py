@@ -42,6 +42,8 @@ import sys
 import tempest.config
 import urllib2
 
+import os_client_config
+from oslo_config import cfg
 from tempest.common import identity
 from tempest.lib import auth
 from tempest.lib import exceptions
@@ -131,7 +133,11 @@ def main():
                 conf.set(section, key, value, priority=True)
     for section, key, value in args.overrides:
         conf.set(section, key, value, priority=True)
-    uri = conf.get("identity", "uri")
+    if conf.has_option("identity", "uri"):
+        uri = conf.get("identity", "uri")
+    else:
+        uri = args.config['auth'].get('auth_url')
+        conf.set("identity", "uri", uri)
     api_version = 2
     v3_only = False
     if "v3" in uri and v3_only:
@@ -149,7 +155,7 @@ def main():
         conf.set("auth", "allow_tenant_isolation", "False")
     if args.use_test_accounts:
         conf.set("auth", "allow_tenant_isolation", "True")
-    clients = ClientManager(conf, not args.non_admin)
+    clients = ClientManager(conf, not args.non_admin, args)
     swift_discover = conf.get_defaulted('object-storage-feature-enabled',
                                         'discoverability')
     services = api_discovery.discover(
@@ -189,7 +195,9 @@ def main():
 
 def parse_arguments():
     # TODO(tkammer): add mutual exclusion groups
+    cloud_config = os_client_config.OpenStackConfig()
     parser = argparse.ArgumentParser(__doc__)
+    cloud_config.register_argparse_arguments(parser, sys.argv)
     parser.add_argument('--create', action='store_true', default=False,
                         help='create default tempest resources')
     parser.add_argument('--out', default="etc/tempest.conf",
@@ -235,14 +243,14 @@ def parse_arguments():
                                 --remove feature-enabled.api_ext=http,https""")
 
     args = parser.parse_args()
-
     if args.create and args.non_admin:
         raise Exception("Options '--create' and '--non-admin' cannot be used"
                         " together, since creating" " resources requires"
                         " admin rights")
     args.overrides = parse_overrides(args.overrides)
     args.remove = parse_values_to_remove(args.remove)
-    return args
+    cloud = cloud_config.get_one_cloud(argparse=args)
+    return cloud
 
 
 def parse_values_to_remove(options):
@@ -343,16 +351,40 @@ class ClientManager(object):
         else:
             return "v2"
 
-    def __init__(self, conf, admin):
+    def __init__(self, conf, admin, args):
         self.identity_version = self.get_identity_version(conf)
+        username = None
+        password = None
+        tenant_name = None
+        os_client_creds = args.config.get('auth')
+        if os_client_creds:
+            username = os_client_creds.get('username')
+            password = os_client_creds.get('password')
+            tenant_name = os_client_creds.get('project_name')
         if admin:
-            username = conf.get_defaulted('identity', 'admin_username')
-            password = conf.get_defaulted('identity', 'admin_password')
-            tenant_name = conf.get_defaulted('identity', 'admin_tenant_name')
+            try:
+                username = conf.get_defaulted('identity', 'admin_username')
+                password = conf.get_defaulted('identity', 'admin_password')
+                tenant_name = conf.get_defaulted('identity',
+                                                 'admin_tenant_name')
+            except cfg.NoSuchOptError:
+                LOG.warning(
+                    'Could not load some identity admin options from %s',
+                    DEFAULTS_FILE)
         else:
-            username = conf.get_defaulted('identity', 'username')
-            password = conf.get_defaulted('identity', 'password')
-            tenant_name = conf.get_defaulted('identity', 'tenant_name')
+            try:
+                # override values only when were set in CLI
+                if conf.has_option('identity', 'username'):
+                    username = conf.get_defaulted('identity', 'username')
+                if conf.has_option('identity', 'password'):
+                    password = conf.get_defaulted('identity', 'password')
+                if conf.has_option('identity', 'tenant_name'):
+                    tenant_name = conf.get_defaulted('identity', 'tenant_name')
+
+            except cfg.NoSuchOptError:
+                LOG.warning(
+                    'Could not load some identity options from %s',
+                    DEFAULTS_FILE)
 
         self.identity_region = conf.get_defaulted('identity', 'region')
         default_params = {

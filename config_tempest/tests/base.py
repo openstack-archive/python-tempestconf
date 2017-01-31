@@ -19,7 +19,7 @@ from config_tempest import api_discovery as api
 from config_tempest import config_tempest as tool
 from fixtures import MonkeyPatch
 import json
-from mock import Mock
+import mock
 from oslotest import base
 
 
@@ -44,9 +44,13 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "allow_tenant_isolation", "False")
         return conf
 
-    def _get_clients(self, conf, admin=False):
+    @mock.patch('os_client_config.cloud_config.CloudConfig')
+    def _get_clients(self, conf, mock_args, admin=False):
         """Returns ClientManager instance"""
-        return tool.ClientManager(conf, admin=admin)
+        mock_function = mock.Mock(return_value=False)
+        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        return tool.ClientManager(conf, admin=admin, args=mock_args)
 
 
 class BaseServiceTest(base.BaseTestCase):
@@ -176,7 +180,7 @@ class BaseServiceTest(base.BaseTestCase):
     def _fake_service_do_get_method(self, fake_data):
         function2mock = 'config_tempest.api_discovery.Service.do_get'
         do_get_output = json.dumps(fake_data)
-        mocked_do_get = Mock()
+        mocked_do_get = mock.Mock()
         mocked_do_get.return_value = do_get_output
         self.useFixture(MonkeyPatch(function2mock, mocked_do_get))
 

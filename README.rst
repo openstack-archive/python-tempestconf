@@ -83,3 +83,27 @@ RPM Installation (RDO)
    ``config_tempest.py`` script and it **accepts the same parameters.**
    More about new features can be found
    `here <https://www.rdoproject.org/blog/2017/02/testing-rdo-with-tempest-new-features-in-ocata/>`__
+
+
+os-client-config support
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+python-tempestconf supports `os-client-config <https://github.com/openstack/os-client-config>`__
+so instead of sourcing openstackrc files you can use clouds.yml files. Location where
+these files should be stored and syntax which is used to specify cloud.yaml files
+can be found `here <https://github.com/openstack/os-client-config#config-files>`__
+
+In case of git usage:
+
+.. code-block:: shell-session
+
+    (py27) $ python config_tempest/config_tempest.py --debug --create --os-cloud <name of cloud>
+
+In case of RPM:
+
+.. code-block:: shell-session
+
+    $ tempest init testingdir
+    $ cd testingdir
+    $ discover-tempest-config --debug --create --os-cloud <name of cloud>
+
