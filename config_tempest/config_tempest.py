@@ -684,6 +684,7 @@ def create_tempest_networks(clients, conf, has_neutron, public_network_id):
             network_list = client.list_networks()
             for network in network_list['networks']:
                 if network['id'] == public_network_id:
+                    public_network_name = network['name']
                     break
             else:
                 raise ValueError('provided network id: {0} was not found.'
