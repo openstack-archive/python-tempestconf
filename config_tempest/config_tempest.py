@@ -670,6 +670,7 @@ def find_or_upload_image(client, image_id, image_name, allow_creation,
 
 def create_tempest_networks(clients, conf, has_neutron, public_network_id):
     label = None
+    public_network_name = None
     # TODO(tkammer): separate logic to different func of Nova network
     # vs Neutron
     if has_neutron:
