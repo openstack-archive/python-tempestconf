@@ -20,7 +20,7 @@ from config_tempest import config_tempest as tool
 from config_tempest.tests import base
 from fixtures import MonkeyPatch
 import logging
-from mock import Mock
+import mock
 
 # disable logging when running unit tests
 logging.disable(logging.CRITICAL)
@@ -57,65 +57,60 @@ class TestClientManager(base.TestCase):
         self.client = _get_clients(self.conf)
 
     def test_get_credentials_v2(self):
-        mock = Mock()
+        mock_function = mock.Mock()
         function2mock = 'config_tempest.config_tempest.auth.get_credentials'
-        self.useFixture(MonkeyPatch(function2mock, mock))
+        self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.client.get_credentials(self.conf, "name", "Tname", "pass")
-        mock.assert_called_with(auth_url=None,
-                                fill_in=False,
-                                identity_version='v2',
-                                disable_ssl_certificate_validation='true',
-                                ca_certs=None,
-                                password='pass',
-                                tenant_name='Tname',
-                                username='name')
+        mock_function.assert_called_with(
+            auth_url=None, fill_in=False, identity_version='v2',
+            disable_ssl_certificate_validation='true',
+            ca_certs=None, password='pass', tenant_name='Tname',
+            username='name')
 
     def test_get_credentials_v3(self):
-        mock = Mock()
+        mock_function = mock.Mock()
         function2mock = 'config_tempest.config_tempest.auth.get_credentials'
-        self.useFixture(MonkeyPatch(function2mock, mock))
+        self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.client.get_credentials(self.conf, "name", "project_name",
                                     "pass", identity_version='v3')
-        mock.assert_called_with(auth_url=None,
-                                fill_in=False,
-                                identity_version='v3',
-                                disable_ssl_certificate_validation='true',
-                                ca_certs=None,
-                                password='pass',
-                                username='name',
-                                project_name='project_name',
-                                domain_name='Default',
-                                user_domain_name='Default')
+        mock_function.assert_called_with(
+            auth_url=None, fill_in=False, identity_version='v3',
+            disable_ssl_certificate_validation='true',
+            ca_certs=None, password='pass',
+            username='name',
+            project_name='project_name',
+            domain_name='Default',
+            user_domain_name='Default')
 
     def test_get_auth_provider_keystone_v2(self):
         # check if method returns correct method - KeystoneV2AuthProvider
-        mock = Mock()
+        mock_function = mock.Mock()
         # mock V2Provider, if other provider is called, it fails
         func2mock = 'config_tempest.config_tempest.auth.KeystoneV2AuthProvider'
-        self.useFixture(MonkeyPatch(func2mock, mock))
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
         resp = self.client.get_auth_provider(self.conf, "")
-        self.assertEqual(resp, mock())
+        self.assertEqual(resp, mock_function())
         # check parameters of returned function
         self.client.get_auth_provider(self.conf, "")
-        mock.assert_called_with('', 'http://172.16.52.151:5000/v2.0',
-                                'true', None)
+        mock_function.assert_called_with('', 'http://172.16.52.151:5000/v2.0',
+                                         'true', None)
 
     def test_get_auth_provider_keystone_v3(self):
         # check if method returns KeystoneV3AuthProvider
         # make isinstance return True
-        mockIsInstance = Mock(return_value=True)
+        mockIsInstance = mock.Mock(return_value=True)
         self.useFixture(MonkeyPatch('config_tempest.config_tempest.isinstance',
                                     mockIsInstance))
-        mock = Mock()
+        mock_function = mock.Mock()
         # mock V3Provider, if other provider is called, it fails
         func2mock = 'config_tempest.config_tempest.auth.KeystoneV3AuthProvider'
-        self.useFixture(MonkeyPatch(func2mock, mock))
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
         resp = self.client.get_auth_provider(self.conf, "")
-        self.assertEqual(resp, mock())
+        self.assertEqual(resp, mock_function())
         # check parameters of returned function
         self.client.get_auth_provider(self.conf, "")
-        mock.assert_called_with('', 'http://172.16.52.151:5000/v3',
-                                'true', None)
+        mock_function.assert_called_with('', 'http://172.16.52.151:5000/v3',
+                                         'true', None)
 
     def test_get_identity_version_v2(self):
         resp = self.client.get_identity_version(self.conf)
@@ -127,9 +122,9 @@ class TestClientManager(base.TestCase):
         self.assertEqual(resp, 'v3')
 
     def test_init_manager_as_admin(self):
-        mock = Mock(return_value={"id": "my_fake_id"})
+        mock_function = mock.Mock(return_value={"id": "my_fake_id"})
         func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
-        self.useFixture(MonkeyPatch(func2mock, mock))
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
         tool.ClientManager(self.conf, admin=True)
         # check if admin credentials were set
         admin_tenant = self.conf.get("identity", "admin_tenant_name")
@@ -221,8 +216,8 @@ class TestConfigTempest(base.TestCase):
         self.assertEqual(self.conf.get("boto", "s3_url"), expected_url)
 
     def test_configure_horizon(self):
-        mock = Mock(return_value=True)
-        self.useFixture(MonkeyPatch('urllib2.urlopen', mock))
+        mock_function = mock.Mock(return_value=True)
+        self.useFixture(MonkeyPatch('urllib2.urlopen', mock_function))
         tool.configure_horizon(self.conf)
         self.assertEqual(self.conf.get('service_available', 'horizon'), "True")
         self.assertEqual(self.conf.get('dashboard', 'dashboard_url'),
@@ -245,9 +240,11 @@ class TestFindOrCreateFlavor(base.TestCase):
         self.client = _get_clients(conf).flavors
 
     def _mock_function(self, return_value, func2mock, flavor_name,
-                       expected_resp, allow_creation=False, flavor_id=None):
-        mock = Mock(return_value=return_value)
-        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + func2mock, mock))
+                       expected_resp, allow_creation=False,
+                       flavor_id=None):
+        mock_function = mock.Mock(return_value=return_value)
+        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + func2mock,
+                                    mock_function))
         resp = tool.find_or_create_flavor(self.client,
                                           flavor_id=flavor_id,
                                           flavor_name=flavor_name,
@@ -266,8 +263,9 @@ class TestFindOrCreateFlavor(base.TestCase):
     def test_create_flavor(self):
         return_value = {"flavor": {"id": "MyFakeID", "name": "MyID"}}
         # mock list_flavors() to return empty list
-        mock = Mock(return_value={"flavors": []})
-        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + '.list_flavors', mock))
+        mock_function = mock.Mock(return_value={"flavors": []})
+        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + '.list_flavors',
+                                    mock_function))
         self._mock_function(return_value=return_value,
                             func2mock='.create_flavor',
                             flavor_name="MyID",
@@ -303,9 +301,9 @@ class TestFindImage(base.TestCase):
         self.client = _get_clients(conf).images
 
     def _mock_list_images(self, return_value, image_name, expected_resp):
-        mock = Mock(return_value=return_value)
+        mock_function = mock.Mock(return_value=return_value)
         func2mock = self.CLIENT_MOCK + '.list_images'
-        self.useFixture(MonkeyPatch(func2mock, mock))
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
         resp = tool._find_image(client=self.client,
                                 image_id=None,
                                 image_name=image_name)
@@ -321,3 +319,100 @@ class TestFindImage(base.TestCase):
         self._mock_list_images(return_value={"images": self.IMAGES_LIST},
                                image_name="DoesNotExist",
                                expected_resp=None)
+
+
+class TestFindOrUploadImage(base.TestCase):
+
+    def setUp(self):
+        super(TestFindOrUploadImage, self).setUp()
+        conf = _get_conf("v2.0", "v3")
+        self.client = _get_clients(conf).images
+
+    @mock.patch('config_tempest.config_tempest._find_image')
+    def test_find_or_upload_image_not_found_creation_not_allowed(
+            self, mock_find_image):
+        mock_find_image.return_value = None
+        exc = Exception
+        self.assertRaises(exc, tool.find_or_upload_image, client=self.client,
+                          image_id=None, image_name=None,
+                          allow_creation=False)
+
+    @mock.patch('config_tempest.config_tempest._find_image')
+    @mock.patch('config_tempest.config_tempest._download_file')
+    @mock.patch('config_tempest.config_tempest._upload_image')
+    def _test_find_or_upload_image_not_found_creation_allowed_format(
+            self, mock_upload_image,
+            mock_download_file, mock_find_image, format):
+        mock_find_image.return_value = None
+        mock_upload_image.return_value = {"id": "my_fake_id"}
+        image_source = format + "://any_random_url"
+        image_dest = "my_dest"
+        image_name = "my_image"
+        disk_format = "my_format"
+        image_id = tool.find_or_upload_image(
+            client=self.client, image_id=None, image_dest=image_dest,
+            image_name=image_name, image_source=image_source,
+            allow_creation=True, disk_format=disk_format)
+        mock_download_file.assert_called_with(image_source, image_dest)
+        mock_upload_image.assert_called_with(self.client,
+                                             image_name, image_dest,
+                                             disk_format)
+        self.assertEqual(image_id, "my_fake_id")
+
+    def test_find_or_upload_image_not_found_creation_allowed_http(self):
+        self._test_find_or_upload_image_not_found_creation_allowed_format(
+            format="http")
+
+    def test_find_or_upload_image_not_found_creation_allowed_https(self):
+        self._test_find_or_upload_image_not_found_creation_allowed_format(
+            format="https")
+
+    @mock.patch('shutil.copyfile')
+    @mock.patch('config_tempest.config_tempest._find_image')
+    @mock.patch('config_tempest.config_tempest._download_file')
+    @mock.patch('config_tempest.config_tempest._upload_image')
+    def test_find_or_upload_image_not_found_creation_allowed_ftp_old(
+            self, mock_upload_image, mock_download_file, mock_find_image,
+            mock_copy):
+        mock_find_image.return_value = None
+        mock_upload_image.return_value = {"id": "my_fake_id"}
+        # image source does not start with http or https
+        image_source = "ftp://any_random_url"
+        image_dest = "place_on_disk"
+        disk_format = "my_format"
+        image_name = "my_image"
+        image_id = tool.find_or_upload_image(
+            client=self.client, image_id=None, image_name=image_name,
+            image_source=image_source, image_dest=image_dest,
+            allow_creation=True, disk_format=disk_format)
+        mock_copy.assert_called_with(image_source, image_dest)
+        mock_upload_image.assert_called_with(
+            self.client, image_name, image_dest, disk_format)
+        self.assertEqual(image_id, "my_fake_id")
+
+    @mock.patch('os.path.isfile')
+    @mock.patch('config_tempest.config_tempest._find_image')
+    def test_find_or_upload_image_found_downloaded(
+            self, mock_find_image, mock_isfile):
+        mock_find_image.return_value = \
+            {"status": "active", "name": "ImageName", "id": "my_fake_id"}
+        mock_isfile.return_value = True
+        image_id = tool.find_or_upload_image(
+            client=self.client, image_id=None,
+            image_name=None, allow_creation=True)
+        self.assertEqual(image_id, "my_fake_id")
+
+    @mock.patch('config_tempest.config_tempest._download_image')
+    @mock.patch('os.path.isfile')
+    @mock.patch('config_tempest.config_tempest._find_image')
+    def test_find_or_upload_image_found_not_downloaded(
+            self, mock_find_image, mock_isfile, mock_download_image):
+        image_id = "my_fake_id"
+        mock_find_image.return_value = \
+            {"status": "active", "name": "ImageName", "id": image_id}
+        mock_isfile.return_value = False
+        image_id = tool.find_or_upload_image(
+            client=self.client, image_id=None,
+            image_name=None, allow_creation=True)
+        mock_download_image.assert_called()
+        self.assertEqual(image_id, "my_fake_id")
