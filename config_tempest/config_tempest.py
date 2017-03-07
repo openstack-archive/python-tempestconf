@@ -786,6 +786,14 @@ def configure_discovered_services(conf, services):
 
     # set service extensions
     keystone_v3_support = conf.get('identity-feature-enabled', 'api_v3')
+    # Currently neutron ext-list provides available api-extension but
+    # does not provide enabled extension due to bug in dvr.
+    # So we are removing dvr from neutron api-extension list.
+    # We can remove dvr from extension list using network.remove-extension dvr
+    # https://bugs.launchpad.net/neutron/+bug/1450067
+    if not conf.has_option('network', 'remove-extension'):
+        conf.set('network', 'remove-extension', '')
+    network_extension = conf.get('network', 'remove-extension')
     for service, ext_key in SERVICE_EXTENSION_KEY.iteritems():
         if service in services:
             extensions = ','.join(services[service].get('extensions', ""))
@@ -797,6 +805,11 @@ def configure_discovered_services(conf, services):
                 identity_v3_ext = api_discovery.get_identity_v3_extensions(
                     conf.get("identity", "uri_v3"))
                 extensions = list(set(extensions.split(',') + identity_v3_ext))
+                extensions = ','.join(extensions)
+            elif service == 'network' and network_extension:
+                extensions = set(str(extensions).split(','))
+                remove_ext = set(network_extension.split(','))
+                extensions = list(extensions.difference(remove_ext))
                 extensions = ','.join(extensions)
             conf.set(service + '-feature-enabled', ext_key, extensions)
 
