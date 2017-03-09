@@ -770,9 +770,6 @@ def configure_discovered_services(conf, services):
         # ceilometer is still transitioning from metering to telemetry
         if service == 'telemetry' and 'metering' in services:
             service = 'metering'
-        # data-processing is the default service name since Kilo
-        elif service == 'data-processing' and 'data_processing' in services:
-            service = 'data_processing'
         conf.set('service_available', codename, str(service in services))
 
     # set supported API versions for services with more of them
