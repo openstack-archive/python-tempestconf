@@ -16,7 +16,7 @@
 # under the License.
 
 from config_tempest import api_discovery as api
-from config_tempest.tests.base_service_test import BaseServiceTest
+from config_tempest.tests.base import BaseServiceTest
 import mock
 
 

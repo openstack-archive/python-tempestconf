@@ -16,7 +16,7 @@
 # under the License.
 
 from config_tempest import config_tempest as tool
-from config_tempest.tests.base_config_tempest_test import BaseConfigTempestTest
+from config_tempest.tests.base import BaseConfigTempestTest
 from fixtures import MonkeyPatch
 import mock
 
