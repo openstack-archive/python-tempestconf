@@ -349,7 +349,7 @@ class ClientManager(object):
                 self.identity_region, endpoint_type='adminURL',
                 **default_params)
         else:
-            self.identity = identity_v3_client.IdentityV3Client(
+            self.identity = identity_v3_client.IdentityClient(
                 _auth, conf.get_defaulted('identity', 'catalog_type'),
                 self.identity_region, endpoint_type='adminURL',
                 **default_params)
