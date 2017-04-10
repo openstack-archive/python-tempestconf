@@ -15,6 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from argparse import Namespace
 from config_tempest import config_tempest as tool
 from config_tempest.tests.base import BaseConfigTempestTest
 from fixtures import MonkeyPatch
@@ -150,6 +151,43 @@ class TestTempestConf(BaseConfigTempestTest):
         self.assertTrue(self.conf.get_bool_value("True"))
         self.assertFalse(self.conf.get_bool_value("False"))
         self.assertRaises(ValueError, self.conf.get_bool_value, "no")
+
+    def test_remove_values(self):
+        api_exts = "router_availability_zone,rbac-policies,pagination,sorting,"
+        api_exts += "standard-attr-description,router,binding,metering,"
+        api_exts += "allowed-address-pairs,project-id,dvr,l3-flavors,tag-ext"
+        remove_exts = ["router", "project-id", "dvr"]
+        args = Namespace(
+            remove={
+                "identity.username": ["demo"],
+                "identity.tenant_name": ["tenant"],
+                "compute.image_ssh_user": ["rhel", "cirros"],
+                "network-feature-enabled.api_extensions": remove_exts
+            }
+        )
+        self.conf = self._get_conf("v2.0", "v3")
+        self.conf.set("compute", "image_ssh_user", "cirros")
+        self.conf.set("network-feature-enabled", "api_extensions", api_exts)
+        self.conf.remove_values(args)
+        self.assertFalse(self.conf.has_option("identity", "username"))
+        self.assertTrue(self.conf.has_option("identity", "tenant_name"))
+        self.assertFalse(self.conf.has_option("compute", "image_ssh_user"))
+        conf_exts = self.conf.get("network-feature-enabled", "api_extensions")
+        conf_exts = conf_exts.split(',')
+        for ext in api_exts.split(','):
+            if ext in remove_exts:
+                self.assertFalse(ext in conf_exts)
+            else:
+                self.assertTrue(ext in conf_exts)
+
+    @mock.patch('config_tempest.config_tempest.LOG')
+    def test_remove_not_defined_values(self, mock_logging):
+        self.conf.remove_values(Namespace(remove={"notExistSection.key": []}))
+        # check if LOG.error was called
+        self.assertTrue(mock_logging.error.called)
+        self.conf.remove_values(Namespace(remove={"section.notExistKey": []}))
+        # check if LOG.error was called
+        self.assertTrue(mock_logging.error.called)
 
 
 class TestConfigTempest(BaseConfigTempestTest):

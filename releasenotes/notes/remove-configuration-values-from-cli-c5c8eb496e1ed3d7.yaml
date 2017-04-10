@@ -1,0 +1,15 @@
+---
+prelude: >
+    Add a new ability to remove any configuration values from tempest.conf
+features:
+  - |
+    Add a new parameter --remove to specify which configuration values should
+    not be included in tempest configuration file.
+    Parameter format for removing values:
+    [--remove SECTION.KEY=VALUE[,VALUE]]
+
+    Parameter format for removing all values in key.section:
+    [--remove SECTION.KEY]
+
+    If a section or an option specified in CLI does not exist, tempestconf will
+    inform a user about that in logging output.
