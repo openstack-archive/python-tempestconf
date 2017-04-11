@@ -175,6 +175,7 @@ def main():
 
     configure_discovered_services(conf, services)
     configure_boto(conf, services)
+    configure_keystone_feature_flags(conf, services)
     configure_horizon(conf)
     LOG.info("Creating configuration file %s", os.path.abspath(args.out))
     with open(args.out, 'w') as f:
@@ -724,6 +725,25 @@ def create_tempest_networks(clients, conf, has_neutron, public_network_id):
     elif not has_neutron:
         raise Exception('fixed_network_name could not be discovered and'
                         ' must be specified')
+
+
+def configure_keystone_feature_flags(conf, services):
+    """Set keystone feature flags based upon version ID."""
+    supported_versions = services.get('identity', {}).get('versions', [])
+    for version in supported_versions:
+        major, minor = version.split('.')[:2]
+        # We are going to enable two feature flags that are available
+        # after version 3.6: one related to domain specific roles and
+        # another one related to the security compliance feature.
+        # For more information, see
+        # https://developer.openstack.org/api-ref/identity/v3
+        if major == 'v3' and int(minor) >= 6:
+            conf.set('identity-feature-enabled',
+                     'forbid_global_implied_dsr',
+                     'True')
+            conf.set('identity-feature-enabled',
+                     'security_compliance',
+                     'True')
 
 
 def configure_boto(conf, services):
