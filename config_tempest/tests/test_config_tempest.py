@@ -234,6 +234,15 @@ class TestConfigTempest(BaseConfigTempestTest):
         func2mock = 'config_tempest.api_discovery.get_identity_v3_extensions'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
 
+    def test_configure_keystone_feature_flags(self):
+        tool.configure_keystone_feature_flags(self.conf, self.FAKE_SERVICES)
+        self.assertEqual(
+            self.conf.get('identity-feature-enabled',
+                          'forbid_global_implied_dsr'), 'True')
+        self.assertEqual(
+            self.conf.get('identity-feature-enabled',
+                          'security_compliance'), 'True')
+
     def test_configure_boto(self):
         tool.configure_boto(self.conf, self.FAKE_SERVICES)
         expected_url = "http://172.16.52.151:5000"
