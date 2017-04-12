@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Enable os-client-config support [1].
+    The tempest config tool now is able to support os-client-config env vars
+    and cloud.yaml support.
+
+    [1] https://github.com/openstack/os-client-config

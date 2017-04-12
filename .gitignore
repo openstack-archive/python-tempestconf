@@ -1,5 +1,7 @@
 *.py[cod]
 *.pyc
+cirros*
+tempest.conf
 
 # Packages
 *.egg*

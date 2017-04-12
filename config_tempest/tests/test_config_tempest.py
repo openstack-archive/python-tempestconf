@@ -102,7 +102,7 @@ class TestClientManager(BaseConfigTempestTest):
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
         func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
-        tool.ClientManager(self.conf, admin=True)
+        self._get_clients(self.conf, admin=True)
         # check if admin credentials were set
         admin_tenant = self.conf.get("identity", "admin_tenant_name")
         admin_password = self.conf.get("identity", "admin_password")
@@ -112,6 +112,87 @@ class TestClientManager(BaseConfigTempestTest):
         # check if admin tenant id was set
         admin_tenant_id = self.conf.get("identity", "admin_tenant_id")
         self.assertEqual(admin_tenant_id, "my_fake_id")
+
+
+class TestOsClientConfigSupport(BaseConfigTempestTest):
+
+    def setUp(self):
+        super(TestOsClientConfigSupport, self).setUp()
+        self.conf = self._get_conf("v2.0", "v3")
+
+    def _check_credentials(self, manager, username, password, tenant_name):
+        exp_user = manager.auth_provider.credentials._initial['username']
+        exp_pass = manager.auth_provider.credentials._initial['password']
+        exp_tenant = manager.auth_provider.credentials._initial['tenant_name']
+        self.assertEqual(exp_user, username)
+        self.assertEqual(exp_pass, password)
+        self.assertEqual(exp_tenant, tenant_name)
+
+    def _override_setup(self):
+        cloud_args = {
+            'username': 'cloud_user',
+            'password': 'cloud_pass',
+            'project_name': 'cloud_project'
+        }
+        mock_function = mock.Mock(return_value=cloud_args)
+        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        mock_function = mock.Mock(return_value={"id": "my_fake_id"})
+        func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+
+    @mock.patch('os_client_config.cloud_config.CloudConfig')
+    def test_init_manager_client_config(self, mock_args):
+        cloud_args = {
+            'username': 'cloud_user',
+            'password': 'cloud_pass',
+            'project_name': 'cloud_project'
+        }
+        mock_function = mock.Mock(return_value=cloud_args)
+        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        # remove options, pretend like they aren't set in CLI
+        self.conf.remove_option('identity', 'username')
+        self.conf.remove_option('identity', 'password')
+        self.conf.remove_option('identity', 'tenant_name')
+        manager = tool.ClientManager(self.conf, admin=False, args=mock_args)
+        # check if cloud_args credentials were used
+        self._check_credentials(manager,
+                                cloud_args['username'],
+                                cloud_args['password'],
+                                cloud_args['project_name'])
+
+    @mock.patch('os_client_config.cloud_config.CloudConfig')
+    def test_init_manager_client_config_get_default(self, mock_args):
+        mock_function = mock.Mock(return_value={})
+        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        manager = tool.ClientManager(self.conf, admin=False, args=mock_args)
+        # cloud_args is empty => check if default credentials were used
+        self._check_credentials(manager,
+                                self.conf.get('identity', 'username'),
+                                self.conf.get('identity', 'password'),
+                                self.conf.get('identity', 'tenant_name'))
+
+    @mock.patch('os_client_config.cloud_config.CloudConfig')
+    def test_init_manager_client_config_override(self, mock_args):
+        self._override_setup()
+        manager = tool.ClientManager(self.conf, admin=False, args=mock_args)
+        # check if cloud_args credentials were overrided by the ones set in CLI
+        self._check_credentials(manager,
+                                self.conf.get('identity', 'username'),
+                                self.conf.get('identity', 'password'),
+                                self.conf.get('identity', 'tenant_name'))
+
+    @mock.patch('os_client_config.cloud_config.CloudConfig')
+    def test_init_manager_client_config_admin_override(self, mock_args):
+        self._override_setup()
+        manager = tool.ClientManager(self.conf, admin=True, args=mock_args)
+        # check if cloud_args credentials were overrided by admin ones
+        self._check_credentials(manager,
+                                self.conf.get('identity', 'admin_username'),
+                                self.conf.get('identity', 'admin_password'),
+                                self.conf.get('identity', 'admin_tenant_name'))
 
 
 class TestTempestConf(BaseConfigTempestTest):
