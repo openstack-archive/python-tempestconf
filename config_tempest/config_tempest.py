@@ -831,17 +831,11 @@ def configure_keystone_feature_flags(conf, services):
     supported_versions = services.get('identity', {}).get('versions', [])
     for version in supported_versions:
         major, minor = version.split('.')[:2]
-        # We are going to enable two feature flags that are available
-        # after version 3.6: one related to domain specific roles and
-        # another one related to the security compliance feature.
-        # For more information, see
-        # https://developer.openstack.org/api-ref/identity/v3
+        # Enable the domain specific roles feature flag. For more information,
+        # see https://developer.openstack.org/api-ref/identity/v3
         if major == 'v3' and int(minor) >= 6:
             conf.set('identity-feature-enabled',
                      'forbid_global_implied_dsr',
-                     'True')
-            conf.set('identity-feature-enabled',
-                     'security_compliance',
                      'True')
 
 

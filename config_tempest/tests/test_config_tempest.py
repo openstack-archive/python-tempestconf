@@ -320,9 +320,6 @@ class TestConfigTempest(BaseConfigTempestTest):
         self.assertEqual(
             self.conf.get('identity-feature-enabled',
                           'forbid_global_implied_dsr'), 'True')
-        self.assertEqual(
-            self.conf.get('identity-feature-enabled',
-                          'security_compliance'), 'True')
 
     def test_configure_boto(self):
         tool.configure_boto(self.conf, self.FAKE_SERVICES)
