@@ -149,8 +149,17 @@ def main():
     else:
         conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
     if args.non_admin:
+        conf.set("auth", "admin_username", "")
+        conf.set("auth", "admin_project_name", "")
+        conf.set("auth", "admin_password", "")
+        # To maintain backward compatibilty
+        # Moved to auth
         conf.set("identity", "admin_username", "")
+        # To maintain backward compatibility
+        # renamed as admin_project_name in auth section
         conf.set("identity", "admin_tenant_name", "")
+        # To maintain backward compatibility
+        # Moved to auth
         conf.set("identity", "admin_password", "")
         conf.set("auth", "allow_tenant_isolation", "False")
     if args.use_test_accounts:
@@ -364,10 +373,20 @@ class ClientManager(object):
             tenant_name = os_client_creds.get('project_name')
         if admin:
             try:
-                username = conf.get_defaulted('identity', 'admin_username')
-                password = conf.get_defaulted('identity', 'admin_password')
-                tenant_name = conf.get_defaulted('identity',
-                                                 'admin_tenant_name')
+                username = conf.get_defaulted('auth', 'admin_username')
+                if username is None:
+                    username = conf.get_defaulted('identity', 'admin_username')
+
+                password = conf.get_defaulted('auth', 'admin_password')
+                if password is None:
+                    password = conf.get_defaulted('identity', 'admin_password')
+
+                tenant_name = conf.get_defaulted('auth',
+                                                 'admin_project_name')
+                if tenant_name is None:
+                    tenant_name = conf.get_defaulted('identity',
+                                                     'admin_tenant_name')
+
             except cfg.NoSuchOptError:
                 LOG.warning(
                     'Could not load some identity admin options from %s',
@@ -573,8 +592,11 @@ def create_tempest_users(tenants_client, roles_client, users_client, conf,
                             conf.get('identity', 'password'),
                             conf.get('identity', 'tenant_name'))
 
+    username = conf.get_defaulted('auth', 'admin_username')
+    if username is None:
+        username = conf.get_defaulted('identity', 'admin_username')
     give_role_to_user(tenants_client, roles_client, users_client,
-                      conf.get('identity', 'admin_username'),
+                      username,
                       conf.get('identity', 'tenant_name'), role_name='admin')
 
     # Prior to juno, and with earlier juno defaults, users needed to have

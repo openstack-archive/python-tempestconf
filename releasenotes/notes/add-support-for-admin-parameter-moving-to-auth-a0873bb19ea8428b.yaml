@@ -1,0 +1,8 @@
+---
+prelude: >
+    Add support for admin parameters being used from auth section
+deprecations:
+  - |
+    Move admin_username to auth from identity
+    Move admin_tenant_name to auth from identity
+    Move admin_password to auth from identity
