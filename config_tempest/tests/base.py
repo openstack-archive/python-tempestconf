@@ -44,6 +44,23 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "allow_tenant_isolation", "False")
         return conf
 
+    def _get_alt_conf(self, V2, V3):
+        """Contains newer params in place of the deprecated params"""
+        conf = tool.TempestConf()
+        uri = "http://172.16.52.151:5000/"
+        conf.set("identity", "username", "demo")
+        conf.set("identity", "password", "secret")
+        conf.set("identity", "tenant_name", "demo")
+        conf.set("identity", "disable_ssl_certificate_validation", "true")
+        conf.set("identity", "auth_version", "v3")
+        conf.set("identity", "uri", uri + V2, priority=True)
+        conf.set("identity", "uri_v3", uri + V3)
+        conf.set("auth", "admin_username", "admin")
+        conf.set("auth", "admin_project_name", "adminTenant")
+        conf.set("auth", "admin_password", "adminPass")
+        conf.set("auth", "allow_tenant_isolation", "False")
+        return conf
+
     @mock.patch('os_client_config.cloud_config.CloudConfig')
     def _get_clients(self, conf, mock_args, admin=False):
         """Returns ClientManager instance"""

@@ -113,6 +113,23 @@ class TestClientManager(BaseConfigTempestTest):
         admin_tenant_id = self.conf.get("identity", "admin_tenant_id")
         self.assertEqual(admin_tenant_id, "my_fake_id")
 
+    def test_init_manager_as_admin_using_new_auth(self):
+        self.conf = self._get_alt_conf("v2.0", "v3")
+        self.client = self._get_clients(self.conf)
+        mock_function = mock.Mock(return_value={"id": "my_fake_id"})
+        func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        self._get_clients(self.conf, admin=True)
+        # check if admin credentials were set
+        admin_tenant = self.conf.get("auth", "admin_project_name")
+        admin_password = self.conf.get("auth", "admin_password")
+        self.assertEqual(self.conf.get("auth", "admin_username"), "admin")
+        self.assertEqual(admin_tenant, "adminTenant")
+        self.assertEqual(admin_password, "adminPass")
+        # check if admin tenant id was set
+        admin_tenant_id = self.conf.get("identity", "admin_tenant_id")
+        self.assertEqual(admin_tenant_id, "my_fake_id")
+
 
 class TestOsClientConfigSupport(BaseConfigTempestTest):
 
