@@ -129,6 +129,9 @@ class TestClientManager(BaseConfigTempestTest):
         # check if admin tenant id was set
         admin_tenant_id = self.conf.get("identity", "admin_tenant_id")
         self.assertEqual(admin_tenant_id, "my_fake_id")
+        use_dynamic_creds_bool = self.conf.get("auth",
+                                               "use_dynamic_credentials")
+        self.assertEqual(use_dynamic_creds_bool, "True")
 
 
 class TestOsClientConfigSupport(BaseConfigTempestTest):

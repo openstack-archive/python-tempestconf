@@ -161,9 +161,11 @@ def main():
         # To maintain backward compatibility
         # Moved to auth
         conf.set("identity", "admin_password", "")
-        conf.set("auth", "allow_tenant_isolation", "False")
+        conf.set("auth", "use_dynamic_credentials", "False")
     if args.use_test_accounts:
-        conf.set("auth", "allow_tenant_isolation", "True")
+        # new way for running using accounts file
+        conf.set("auth", "use_dynamic_credentials", "False")
+        conf.set("auth", "test_accounts_file", "etc/accounts.yaml")
     clients = ClientManager(conf, not args.non_admin, args)
     swift_discover = conf.get_defaulted('object-storage-feature-enabled',
                                         'discoverability')

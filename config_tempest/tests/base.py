@@ -41,7 +41,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("identity", "admin_username", "admin")
         conf.set("identity", "admin_tenant_name", "adminTenant")
         conf.set("identity", "admin_password", "adminPass")
-        conf.set("auth", "allow_tenant_isolation", "False")
+        conf.set("auth", "use_dynamic_credentials", "False")
         return conf
 
     def _get_alt_conf(self, V2, V3):
@@ -58,7 +58,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "admin_username", "admin")
         conf.set("auth", "admin_project_name", "adminTenant")
         conf.set("auth", "admin_password", "adminPass")
-        conf.set("auth", "allow_tenant_isolation", "False")
+        conf.set("auth", "use_dynamic_credentials", "True")
         return conf
 
     @mock.patch('os_client_config.cloud_config.CloudConfig')

@@ -1,0 +1,6 @@
+---
+prelude: >
+    Deprecate allow_tenant_isolation parameter.
+deprecations:
+  - |
+    Replace allow_tenant_isolation with use_dynamic_credentials
