@@ -67,7 +67,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         mock_function = mock.Mock(return_value=False)
         func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
-        return tool.ClientManager(conf, admin=admin, args=mock_args)
+        return tool.ClientManager(conf, admin=admin)
 
 
 class BaseServiceTest(base.BaseTestCase):
