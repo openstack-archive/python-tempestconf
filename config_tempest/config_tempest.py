@@ -111,6 +111,7 @@ SERVICE_EXTENSION_KEY = {
 
 def main():
     args = parse_arguments()
+    args.remove = parse_values_to_remove(args.remove)
     logging.basicConfig(format=LOG_FORMAT)
 
     if args.debug:
@@ -260,7 +261,6 @@ def parse_arguments():
                         " together, since creating" " resources requires"
                         " admin rights")
     args.overrides = parse_overrides(args.overrides)
-    args.remove = parse_values_to_remove(args.remove)
     cloud = cloud_config.get_one_cloud(argparse=args)
     return cloud
 

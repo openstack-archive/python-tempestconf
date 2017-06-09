@@ -281,6 +281,25 @@ class TestTempestConf(BaseConfigTempestTest):
             else:
                 self.assertTrue(ext in conf_exts)
 
+    def test_remove_values_having_hyphen(self):
+        api_exts = "dvr, l3-flavors, rbac-policies, project-id"
+        remove_exts = ["dvr", "project-id"]
+        args = Namespace(
+            remove={
+                "network-feature-enabled.api-extensions": remove_exts
+            }
+        )
+        self.conf = self._get_conf("v2.0", "v3")
+        self.conf.set("network-feature-enabled", "api-extensions", api_exts)
+        self.conf.remove_values(args)
+        conf_exts = self.conf.get("network-feature-enabled", "api-extensions")
+        conf_exts = conf_exts.split(',')
+        for ext in api_exts.split(','):
+            if ext in remove_exts:
+                self.assertFalse(ext in conf_exts)
+            else:
+                self.assertTrue(ext in conf_exts)
+
     @mock.patch('config_tempest.config_tempest.LOG')
     def test_remove_not_defined_values(self, mock_logging):
         self.conf.remove_values(Namespace(remove={"notExistSection.key": []}))
