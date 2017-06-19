@@ -26,9 +26,13 @@ Some required options differ among deployed clouds but the right values cannot
 be discovered by the user. The file used here could be created by an installer,
 or manually if necessary.
 
-3. Values provided on the command line. These override all other values.
+3. Values provided in client's cloud config file or as an environment
+variables, see documentation of os-client-config
+https://docs.openstack.org/developer/os-client-config/
 
-4. Discovery. Values that have not been provided in steps [2-3] will be
+4. Values provided on the command line. These override all other values.
+
+5. Discovery. Values that have not been provided in steps [2-4] will be
 obtained by querying the cloud.
 """
 
@@ -132,13 +136,12 @@ def main():
             # There are no deployer input options in DEFAULT
             for (key, value) in deployer_input.items(section):
                 conf.set(section, key, value, priority=True)
+    # get and set auth data from client's config (os-client-config support)
+    set_cloud_config_values(conf, args)
+    # set overrides - vales specified in CLI
     for section, key, value in args.overrides:
         conf.set(section, key, value, priority=True)
-    if conf.has_option("identity", "uri"):
-        uri = conf.get("identity", "uri")
-    else:
-        uri = args.config['auth'].get('auth_url')
-        conf.set("identity", "uri", uri)
+    uri = conf.get("identity", "uri")
     api_version = 2
     v3_only = False
     if "v3" in uri and v3_only:
@@ -167,7 +170,7 @@ def main():
         # new way for running using accounts file
         conf.set("auth", "use_dynamic_credentials", "False")
         conf.set("auth", "test_accounts_file", "etc/accounts.yaml")
-    clients = ClientManager(conf, not args.non_admin, args)
+    clients = ClientManager(conf, not args.non_admin)
     swift_discover = conf.get_defaulted('object-storage-feature-enabled',
                                         'discoverability')
     services = api_discovery.discover(
@@ -311,6 +314,38 @@ def parse_overrides(overrides):
     return new_overrides
 
 
+def set_cloud_config_values(conf, args):
+    """Set values from client's cloud config file.
+
+    If the cloud config files was provided, set admin and non-admin credentials
+    and uri.
+    Note: the values may be later overriden by values specified in CLI.
+
+    :conf TempestConf object
+    :args parsed arguments including client config values
+    """
+    cloud_creds = args.config.get('auth')
+    if cloud_creds:
+        try:
+            if args.non_admin:
+                conf.set('identity', 'username', cloud_creds['username'])
+                conf.set('identity',
+                         'tenant_name',
+                         cloud_creds['project_name'])
+                conf.set('identity', 'password', cloud_creds['password'])
+            else:
+                conf.set('identity', 'admin_username', cloud_creds['username'])
+                conf.set('identity',
+                         'admin_tenant_name',
+                         cloud_creds['project_name'])
+                conf.set('identity', 'admin_password', cloud_creds['password'])
+            conf.set('identity', 'uri', cloud_creds['auth_url'])
+
+        except cfg.NoSuchOptError:
+            LOG.warning(
+                'Could not load some identity options from cloud config file')
+
+
 class ClientManager(object):
     """Manager of various OpenStack API clients.
 
@@ -363,16 +398,11 @@ class ClientManager(object):
         else:
             return "v2"
 
-    def __init__(self, conf, admin, args):
+    def __init__(self, conf, admin):
         self.identity_version = self.get_identity_version(conf)
         username = None
         password = None
         tenant_name = None
-        os_client_creds = args.config.get('auth')
-        if os_client_creds:
-            username = os_client_creds.get('username')
-            password = os_client_creds.get('password')
-            tenant_name = os_client_creds.get('project_name')
         if admin:
             try:
                 username = conf.get_defaulted('auth', 'admin_username')
@@ -395,13 +425,9 @@ class ClientManager(object):
                     DEFAULTS_FILE)
         else:
             try:
-                # override values only when were set in CLI
-                if conf.has_option('identity', 'username'):
-                    username = conf.get_defaulted('identity', 'username')
-                if conf.has_option('identity', 'password'):
-                    password = conf.get_defaulted('identity', 'password')
-                if conf.has_option('identity', 'tenant_name'):
-                    tenant_name = conf.get_defaulted('identity', 'tenant_name')
+                username = conf.get_defaulted('identity', 'username')
+                password = conf.get_defaulted('identity', 'password')
+                tenant_name = conf.get_defaulted('identity', 'tenant_name')
 
             except cfg.NoSuchOptError:
                 LOG.warning(
