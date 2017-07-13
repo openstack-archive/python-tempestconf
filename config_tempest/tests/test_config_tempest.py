@@ -372,6 +372,17 @@ class TestConfigTempest(BaseConfigTempestTest):
         func2mock = 'config_tempest.api_discovery.get_identity_v3_extensions'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
 
+    def test_check_volume_backup_service(self):
+        client = self._get_clients(self.conf).volume_service
+        CLIENT_MOCK = ('tempest.lib.services.volume.v2.'
+                       'services_client.ServicesClient')
+        func2mock = '.list_services'
+        mock_function = mock.Mock(return_value={'services': []})
+        self.useFixture(MonkeyPatch(CLIENT_MOCK + func2mock, mock_function))
+        tool.check_volume_backup_service(client, self.conf, self.FAKE_SERVICES)
+        self.assertEqual(self.conf.get('volume-feature-enabled', 'backup'),
+                         'False')
+
     def test_configure_keystone_feature_flags(self):
         tool.configure_keystone_feature_flags(self.conf, self.FAKE_SERVICES)
         self.assertEqual(

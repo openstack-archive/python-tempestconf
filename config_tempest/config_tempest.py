@@ -62,6 +62,7 @@ from tempest.lib.services.identity.v3  \
     import identity_client as identity_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
+from tempest.lib.services.volume.v2 import services_client
 
 LOG = logging.getLogger(__name__)
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -196,6 +197,7 @@ def main():
     create_tempest_networks(clients, conf, has_neutron, args.network_id)
 
     configure_discovered_services(conf, services)
+    check_volume_backup_service(clients.volume_service, conf, services)
     configure_boto(conf, services)
     configure_keystone_feature_flags(conf, services)
     configure_horizon(conf)
@@ -496,12 +498,20 @@ class ClientManager(object):
             conf.get_defaulted('image', 'catalog_type'),
             self.identity_region,
             **default_params)
+
         self.servers = servers_client.ServersClient(_auth,
                                                     **compute_params)
         self.flavors = flavors_client.FlavorsClient(_auth,
                                                     **compute_params)
 
         self.networks = None
+
+        self.volume_service = services_client.ServicesClient(
+            _auth,
+            conf.get_defaulted('volume', 'catalog_type'),
+            self.identity_region,
+            endpoint_type='adminURL',
+            **default_params)
 
         def create_nova_network_client():
             if self.networks is None:
@@ -792,6 +802,18 @@ def create_tempest_images(client, conf, image_path, allow_creation,
 
     conf.set('compute', 'image_ref', image_id)
     conf.set('compute', 'image_ref_alt', alt_image_id)
+
+
+def check_volume_backup_service(client, conf, services):
+    """Verify if the cinder backup service is enabled"""
+    params = {'binary': 'cinder-backup'}
+    backup_service = client.list_services(**params)
+    if backup_service:
+        # We only set backup to false if the service isn't running otherwise we
+        # keep the default value
+        services = backup_service['services']
+        if not services or services[0]['state'] == 'down':
+            conf.set('volume-feature-enabled', 'backup', 'False')
 
 
 def find_or_upload_image(client, image_id, image_name, allow_creation,
