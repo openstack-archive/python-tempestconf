@@ -130,7 +130,7 @@ service_dict = {'compute': ComputeService,
                 'image': ImageService,
                 'network': NetworkService,
                 'object-store': ObjectStorageService,
-                'volume': VolumeService,
+                'volumev3': VolumeService,
                 'identity': IdentityService}
 
 

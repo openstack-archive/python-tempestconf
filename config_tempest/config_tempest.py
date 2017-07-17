@@ -97,9 +97,9 @@ SERVICE_NAMES = {
 # version don't need to be here, neither do service versions that are not
 # configurable in tempest.conf
 SERVICE_VERSIONS = {
-    'image': ['v1', 'v2'],
-    'identity': ['v2', 'v3'],
-    'volume': ['v1', 'v2']
+    'image': {'supported_versions': ['v1', 'v2'], 'catalog': 'image'},
+    'identity': {'supported_versions': ['v2', 'v3'], 'catalog': 'identity'},
+    'volume': {'supported_versions': ['v2', 'v3'], 'catalog': 'volumev3'}
 }
 
 # Keep track of where the extensions are saved for that service.
@@ -958,10 +958,11 @@ def configure_discovered_services(conf, services):
         conf.set('service_available', codename, str(service in services))
 
     # set supported API versions for services with more of them
-    for service, versions in SERVICE_VERSIONS.iteritems():
-        supported_versions = services.get(service, {}).get('versions', [])
+    for service, service_info in SERVICE_VERSIONS.iteritems():
+        supported_versions = services.get(
+            service_info['catalog'], {}).get('versions', [])
         section = service + '-feature-enabled'
-        for version in versions:
+        for version in service_info['supported_versions']:
             is_supported = any(version in item
                                for item in supported_versions)
             conf.set(section, 'api_' + version, str(is_supported))

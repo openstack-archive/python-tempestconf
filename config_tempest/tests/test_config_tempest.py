@@ -346,10 +346,15 @@ class TestConfigTempest(BaseConfigTempestTest):
             'extensions': [],
             'versions': ['v2.4', 'v2.3', 'v2.2']
         },
+        'volumev3': {
+            'url': 'http://172.16.52.151:8776/v3/402486',
+            'extensions': ['OS-SCH-HNT', 'os-hosts'],
+            'versions': ['v2.0', 'v3.0']
+        },
         'volume': {
             'url': 'http://172.16.52.151:8776/v1/402486',
-            'extensions': ['OS-SCH-HNT', 'os-hosts'],
-            'versions': ['v1.0', 'v2.0', 'v3.0']
+            'extensions': [],
+            'versions': []
         },
         'identity': {
             'url': 'http://172.16.52.151:5000/v3',
@@ -420,9 +425,9 @@ class TestConfigTempest(BaseConfigTempestTest):
                              enabled)
 
         # check versions
-        for service, versions in tool.SERVICE_VERSIONS.iteritems():
+        for service, service_info in tool.SERVICE_VERSIONS.iteritems():
             section = service + '-feature-enabled'
-            for version in versions:
+            for version in service_info['supported_versions']:
                 # only image v1 is expected to be False
                 exp_support = str(not(service == "image" and version == "v1"))
                 self.assertEqual(self.conf.get(section, 'api_' + version),

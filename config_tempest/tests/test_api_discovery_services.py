@@ -119,7 +119,7 @@ class TestVolumeService(BaseServiceTest):
         self._get_extensions(self.Service, expected_resp, self.FAKE_EXTENSIONS)
 
     def test_get_service_class(self):
-        self._test_get_service_class('volume', api.VolumeService)
+        self._test_get_service_class('volumev3', api.VolumeService)
 
 
 class TestIdentityService(BaseServiceTest):
