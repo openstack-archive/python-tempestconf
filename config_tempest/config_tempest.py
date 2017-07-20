@@ -510,7 +510,6 @@ class ClientManager(object):
             _auth,
             conf.get_defaulted('volume', 'catalog_type'),
             self.identity_region,
-            endpoint_type='adminURL',
             **default_params)
 
         def create_nova_network_client():
