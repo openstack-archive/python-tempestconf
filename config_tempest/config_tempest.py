@@ -72,8 +72,8 @@ TEMPEST_WORKSPACE = os.getcwd()
 
 DEFAULTS_FILE = os.path.join(TEMPEST_WORKSPACE, "etc",
                              "default-overrides.conf")
-DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.4/"
-                 "cirros-0.3.4-x86_64-disk.img")
+DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.5/"
+                 "cirros-0.3.5-x86_64-disk.img")
 DEFAULT_IMAGE_FORMAT = 'qcow2'
 
 # services and their codenames
