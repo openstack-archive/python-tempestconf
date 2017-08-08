@@ -805,13 +805,17 @@ def create_tempest_images(client, conf, image_path, allow_creation,
 
 def check_volume_backup_service(client, conf, services):
     """Verify if the cinder backup service is enabled"""
+    if 'volumev3' not in services:
+        LOG.info("No volume service found, skipping backup service check")
+        return
     params = {'binary': 'cinder-backup'}
     backup_service = client.list_services(**params)
+
     if backup_service:
         # We only set backup to false if the service isn't running otherwise we
         # keep the default value
-        services = backup_service['services']
-        if not services or services[0]['state'] == 'down':
+        service = backup_service['services']
+        if not service or service[0]['state'] == 'down':
             conf.set('volume-feature-enabled', 'backup', 'False')
 
 
