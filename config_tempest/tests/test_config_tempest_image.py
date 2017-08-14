@@ -107,6 +107,16 @@ class TestFindImage(BaseConfigTempestTest):
                                image_name="DoesNotExist",
                                expected_resp=None)
 
+    def test_find_image_by_id(self):
+        expected_resp = {"id": "001", "status": "active", "name": "ImageName"}
+        mock_function = mock.Mock(return_value=expected_resp)
+        func2mock = self.CLIENT_MOCK + '.show_image'
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
+        resp = tool._find_image(client=self.client,
+                                image_id="001",
+                                image_name="cirros")
+        self.assertEqual(resp, expected_resp)
+
 
 class TestFindOrUploadImage(BaseConfigTempestTest):
 

@@ -1021,7 +1021,7 @@ def _find_image(client, image_id, image_name):
     """Find image by ID or name (the image client doesn't have this)."""
     if image_id:
         try:
-            return client.get_image(image_id)
+            return client.show_image(image_id)
         except exceptions.NotFound:
             pass
     found = filter(lambda x: x['name'] == image_name,
