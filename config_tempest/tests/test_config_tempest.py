@@ -388,6 +388,19 @@ class TestConfigTempest(BaseConfigTempestTest):
         self.assertEqual(self.conf.get('volume-feature-enabled', 'backup'),
                          'False')
 
+    def test_check_ceilometer_service(self):
+        client = self._get_clients(self.conf).service_client
+        CLIENT_MOCK = ('tempest.lib.services.identity.v3.'
+                       'services_client.ServicesClient')
+        func2mock = '.list_services'
+        mock_function = mock.Mock(return_value={'services': [
+            {'name': 'ceilometer', 'enabled': True, 'type': 'metering'}]})
+
+        self.useFixture(MonkeyPatch(CLIENT_MOCK + func2mock, mock_function))
+        tool.check_ceilometer_service(client, self.conf, self.FAKE_SERVICES)
+        self.assertEqual(self.conf.get('service_available', 'ceilometer'),
+                         'True')
+
     def test_configure_keystone_feature_flags(self):
         tool.configure_keystone_feature_flags(self.conf, self.FAKE_SERVICES)
         self.assertEqual(

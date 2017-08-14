@@ -60,6 +60,7 @@ from tempest.lib.services.identity.v2 import tenants_client
 from tempest.lib.services.identity.v2 import users_client
 from tempest.lib.services.identity.v3  \
     import identity_client as identity_v3_client
+from tempest.lib.services.identity.v3 import services_client as s_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
 from tempest.lib.services.volume.v2 import services_client
@@ -90,6 +91,8 @@ SERVICE_NAMES = {
     'telemetry': 'ceilometer',
     'volume': 'cinder',
     'messaging': 'zaqar',
+    'metric': 'gnocchi',
+    'event': 'panko',
 }
 
 # what API versions could the service have and should be enabled/disabled
@@ -198,6 +201,7 @@ def main():
 
     configure_discovered_services(conf, services)
     check_volume_backup_service(clients.volume_service, conf, services)
+    check_ceilometer_service(clients.service_client, conf, services)
     configure_boto(conf, services)
     configure_keystone_feature_flags(conf, services)
     configure_horizon(conf)
@@ -506,6 +510,12 @@ class ClientManager(object):
 
         self.networks = None
 
+        self.service_client = s_client.ServicesClient(
+            _auth,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            **default_params)
+
         self.volume_service = services_client.ServicesClient(
             _auth,
             conf.get_defaulted('volume', 'catalog_type'),
@@ -803,6 +813,14 @@ def create_tempest_images(client, conf, image_path, allow_creation,
     conf.set('compute', 'image_ref_alt', alt_image_id)
 
 
+def check_ceilometer_service(client, conf, services):
+    services = client.list_services(**{'type': 'metering'})
+    if services and len(services['services']):
+        metering = services['services'][0]
+        if 'ceilometer' in metering['name'] and metering['enabled']:
+            conf.set('service_available', 'ceilometer', 'True')
+
+
 def check_volume_backup_service(client, conf, services):
     """Verify if the cinder backup service is enabled"""
     if 'volumev3' not in services:
@@ -959,6 +977,17 @@ def configure_discovered_services(conf, services):
         if service == 'telemetry' and 'metering' in services:
             service = 'metering'
         conf.set('service_available', codename, str(service in services))
+
+    # TODO(arxcruz): Remove this once/if we get the following reviews merged
+    # in all branches supported by tempestconf, or once/if tempestconf do not
+    # support anymore the OpenStack release where those patches are not
+    # available.
+    # https://review.openstack.org/#/c/492526/
+    # https://review.openstack.org/#/c/492525/
+
+    if 'alarming' in services:
+        conf.set('service_available', 'aodh', 'True')
+        conf.set('service_available', 'aodh_plugin', 'True')
 
     # set supported API versions for services with more of them
     for service, service_info in SERVICE_VERSIONS.iteritems():
