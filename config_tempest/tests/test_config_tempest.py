@@ -100,7 +100,8 @@ class TestClientManager(BaseConfigTempestTest):
 
     def test_init_manager_as_admin(self):
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
+        func2mock = ('config_tempest.config_tempest.ProjectsClient.'
+                     'get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         self._get_clients(self.conf, admin=True)
         # check if admin credentials were set
@@ -117,7 +118,8 @@ class TestClientManager(BaseConfigTempestTest):
         self.conf = self._get_alt_conf("v2.0", "v3")
         self.client = self._get_clients(self.conf)
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
+        func2mock = ('config_tempest.config_tempest.ProjectsClient'
+                     '.get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         self._get_clients(self.conf, admin=True)
         # check if admin credentials were set
@@ -159,7 +161,8 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = 'config_tempest.config_tempest.identity.get_tenant_by_name'
+        func2mock = ('config_tempest.config_tempest.ProjectsClient.'
+                     'get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
 
     def _obtain_client_config_data(self, mock_args, admin):

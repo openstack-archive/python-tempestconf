@@ -110,50 +110,49 @@ class TestCreateUserWithTenant(BaseConfigTempestTest):
         self.tenant_description = "Tenant for Tempest %s user" % self.username
         self.email = "%s@test.com" % self.username
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
-    @mock.patch('tempest.lib.services.identity.v2.tenants_client.'
-                'TenantsClient.create_tenant')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient'
+                '.get_project_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.create_project')
     @mock.patch('tempest.lib.services.identity.v2.users_client.'
                 'UsersClient.create_user')
     def test_create_user_with_tenant(self,
                                      mock_create_user,
-                                     mock_create_tenant,
-                                     mock_get_tenant_by_name):
-        mock_get_tenant_by_name.return_value = {'id': "fake-id"}
+                                     mock_create_project,
+                                     mock_get_project_by_name):
+        mock_get_project_by_name.return_value = {'id': "fake-id"}
         tool.create_user_with_tenant(
             tenants_client=self.tenants_client,
             users_client=self.users_client,
             username=self.username,
             password=self.password,
             tenant_name=self.tenant_name)
-        mock_create_tenant.assert_called_with(
+        mock_create_project.assert_called_with(
             name=self.tenant_name, description=self.tenant_description)
         mock_create_user.assert_called_with(name=self.username,
                                             password=self.password,
                                             tenantId="fake-id",
                                             email=self.email)
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
-    @mock.patch(
-        'tempest.lib.services.identity.v2.'
-        'tenants_client.TenantsClient.create_tenant')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient'
+                '.get_project_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.create_project')
     @mock.patch('tempest.lib.services.identity.v2'
                 '.users_client.UsersClient.create_user')
     def test_create_user_with_tenant_tenant_exists(
             self,
             mock_create_user,
-            mock_create_tenant,
-            mock_get_tenant_by_name):
-        mock_get_tenant_by_name.return_value = {'id': "fake-id"}
+            mock_create_project,
+            mock_get_project_by_name):
+        mock_get_project_by_name.return_value = {'id': "fake-id"}
         exc = exceptions.Conflict
-        mock_create_tenant.side_effect = exc
+        mock_create_project.side_effect = exc
         tool.create_user_with_tenant(
             tenants_client=self.tenants_client,
             users_client=self.users_client,
             username=self.username,
             password=self.password,
             tenant_name=self.tenant_name)
-        mock_create_tenant.assert_called_with(
+        mock_create_project.assert_called_with(
             name=self.tenant_name, description=self.tenant_description)
         mock_create_user.assert_called_with(
             name=self.username,
@@ -164,17 +163,18 @@ class TestCreateUserWithTenant(BaseConfigTempestTest):
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.update_user_password')
     @mock.patch('tempest.common.identity.get_user_by_username')
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.'
+                'get_project_by_name')
     @mock.patch('tempest.lib.services.identity.v2.'
                 'tenants_client.TenantsClient.create_tenant')
     @mock.patch('tempest.lib.services.identity.'
                 'v2.users_client.UsersClient.create_user')
     def test_create_user_with_tenant_user_exists(
             self, mock_create_user, mock_create_tenant,
-            mock_get_tenant_by_name,
+            mock_get_project_by_name,
             mock_get_user_by_username,
             mock_update_user_password):
-        mock_get_tenant_by_name.return_value = {'id': "fake-id"}
+        mock_get_project_by_name.return_value = {'id': "fake-id"}
         exc = exceptions.Conflict
         mock_create_user.side_effect = exc
         fake_user = {'id': "fake_user_id"}
@@ -190,25 +190,23 @@ class TestCreateUserWithTenant(BaseConfigTempestTest):
                                             password=self.password,
                                             tenantId="fake-id",
                                             email=self.email)
-        mock_update_user_password.assert_called_with(
-            fake_user['id'], password=self.password)
 
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.update_user_password')
     @mock.patch('tempest.common.identity.get_user_by_username')
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
-    @mock.patch('tempest.lib.services.identity.v2.'
-                'tenants_client.TenantsClient.create_tenant')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.'
+                'get_project_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.create_project')
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.create_user')
     def test_create_user_with_tenant_exists_user_exists(
-            self, mock_create_user, mock_create_tenant,
-            mock_get_tenant_by_name,
+            self, mock_create_user, mock_create_project,
+            mock_get_project_by_name,
             mock_get_user_by_username,
             mock_update_user_password):
-        mock_get_tenant_by_name.return_value = {'id': "fake-id"}
+        mock_get_project_by_name.return_value = {'id': "fake-id"}
         exc = exceptions.Conflict
-        mock_create_tenant.side_effects = exc
+        mock_create_project.side_effects = exc
         mock_create_user.side_effect = exc
         fake_user = {'id': "fake_user_id"}
         mock_get_user_by_username.return_value = fake_user
@@ -217,14 +215,12 @@ class TestCreateUserWithTenant(BaseConfigTempestTest):
                                      username=self.username,
                                      password=self.password,
                                      tenant_name=self.tenant_name)
-        mock_create_tenant.assert_called_with(
+        mock_create_project.assert_called_with(
             name=self.tenant_name, description=self.tenant_description)
         mock_create_user.assert_called_with(name=self.username,
                                             password=self.password,
                                             tenantId="fake-id",
                                             email=self.email)
-        mock_update_user_password.assert_called_with(
-            fake_user['id'], password=self.password)
 
 
 class TestGiveRoleToUser(BaseConfigTempestTest):
@@ -249,7 +245,8 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
                        {'name': "fake_role2",
                         'id': "fake_role_id2"}]}
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.'
+                'get_project_by_name')
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.list_users')
     @mock.patch('tempest.lib.services.identity.v2.'
@@ -263,9 +260,9 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
                                mock_list_roles,
                                mock_create_user,
                                mock_list_users,
-                               mock_get_tenant_by_name):
+                               mock_get_project_by_name):
 
-        mock_get_tenant_by_name.return_value = \
+        mock_get_project_by_name.return_value = \
             {'id': "fake_tenant_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
@@ -279,7 +276,8 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
         mock_create_user_role_on_project.assert_called_with(
             "fake_tenant_id", "fake_user_id", "fake_role_id")
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.'
+                'get_project_by_name')
     @mock.patch('tempest.lib.services.identity.'
                 'v2.users_client.UsersClient.list_users')
     @mock.patch('tempest.lib.services.identity.v2.'
@@ -294,9 +292,9 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
             mock_list_roles,
             mock_create_user,
             mock_list_users,
-            mock_get_tenant_by_name):
+            mock_get_project_by_name):
         role_name = "fake_role_that_does_not_exist"
-        mock_get_tenant_by_name.return_value = \
+        mock_get_project_by_name.return_value = \
             {'id': "fake_tenant_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
@@ -310,7 +308,8 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
                           tenant_name=self.tenant_name,
                           role_name=role_name)
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient.'
+                'get_project_by_name')
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.list_users')
     @mock.patch('tempest.lib.services.identity.v2.'
@@ -325,9 +324,9 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
             mock_list_roles,
             mock_create_user,
             mock_list_users,
-            mock_get_tenant_by_name):
+            mock_get_project_by_name):
 
-        mock_get_tenant_by_name.return_value = \
+        mock_get_project_by_name.return_value = \
             {'id': "fake_tenant_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
@@ -340,7 +339,8 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
             role_name=self.role_name,
             role_required=False)
 
-    @mock.patch('tempest.common.identity.get_tenant_by_name')
+    @mock.patch('config_tempest.config_tempest.ProjectsClient'
+                '.get_project_by_name')
     @mock.patch('tempest.lib.services.identity.v2.'
                 'users_client.UsersClient.list_users')
     @mock.patch('tempest.lib.services.identity.v2.'
@@ -355,10 +355,10 @@ class TestGiveRoleToUser(BaseConfigTempestTest):
             mock_list_roles,
             mock_create_user,
             mock_list_users,
-            mock_get_tenant_by_name):
+            mock_get_project_by_name):
         exc = exceptions.Conflict
         mock_create_user_role_on_project.side_effect = exc
-        mock_get_tenant_by_name.return_value = {'id': "fake_tenant_id"}
+        mock_get_project_by_name.return_value = {'id': "fake_tenant_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
         tool.give_role_to_user(

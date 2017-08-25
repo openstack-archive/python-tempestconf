@@ -69,13 +69,24 @@ class Service(object):
 
 
 class VersionedService(Service):
-    def get_versions(self):
-        body = self.do_get(self.service_url, top_level=True)
+    def get_versions(self, top_level=True):
+        body = self.do_get(self.service_url, top_level=top_level)
         body = json.loads(body)
         return self.deserialize_versions(body)
 
     def deserialize_versions(self, body):
         return map(lambda x: x['id'], body['versions'])
+
+    def no_port_cut_url(self):
+        # if there is no port defined, cut the url from version to the end
+        u = urllib3.util.parse_url(self.service_url)
+        url = self.service_url
+        if u.port is None:
+            found = re.findall(r'v\d', url)
+            if len(found) > 0:
+                index = url.index(found[0])
+                url = self.service_url[:index]
+        return (url, u.port is not None)
 
 
 class ComputeService(VersionedService):
@@ -84,9 +95,16 @@ class ComputeService(VersionedService):
         body = json.loads(body)
         return map(lambda x: x['alias'], body['extensions'])
 
+    def get_versions(self):
+        url, top_level = self.no_port_cut_url()
+        body = self.do_get(url, top_level=top_level)
+        body = json.loads(body)
+        return self.deserialize_versions(body)
+
 
 class ImageService(VersionedService):
-    pass
+    def get_versions(self):
+        return super(ImageService, self).get_versions(top_level=False)
 
 
 class NetworkService(VersionedService):
@@ -102,18 +120,48 @@ class VolumeService(VersionedService):
         body = json.loads(body)
         return map(lambda x: x['alias'], body['extensions'])
 
+    def get_versions(self):
+        url, top_level = self.no_port_cut_url()
+        body = self.do_get(url, top_level=top_level)
+        body = json.loads(body)
+        return self.deserialize_versions(body)
+
 
 class IdentityService(VersionedService):
+    def __init__(self, name, service_url, token, disable_ssl_validation):
+        super(VersionedService, self).__init__(
+            name, service_url, token, disable_ssl_validation)
+        version = ''
+        if 'v2' in self.service_url:
+            version = '/v2.0'
+        if 'v3' in self.service_url:
+            version = ''
+        url_parse = urlparse.urlparse(self.service_url)
+        self.service_url = '{}://{}{}'.format(
+            url_parse.scheme, url_parse.netloc, version)
+
     def get_extensions(self):
-        if 'v2.0' in self.service_url:
+        if 'v2' in self.service_url:
             body = self.do_get(self.service_url + '/extensions')
-        else:
-            body = self.do_get(self.service_url + '/v2.0/extensions')
-        body = json.loads(body)
-        return map(lambda x: x['alias'], body['extensions']['values'])
+            body = json.loads(body)
+            return map(lambda x: x['alias'], body['extensions']['values'])
+        # Keystone api changed in v3, the concept of extensions change. Right
+        # now, all the existin extensions are part of keystone core api, so,
+        # there's no longer the /extensions endpoint. The extensions that are
+        # stable, are enabled by default, the ones marked as experimental are
+        # disabled by default. Checking the tempest source, there's no test
+        # pointing to extensions endpoint, so I am very confident that this
+        # will not be an issue. If so, we need to list all the /OS-XYZ
+        # extensions to identify what is enabled or not. This would be a manual
+        # check every time keystone change, add or delete an extension, so I
+        # rather prefer to return empty here for now.
+        return []
 
     def deserialize_versions(self, body):
         return map(lambda x: x['id'], body['versions']['values'])
+
+    def get_versions(self):
+        return super(IdentityService, self).get_versions(top_level=False)
 
 
 class ObjectStorageService(Service):
@@ -177,6 +225,10 @@ def discover(auth_provider, region, object_store_discovery=True,
     service_catalog = 'serviceCatalog'
     public_url = 'publicURL'
     identity_port = urlparse.urlparse(auth_provider.auth_url).port
+    if identity_port is None:
+        identity_port = ""
+    else:
+        identity_port = ":" + str(identity_port)
     identity_version = urlparse.urlparse(auth_provider.auth_url).path
     if api_version == 3:
         service_catalog = 'catalog'
@@ -193,7 +245,7 @@ def discover(auth_provider, region, object_store_discovery=True,
             ep = entry['endpoints'][0]
         if 'identity' in ep[public_url]:
             services[name]['url'] = ep[public_url].replace(
-                "/identity", ":{0}{1}".format(
+                "/identity", "{0}{1}".format(
                     identity_port, identity_version))
         else:
             services[name]['url'] = ep[public_url]
@@ -202,7 +254,7 @@ def discover(auth_provider, region, object_store_discovery=True,
                                 disable_ssl_certificate_validation)
         if name == 'object-store' and not object_store_discovery:
             services[name]['extensions'] = []
-        elif 'v3' not in ep['publicURL']:  # is not v3 url
+        elif 'v3' not in ep[public_url]:  # is not v3 url
             services[name]['extensions'] = service.get_extensions()
         services[name]['versions'] = service.get_versions()
     return services

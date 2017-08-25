@@ -126,7 +126,7 @@ class TestIdentityService(BaseServiceTest):
     def setUp(self):
         super(TestIdentityService, self).setUp()
         self.Service = api.IdentityService("ServiceName",
-                                           self.FAKE_URL,
+                                           self.FAKE_URL + 'v2.0/',
                                            self.FAKE_TOKEN,
                                            disable_ssl_validation=False)
 

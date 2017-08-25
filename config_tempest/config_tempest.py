@@ -48,7 +48,6 @@ import urllib2
 
 import os_client_config
 from oslo_config import cfg
-from tempest.common import identity
 from tempest.lib import auth
 from tempest.lib import exceptions
 from tempest.lib.services.compute import flavors_client
@@ -60,7 +59,10 @@ from tempest.lib.services.identity.v2 import tenants_client
 from tempest.lib.services.identity.v2 import users_client
 from tempest.lib.services.identity.v3  \
     import identity_client as identity_v3_client
+from tempest.lib.services.identity.v3 import projects_client
+from tempest.lib.services.identity.v3 import roles_client as roles_v3_client
 from tempest.lib.services.identity.v3 import services_client as s_client
+from tempest.lib.services.identity.v3 import users_client as users_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
 from tempest.lib.services.volume.v2 import services_client
@@ -147,14 +149,12 @@ def main():
         conf.set(section, key, value, priority=True)
     uri = conf.get("identity", "uri")
     api_version = 2
-    v3_only = False
-    if "v3" in uri and v3_only:
-        api_version = 3
     if "v3" in uri:
+        api_version = 3
         conf.set("identity", "auth_version", "v3")
-        conf.set("identity", "uri", uri.replace("v3", "v2.0"), priority=True)
         conf.set("identity", "uri_v3", uri)
     else:
+        # TODO(arxcruz) make a check if v3 is enabled
         conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
     if args.non_admin:
         conf.set("auth", "admin_username", "")
@@ -352,12 +352,40 @@ def set_cloud_config_values(conf, args):
                 'Could not load some identity options from cloud config file')
 
 
+class ProjectsClient(object):
+    def __init__(self, auth, catalog_type, identity_region, endpoint_type,
+                 identity_version, **default_params):
+        self.identity_version = identity_version
+        self.project_class = tenants_client.TenantsClient if \
+            self.identity_version == "v2" else projects_client.ProjectsClient
+        self.client = self.project_class(auth, catalog_type, identity_region,
+                                         endpoint_type, **default_params)
+
+    def get_project_by_name(self, project_name):
+        if self.identity_version == "v2":
+            projects = self.client.list_tenants()['tenants']
+        else:
+            projects = self.client.list_projects()['projects']
+        for project in projects:
+            if project['name'] == project_name:
+                return project
+        raise exceptions.NotFound(
+            'No such tenant/project (%s) in %s' % (project_name, projects))
+
+    def create_project(self, name, description):
+        if self.identity_version == "v2":
+            self.client.create_tenant(name=name, description=description)
+        else:
+            self.client.create_project(name=name, description=description)
+
+
 class ClientManager(object):
     """Manager of various OpenStack API clients.
 
     Connections to clients are created on-demand, i.e. the client tries to
     connect to the server only when it's being requested.
     """
+
     def get_credentials(self, conf, username, tenant_name, password,
                         identity_version='v2'):
         creds_kwargs = {'username': username,
@@ -403,6 +431,30 @@ class ClientManager(object):
             return "v3"
         else:
             return "v2"
+
+    def set_users_client(self, auth, conf, endpoint_type, default_params):
+        users_class = users_client.UsersClient
+        if "v3" in self.identity_version:
+            users_class = users_v3_client.UsersClient
+
+        self.users = users_class(
+            auth,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            endpoint_type=endpoint_type,
+            **default_params)
+
+    def set_roles_client(self, auth, conf, endpoint_type, default_params):
+        roles_class = roles_client.RolesClient
+        if "v3" in self.identity_version:
+            roles_class = roles_v3_client.RolesClient
+
+        self.roles = roles_class(
+            auth,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            endpoint_type=endpoint_type,
+            **default_params)
 
     def __init__(self, conf, admin):
         self.identity_version = self.get_identity_version(conf)
@@ -476,26 +528,25 @@ class ClientManager(object):
                 self.identity_region, endpoint_type='adminURL',
                 **default_params)
 
-        self.tenants = tenants_client.TenantsClient(
+        self.tenants = ProjectsClient(
             _auth,
             conf.get_defaulted('identity', 'catalog_type'),
             self.identity_region,
-            endpoint_type='adminURL',
+            'adminURL',
+            self.identity_version,
             **default_params)
 
-        self.roles = roles_client.RolesClient(
-            _auth,
-            conf.get_defaulted('identity', 'catalog_type'),
-            self.identity_region,
+        self.set_roles_client(
+            auth=_auth,
+            conf=conf,
             endpoint_type='adminURL',
-            **default_params)
+            default_params=default_params)
 
-        self.users = users_client.UsersClient(
-            _auth,
-            conf.get_defaulted('identity', 'catalog_type'),
-            self.identity_region,
+        self.set_users_client(
+            auth=_auth,
+            conf=conf,
             endpoint_type='adminURL',
-            **default_params)
+            default_params=default_params)
 
         self.images = images_client.ImagesClient(
             _auth,
@@ -544,8 +595,7 @@ class ClientManager(object):
 
         # Set admin tenant id needed for keystone v3 tests.
         if admin:
-            tenant_id = identity.get_tenant_by_name(self.tenants,
-                                                    tenant_name)['id']
+            tenant_id = self.tenants.get_project_by_name(tenant_name)['id']
             conf.set('identity', 'admin_tenant_id', tenant_id)
 
 
@@ -665,7 +715,7 @@ def create_tempest_users(tenants_client, roles_client, users_client, conf,
 def give_role_to_user(tenants_client, roles_client, users_client, username,
                       tenant_name, role_name, role_required=True):
     """Give the user a role in the project (tenant).""",
-    tenant_id = identity.get_tenant_by_name(tenants_client, tenant_name)['id']
+    tenant_id = tenants_client.get_project_by_name(tenant_name)['id']
     users = users_client.list_users()
     user_ids = [u['id'] for u in users['users'] if u['name'] == username]
     user_id = user_ids[0]
@@ -688,32 +738,27 @@ def give_role_to_user(tenants_client, roles_client, users_client, username,
 
 def create_user_with_tenant(tenants_client, users_client, username,
                             password, tenant_name):
-    """Create user and tenant if he doesn't exist.
+    """Create a user and a tenant if it doesn't exist."""
 
-    Sets password even for existing user.
-    """
     LOG.info("Creating user '%s' with tenant '%s' and password '%s'",
              username, tenant_name, password)
     tenant_description = "Tenant for Tempest %s user" % username
     email = "%s@test.com" % username
-    # create tenant
+    # create a tenant
     try:
-        tenants_client.create_tenant(name=tenant_name,
-                                     description=tenant_description)
+        tenants_client.create_project(name=tenant_name,
+                                      description=tenant_description)
     except exceptions.Conflict:
         LOG.info("(no change) Tenant '%s' already exists", tenant_name)
 
-    tenant_id = identity.get_tenant_by_name(tenants_client, tenant_name)['id']
-    # create user
+    tenant_id = tenants_client.get_project_by_name(tenant_name)['id']
+
+    # create a user
     try:
         users_client.create_user(**{'name': username, 'password': password,
                                     'tenantId': tenant_id, 'email': email})
     except exceptions.Conflict:
-        LOG.info("User '%s' already exists. Setting password to '%s'",
-                 username, password)
-        user = identity.get_user_by_username(tenants_client, tenant_id,
-                                             username)
-        users_client.update_user_password(user['id'], password=password)
+        LOG.info("User '%s' already exists.", username)
 
 
 def create_tempest_flavors(client, conf, allow_creation):
@@ -943,7 +988,9 @@ def configure_boto(conf, services):
 def configure_horizon(conf):
     """Derive the horizon URIs from the identity's URI."""
     uri = conf.get('identity', 'uri')
-    base = uri.rsplit(':', 1)[0] + '/dashboard'
+    u = urllib2.urlparse.urlparse(uri)
+    host = u.netloc.split(":")[0]
+    base = '%s://%s%s' % (u.scheme, host, '/dashboard')
     assert base.startswith('http:') or base.startswith('https:')
     has_horizon = True
     try:
