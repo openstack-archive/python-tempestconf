@@ -134,11 +134,9 @@ class IdentityService(VersionedService):
         version = ''
         if 'v2' in self.service_url:
             version = '/v2.0'
-        if 'v3' in self.service_url:
-            version = ''
-        url_parse = urlparse.urlparse(self.service_url)
-        self.service_url = '{}://{}{}'.format(
-            url_parse.scheme, url_parse.netloc, version)
+            url_parse = urlparse.urlparse(self.service_url)
+            self.service_url = '{}://{}{}'.format(url_parse.scheme,
+                                                  url_parse.netloc, version)
 
     def get_extensions(self):
         if 'v2' in self.service_url:
@@ -158,7 +156,10 @@ class IdentityService(VersionedService):
         return []
 
     def deserialize_versions(self, body):
-        return map(lambda x: x['id'], body['versions']['values'])
+        if 'v2' in self.service_url:
+            return map(lambda x: x['id'], body['versions']['values'])
+        else:
+            return []
 
     def get_versions(self):
         return super(IdentityService, self).get_versions(top_level=False)
