@@ -9,9 +9,9 @@ based on your cloud.
 
 -  Free software: Apache license
 -  Documentation:
-   https://github.com/redhat-openstack/python-tempestconf/blob/master/README.rst
--  Source: https://github.com/redhat-openstack/python-tempestconf
--  Bugs: https://github.com/redhat-openstack/python-tempestconf/issues
+   http://git.openstack.org/cgit/openstack/python-tempestconf/tree/README.rst
+-  Source: https://git.openstack.org/openstack/python-tempestconf
+-  Bugs: https://storyboard.openstack.org/#!/project/912
 
 Usage
 -----
@@ -23,7 +23,7 @@ Git
 
 .. code-block:: shell-session
 
-    $ git clone https://github.com/redhat-openstack/python-tempestconf
+    $ git clone https://git.openstack.org/openstack/python-tempestconf
     $ cd python-tempestconf
 
 2. Create virtual environment using virtualenv:
@@ -88,10 +88,10 @@ RPM Installation (RDO)
 os-client-config support
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-python-tempestconf supports `os-client-config <https://github.com/openstack/os-client-config>`__
+python-tempestconf supports `os-client-config <https://git.openstack.org/openstack/os-client-config>`__
 so instead of sourcing openstackrc files you can use clouds.yml files. Location where
 these files should be stored and syntax which is used to specify cloud.yaml files
-can be found `here <https://github.com/openstack/os-client-config#config-files>`__
+can be found `here <https://docs.openstack.org/os-client-config/latest/user/configuration.html#config-files>`__
 
 In case of git usage:
 
