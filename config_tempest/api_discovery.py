@@ -235,6 +235,12 @@ def discover(auth_provider, region, object_store_discovery=True,
         service_catalog = 'catalog'
         public_url = 'url'
 
+    # FIXME(chandankumar): It is a workaround to filter services whose
+    # endpoints does not exist. Once it is merged. Let's rewrite the whole
+    # stuff.
+    auth_data[service_catalog] = [data for data in auth_data[service_catalog]
+                                  if data['endpoints']]
+
     for entry in auth_data[service_catalog]:
         name = entry['type']
         services[name] = dict()
