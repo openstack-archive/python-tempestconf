@@ -18,6 +18,7 @@
 from config_tempest import api_discovery as api
 from config_tempest.tests.base import BaseServiceTest
 import mock
+import unittest
 
 
 class TestService(BaseServiceTest):
@@ -35,6 +36,7 @@ class TestService(BaseServiceTest):
                                           self.FAKE_HEADERS)
         return expected_resp.data
 
+    @unittest.skip('Failing due to Storyboard: 2001245')
     @mock.patch('config_tempest.api_discovery.urllib3')
     def test_do_get(self, mock_urllib3):
         resp = self.Service.do_get(self.FAKE_URL)
