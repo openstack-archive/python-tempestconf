@@ -1,0 +1,18 @@
+admin_user:
+    username: admin
+    password: packstack
+    project_name: admin
+    user_domain_name: Default
+    project_domain_name: Default
+    identity_api_version: "3"
+    keystonerc_destination: "{{ ansible_user_dir }}/keystonerc_admin"
+
+demo_user:
+    username: demo
+    password: packstack
+    project_name: demo
+    user_domain_name: Default
+    project_domain_name: Default
+    identity_api_version: "3"
+    keystonerc_destination: "{{ ansible_user_dir }}/keystonerc_demo"
+

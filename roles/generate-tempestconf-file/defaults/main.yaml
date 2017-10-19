@@ -1,0 +1,5 @@
+devstack_base_dir: /opt/stack
+virtualenvs:
+    tempestconf: ~/.virtualenvs/.tempestconf
+url_cirros_image: "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img"
+aditional_tempestconf_params: ""
