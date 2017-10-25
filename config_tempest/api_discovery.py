@@ -245,9 +245,14 @@ def discover(auth_provider, region, object_store_discovery=True,
         name = entry['type']
         services[name] = dict()
         for _ep in entry['endpoints']:
-            if _ep['region'] == region:
-                ep = _ep
-                break
+            if api_version == 3:
+                if _ep['region'] == region and _ep['interface'] == 'public':
+                    ep = _ep
+                    break
+            else:
+                if _ep['region'] == region:
+                    ep = _ep
+                    break
         else:
             ep = entry['endpoints'][0]
         if 'identity' in ep[public_url]:
