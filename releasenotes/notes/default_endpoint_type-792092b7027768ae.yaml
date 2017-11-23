@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    We were using adminURL to talk to Keystone API but in most cases, we run Tempest
+    from outside of admin network for security reasons. We now use public URL, so the
+    public network, which is what we expect our cloud users to do.

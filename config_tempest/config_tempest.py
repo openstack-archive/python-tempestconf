@@ -520,32 +520,32 @@ class ClientManager(object):
         if "v2.0" in conf.get("identity", "uri"):
             self.identity = identity_client.IdentityClient(
                 _auth, conf.get_defaulted('identity', 'catalog_type'),
-                self.identity_region, endpoint_type='adminURL',
+                self.identity_region, endpoint_type='publicURL',
                 **default_params)
         else:
             self.identity = identity_v3_client.IdentityClient(
                 _auth, conf.get_defaulted('identity', 'catalog_type'),
-                self.identity_region, endpoint_type='adminURL',
+                self.identity_region, endpoint_type='publicURL',
                 **default_params)
 
         self.tenants = ProjectsClient(
             _auth,
             conf.get_defaulted('identity', 'catalog_type'),
             self.identity_region,
-            'adminURL',
+            'publicURL',
             self.identity_version,
             **default_params)
 
         self.set_roles_client(
             auth=_auth,
             conf=conf,
-            endpoint_type='adminURL',
+            endpoint_type='publicURL',
             default_params=default_params)
 
         self.set_users_client(
             auth=_auth,
             conf=conf,
-            endpoint_type='adminURL',
+            endpoint_type='publicURL',
             default_params=default_params)
 
         self.images = images_client.ImagesClient(
