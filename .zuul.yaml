@@ -1,0 +1,10 @@
+---
+
+- project:
+    name: openstack/python-tempestconf
+    check:
+      jobs:
+        - tripleo-ci-centos-7-containers-multinode
+    gate:
+      jobs:
+        - tripleo-ci-centos-7-containers-multinode
