@@ -834,7 +834,7 @@ def find_or_create_flavor(client, flavor_id, flavor_name,
 def create_tempest_images(client, conf, image_path, allow_creation,
                           disk_format):
     img_path = os.path.join(conf.get("scenario", "img_dir"),
-                            conf.get_defaulted("scenario", "img_file"))
+                            os.path.basename(image_path))
     name = image_path[image_path.rfind('/') + 1:]
     alt_name = name + "_alt"
     image_id = None
