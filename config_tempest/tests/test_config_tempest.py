@@ -416,7 +416,7 @@ class TestConfigTempest(BaseConfigTempestTest):
         self.assertEqual(self.conf.get("boto", "ec2_url"), expected_url)
         self.assertEqual(self.conf.get("boto", "s3_url"), expected_url)
 
-    def test_configure_horizon(self):
+    def test_configure_horizon_ipv4(self):
         mock_function = mock.Mock(return_value=True)
         self.useFixture(MonkeyPatch('urllib2.urlopen', mock_function))
         tool.configure_horizon(self.conf)
@@ -425,6 +425,17 @@ class TestConfigTempest(BaseConfigTempestTest):
                          "http://172.16.52.151/dashboard/")
         self.assertEqual(self.conf.get('dashboard', 'login_url'),
                          "http://172.16.52.151/dashboard/auth/login/")
+
+    def test_configure_horizon_ipv6(self):
+        mock_function = mock.Mock(return_value=True)
+        self.useFixture(MonkeyPatch('urllib2.urlopen', mock_function))
+        self.conf.set('identity', 'uri', 'http://[::1]:5000/v3', priority=True)
+        tool.configure_horizon(self.conf)
+        self.assertEqual(self.conf.get('service_available', 'horizon'), "True")
+        self.assertEqual(self.conf.get('dashboard', 'dashboard_url'),
+                         "http://[::1]/dashboard/")
+        self.assertEqual(self.conf.get('dashboard', 'login_url'),
+                         "http://[::1]/dashboard/auth/login/")
 
     def test_discovered_services(self):
         self._mock_get_identity_v3_extensions()

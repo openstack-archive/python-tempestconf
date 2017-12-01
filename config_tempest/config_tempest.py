@@ -989,8 +989,8 @@ def configure_horizon(conf):
     """Derive the horizon URIs from the identity's URI."""
     uri = conf.get('identity', 'uri')
     u = urllib2.urlparse.urlparse(uri)
-    host = u.netloc.split(":")[0]
-    base = '%s://%s%s' % (u.scheme, host, '/dashboard')
+    base = '%s://%s%s' % (u.scheme, u.netloc.replace(
+        ':' + str(u.port), ''), '/dashboard')
     assert base.startswith('http:') or base.startswith('https:')
     has_horizon = True
     try:
