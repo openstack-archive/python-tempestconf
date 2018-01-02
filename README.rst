@@ -64,7 +64,7 @@ RPM Installation (RDO)
 
 .. code-block:: shell-session
 
-    # yum -y install openstack-tempest
+    # yum install openstack-tempest
 
 2. Source cloud credentials, initialize tempest and run the discovery
    tool:
