@@ -68,7 +68,6 @@ from tempest.lib.services.network import networks_client
 from tempest.lib.services.volume.v2 import services_client
 
 LOG = logging.getLogger(__name__)
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # Get the current tempest workspace path
 TEMPEST_WORKSPACE = os.getcwd()
@@ -119,44 +118,67 @@ SERVICE_EXTENSION_KEY = {
 }
 
 
-def main():
-    args = parse_arguments()
-    args.remove = parse_values_to_remove(args.remove)
-    logging.basicConfig(format=LOG_FORMAT)
+def set_logging(debug, verbose):
+    """Set logging based on the arguments.
 
-    if args.debug:
+    :type debug: Boolean
+    :type verbose: Boolean
+    """
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(format=log_format)
+    if debug:
         LOG.setLevel(logging.DEBUG)
-    elif args.verbose:
+    elif verbose:
         LOG.setLevel(logging.INFO)
 
-    conf = TempestConf()
+
+def read_deployer_input(deployer_input_file, conf):
+    """Read deployer-input file and set values in conf accordingly.
+
+    :param deployer_input_file: Path to the deployer inut file
+    :type deployer_input_file: String
+    :param conf: TempestConf object
+    """
+    LOG.info("Adding options from deployer-input file '%s'",
+             deployer_input_file)
+    deployer_input = ConfigParser.SafeConfigParser()
+    deployer_input.read(deployer_input_file)
+    for section in deployer_input.sections():
+        # There are no deployer input options in DEFAULT
+        for (key, value) in deployer_input.items(section):
+            conf.set(section, key, value, priority=True)
+
+
+def set_options(conf, deployer_input, non_admin, overrides=[],
+                test_accounts=None, cloud_creds=None):
+    """Set options in conf provided by different source.
+
+    1. read the default values in default-overrides file
+    2. read a file provided by --deployer-input argument
+    3. set values from client's config (os-client-config support) if provided
+    4. set overrides - may override values which were set in the steps above
+
+    :param conf: TempestConf object
+    :param deployer_input: Path to the deployer inut file
+    :type deployer_input: string
+    :type non_admin: boolean
+    :param overrides: list of tuples: [(section, key, value)]
+    :type overrides: list
+    :param test_accounts: Path to the accounts.yaml file
+    :type test_accounts: string
+    :param cloud_creds: Cloud credentials from client's config
+    :type cloud_creds: dict
+    """
     if os.path.isfile(DEFAULTS_FILE):
         LOG.info("Reading defaults from file '%s'", DEFAULTS_FILE)
         conf.read(DEFAULTS_FILE)
-    if args.deployer_input and os.path.isfile(args.deployer_input):
-        LOG.info("Adding options from deployer-input file '%s'",
-                 args.deployer_input)
-        deployer_input = ConfigParser.SafeConfigParser()
-        deployer_input.read(args.deployer_input)
-        for section in deployer_input.sections():
-            # There are no deployer input options in DEFAULT
-            for (key, value) in deployer_input.items(section):
-                conf.set(section, key, value, priority=True)
-    # get and set auth data from client's config (os-client-config support)
-    set_cloud_config_values(conf, args)
-    # set overrides - vales specified in CLI
-    for section, key, value in args.overrides:
-        conf.set(section, key, value, priority=True)
-    uri = conf.get("identity", "uri")
-    api_version = 2
-    if "v3" in uri:
-        api_version = 3
-        conf.set("identity", "auth_version", "v3")
-        conf.set("identity", "uri_v3", uri)
-    else:
-        # TODO(arxcruz) make a check if v3 is enabled
-        conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
-    if args.non_admin:
+
+    if deployer_input and os.path.isfile(deployer_input):
+        read_deployer_input(deployer_input, conf)
+
+    if non_admin:
+        # non admin, so delete auth admin values which were set
+        # from default-overides.conf file
         conf.set("auth", "admin_username", "")
         conf.set("auth", "admin_project_name", "")
         conf.set("auth", "admin_password", "")
@@ -170,53 +192,23 @@ def main():
         # Moved to auth
         conf.set("identity", "admin_password", "")
         conf.set("auth", "use_dynamic_credentials", "False")
-    if args.use_test_accounts:
+
+    # get and set auth data from client's config
+    if cloud_creds:
+        set_cloud_config_values(non_admin, cloud_creds, conf)
+
+    if test_accounts:
         # new way for running using accounts file
         conf.set("auth", "use_dynamic_credentials", "False")
-        conf.set("auth", "test_accounts_file", "etc/accounts.yaml")
-    clients = ClientManager(conf, not args.non_admin)
-    swift_discover = conf.get_defaulted('object-storage-feature-enabled',
-                                        'discoverability')
-    services = api_discovery.discover(
-        clients.auth_provider,
-        clients.identity_region,
-        object_store_discovery=conf.get_bool_value(swift_discover),
-        api_version=api_version,
-        disable_ssl_certificate_validation=conf.get_defaulted(
-            'identity',
-            'disable_ssl_certificate_validation'
-        )
-    )
-    if args.create and not args.use_test_accounts:
-        create_tempest_users(clients.tenants, clients.roles, clients.users,
-                             conf, services)
-    create_tempest_flavors(clients.flavors, conf, args.create)
-    create_tempest_images(clients.images, conf, args.image, args.create,
-                          args.image_disk_format)
-    has_neutron = "network" in services
+        conf.set("auth", "test_accounts_file",
+                 os.path.abspath(test_accounts))
 
-    LOG.info("Setting up network")
-    LOG.debug("Is neutron present: {0}".format(has_neutron))
-    create_tempest_networks(clients, conf, has_neutron, args.network_id)
-
-    configure_discovered_services(conf, services)
-    check_volume_backup_service(clients.volume_service, conf, services)
-    check_ceilometer_service(clients.service_client, conf, services)
-    configure_boto(conf, services)
-    configure_keystone_feature_flags(conf, services)
-    configure_horizon(conf)
-
-    # remove all unwanted values if were specified
-    if args.remove != {}:
-        LOG.info("Removing configuration: %s", str(args.remove))
-        conf.remove_values(args)
-    LOG.info("Creating configuration file %s", os.path.abspath(args.out))
-    with open(args.out, 'w') as f:
-        conf.write(f)
+    # set overrides - values specified in CLI
+    for section, key, value in overrides:
+        conf.set(section, key, value, priority=True)
 
 
 def parse_arguments():
-    # TODO(tkammer): add mutual exclusion groups
     cloud_config = os_client_config.OpenStackConfig()
     parser = argparse.ArgumentParser(__doc__)
     cloud_config.register_argparse_arguments(parser, sys.argv)
@@ -244,8 +236,8 @@ def parse_arguments():
                         help='Print more information about the execution')
     parser.add_argument('--non-admin', action='store_true', default=False,
                         help='Run without admin creds')
-    parser.add_argument('--use-test-accounts', action='store_true',
-                        default=False, help='Use accounts from accounts.yaml')
+    parser.add_argument('--test-accounts', default=None, metavar='PATH',
+                        help='Use accounts from accounts.yaml')
     parser.add_argument('--image-disk-format', default=DEFAULT_IMAGE_FORMAT,
                         help="""a format of an image to be uploaded to glance.
                                 Default is '%s'""" % DEFAULT_IMAGE_FORMAT)
@@ -270,6 +262,7 @@ def parse_arguments():
                         " together, since creating" " resources requires"
                         " admin rights")
     args.overrides = parse_overrides(args.overrides)
+    args.remove = parse_values_to_remove(args.remove)
     cloud = cloud_config.get_one_cloud(argparse=args)
     return cloud
 
@@ -277,8 +270,9 @@ def parse_arguments():
 def parse_values_to_remove(options):
     """Manual parsing of remove arguments.
 
-    :options list of arguments following --remove argument
-    :returns dict containing key paths with values to be removed
+    :param options: list of arguments following --remove argument
+    :return: dictionary containing key paths with values to be removed
+    :rtype: dict
     EXAMPLE: {'identity.username': [myname],
               'identity-feature-enabled.api_extensions': [http, https]}
     """
@@ -300,7 +294,10 @@ def parse_values_to_remove(options):
 def parse_overrides(overrides):
     """Manual parsing of positional arguments.
 
-    TODO(mkollaro) find a way to do it in argparse
+    :param overrides: list of section.keys and values to override, example:
+               ['section.key', 'value', 'section.key', 'value']
+    :return: list of tuples, example: [('section', 'key', 'value'), ...]
+    :rtype: list
     """
     if len(overrides) % 2 != 0:
         raise Exception("An odd number of override options was found. The"
@@ -320,36 +317,35 @@ def parse_overrides(overrides):
     return new_overrides
 
 
-def set_cloud_config_values(conf, args):
+def set_cloud_config_values(non_admin, cloud_creds, conf):
     """Set values from client's cloud config file.
 
-    If the cloud config files was provided, set admin and non-admin credentials
-    and uri.
+    Set admin and non-admin credentials and uri from cloud credentials.
     Note: the values may be later overriden by values specified in CLI.
 
-    :conf TempestConf object
-    :args parsed arguments including client config values
+    :type non_admin: Boolean
+    :param cloud_creds: auth data from os-client-config
+    :type cloud_creds: dict
+    :param conf: TempestConf object
     """
-    cloud_creds = args.config.get('auth')
-    if cloud_creds:
-        try:
-            if args.non_admin:
-                conf.set('identity', 'username', cloud_creds['username'])
-                conf.set('identity',
-                         'tenant_name',
-                         cloud_creds['project_name'])
-                conf.set('identity', 'password', cloud_creds['password'])
-            else:
-                conf.set('identity', 'admin_username', cloud_creds['username'])
-                conf.set('identity',
-                         'admin_tenant_name',
-                         cloud_creds['project_name'])
-                conf.set('identity', 'admin_password', cloud_creds['password'])
-            conf.set('identity', 'uri', cloud_creds['auth_url'])
+    try:
+        if non_admin:
+            conf.set('identity', 'username', cloud_creds['username'])
+            conf.set('identity',
+                     'tenant_name',
+                     cloud_creds['project_name'])
+            conf.set('identity', 'password', cloud_creds['password'])
+        else:
+            conf.set('identity', 'admin_username', cloud_creds['username'])
+            conf.set('identity',
+                     'admin_tenant_name',
+                     cloud_creds['project_name'])
+            conf.set('identity', 'admin_password', cloud_creds['password'])
+        conf.set('identity', 'uri', cloud_creds['auth_url'])
 
-        except cfg.NoSuchOptError:
-            LOG.warning(
-                'Could not load some identity options from cloud config file')
+    except cfg.NoSuchOptError:
+        LOG.warning(
+            'Could not load some identity options from cloud config file')
 
 
 class ProjectsClient(object):
@@ -1112,6 +1108,66 @@ def _find_image(client, image_id, image_name):
         return found[0]
     else:
         return None
+
+
+def main():
+    args = parse_arguments()
+    set_logging(args.debug, args.verbose)
+
+    conf = TempestConf()
+    cloud_creds = args.config.get('auth')
+    set_options(conf, args.deployer_input, args.non_admin,
+                args.overrides, args.test_accounts, cloud_creds)
+
+    uri = conf.get("identity", "uri")
+    api_version = 2
+    if "v3" in uri:
+        api_version = 3
+        conf.set("identity", "auth_version", "v3")
+        conf.set("identity", "uri_v3", uri)
+    else:
+        # TODO(arxcruz) make a check if v3 is enabled
+        conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
+
+    clients = ClientManager(conf, not args.non_admin)
+    swift_discover = conf.get_defaulted('object-storage-feature-enabled',
+                                        'discoverability')
+    services = api_discovery.discover(
+        clients.auth_provider,
+        clients.identity_region,
+        object_store_discovery=conf.get_bool_value(swift_discover),
+        api_version=api_version,
+        disable_ssl_certificate_validation=conf.get_defaulted(
+            'identity',
+            'disable_ssl_certificate_validation'
+        )
+    )
+    if args.create and args.test_accounts is None:
+        create_tempest_users(clients.tenants, clients.roles, clients.users,
+                             conf, services)
+    create_tempest_flavors(clients.flavors, conf, args.create)
+    create_tempest_images(clients.images, conf, args.image, args.create,
+                          args.image_disk_format)
+    has_neutron = "network" in services
+
+    LOG.info("Setting up network")
+    LOG.debug("Is neutron present: {0}".format(has_neutron))
+    create_tempest_networks(clients, conf, has_neutron, args.network_id)
+
+    configure_discovered_services(conf, services)
+    check_volume_backup_service(clients.volume_service, conf, services)
+    check_ceilometer_service(clients.service_client, conf, services)
+    configure_boto(conf, services)
+    configure_keystone_feature_flags(conf, services)
+    configure_horizon(conf)
+
+    # remove all unwanted values if were specified
+    if args.remove != {}:
+        LOG.info("Removing configuration: %s", str(args.remove))
+        conf.remove_values(args)
+    LOG.info("Creating configuration file %s", os.path.abspath(args.out))
+    with open(args.out, 'w') as f:
+        conf.write(f)
 
 
 if __name__ == "__main__":
