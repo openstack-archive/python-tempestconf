@@ -17,6 +17,7 @@ import ConfigParser
 import logging
 import sys
 
+from oslo_config import cfg
 import tempest.config
 
 LOG = logging.getLogger(__name__)
@@ -58,10 +59,13 @@ class TempestConf(ConfigParser.SafeConfigParser):
         :returns: default value for the section.key pair
         :rtype: String
         """
-        if self.has_option(section, key):
-            return self.get(section, key)
-        else:
-            return self.CONF.get(section).get(key)
+        try:
+            if self.has_option(section, key):
+                return self.get(section, key)
+            else:
+                return self.CONF.get(section).get(key)
+        except cfg.NoSuchOptError:
+            LOG.warning("Option %s is not defined in %s section", key, section)
 
     def set(self, section, key, value, priority=False):
         """Set value in configuration, similar to `SafeConfigParser.set`
