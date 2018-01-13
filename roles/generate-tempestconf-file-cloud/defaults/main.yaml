@@ -1,0 +1,4 @@
+cloud_user: "devstack"
+virtualenvs:
+    tempestconf: "~/.virtualenvs/.tempestconf"
+url_cirros_image: "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img"

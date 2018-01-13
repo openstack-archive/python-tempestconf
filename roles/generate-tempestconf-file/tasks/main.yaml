@@ -1,0 +1,67 @@
+- block:
+  - debug:
+      var: source_credentials_commands
+
+  - name: Create python-tempestconf venv with latest pip, setuptools and pbr
+    pip:
+        virtualenv: "{{ virtualenvs.tempestconf }}"
+        name: "{{ item }}"
+        state: latest
+    with_items:
+        - pip
+        - setuptools
+        - pbr
+
+  - name: Debug, list tempetsconf dir
+    shell: |
+        set -ex
+        ls -all .
+        pwd
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+
+  - name: Install python-tempestconf
+    pip:
+        name: "."
+        virtualenv: "{{ virtualenvs.tempestconf }}"
+        chdir: "{{ tempestconf_src_relative_path }}"
+
+  - name: "Cat keystonerc_ file (only in packstack case)"
+    shell: |
+        set -ex
+        cat {{ ansible_user_dir }}/keystonerc_{{ user }}
+    ignore_errors: True
+    args:
+       executable: /bin/bash
+
+  - name: Generate tempest configuration file
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempestconf }}/bin/activate
+        {{ source_credentials_commands }}
+        printenv
+        discover-tempest-config \
+          --debug \
+          -v \
+          --create \
+          identity.uri $OS_AUTH_URL \
+          identity.admin_password $OS_PASSWORD \
+          service_available.swift False \
+          {{ aditional_tempestconf_params }} \
+          image.http_image {{ url_cirros_image }}
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+        executable: /bin/bash
+
+  - name: Print generated tempest.conf and copy it to tempest directory
+    shell: |
+        set -x
+        cat {{ tempestconf_src_relative_path }}/etc/tempest.conf
+        ls /opt/stack/
+        ls /opt/stack/tempest
+        ls /opt/stack/tempest/etc
+        cp {{ tempestconf_src_relative_path }}/etc/tempest.conf {{ devstack_base_dir }}/tempest/etc/tempest.conf
+
+  vars:
+    tempestconf_src_relative_path: "{{ zuul._projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"

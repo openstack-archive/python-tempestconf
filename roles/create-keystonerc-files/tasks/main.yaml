@@ -1,0 +1,39 @@
+- debug:
+      var: ansible_all_ipv4_addresses
+      var: ansible_default_ipv4.address
+
+- name: Create keystonerc_admin file
+  shell: |
+      echo """
+      unset OS_SERVICE_TOKEN
+      export OS_USERNAME={{ admin_user.username }}
+      export OS_PASSWORD={{ admin_user.password }}
+      export OS_AUTH_URL=http://{{ ansible_default_ipv4.address }}:5000/v3
+
+      export PS1='[\u@\h \W(keystone_admin)]\$ '
+      export OS_PROJECT_NAME={{ admin_user.project_name }}
+      export OS_USER_DOMAIN_NAME={{ admin_user.user_domain_name }}
+      export OS_PROJECT_DOMAIN_NAME={{ admin_user.project_domain_name }}
+      export OS_IDENTITY_API_VERSION={{ admin_user.identity_api_version }}
+      """ > {{ admin_user.keystonerc_destination }}
+      cat {{ admin_user.keystonerc_destination }}
+  args:
+      executable: /bin/bash
+
+- name: Create keystonerc_demo file
+  shell: |
+      echo """
+      unset OS_SERVICE_TOKEN
+      export OS_USERNAME={{ demo_user.username }}
+      export OS_PASSWORD={{demo_user.password }}
+      export OS_AUTH_URL=http://{{ ansible_default_ipv4.address }}:5000/v3
+
+      export PS1='[\u@\h \W(keystone_admin)]\$ '
+      export OS_PROJECT_NAME={{ demo_user.project_name }}
+      export OS_USER_DOMAIN_NAME={{ demo_user.user_domain_name }}
+      export OS_PROJECT_DOMAIN_NAME={{ demo_user.project_domain_name }}
+      export OS_IDENTITY_API_VERSION={{ demo_user.identity_api_version }}
+      """ > {{ demo_user.keystonerc_destination }}
+      cat {{ demo_user.keystonerc_destination }}
+  args:
+      executable: /bin/bash

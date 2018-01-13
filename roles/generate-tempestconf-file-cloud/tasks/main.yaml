@@ -1,0 +1,75 @@
+- block:
+  - name: Create python-tempestconf venv with latest pip, setuptools and pbr
+    pip:
+        virtualenv: "{{ virtualenvs.tempestconf }}"
+        name: "{{ item }}"
+        state: latest
+    with_items:
+        - pip
+        - setuptools
+        - pbr
+
+  - name: Debug, list tempetsconf dir
+    shell: |
+        set -ex
+        ls -all .
+        pwd
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+
+  - name: Install python-tempestconf
+    pip:
+        name: "."
+        virtualenv: "{{ virtualenvs.tempestconf }}"
+        chdir: "{{ tempestconf_src_relative_path }}"
+
+  - name: Cat clouds.yaml file
+    shell: |
+        set -ex
+        cat /etc/openstack/clouds.yaml
+    ignore_errors: True
+    args:
+       executable: /bin/bash
+
+  - name: "Workaround for AUTH URL in clouds.yaml"
+    replace:
+        path: /etc/openstack/clouds.yaml
+        regexp: "auth_url:.*"
+        replace: "auth_url: http://{{ ansible_default_ipv4.address }}/identity/v3"
+    become: true
+    ignore_errors: True
+
+  - name: Cat edited clouds.yaml file
+    shell: |
+        set -ex
+        cat /etc/openstack/clouds.yaml
+    ignore_errors: True
+    args:
+       executable: /bin/bash
+
+  - name: Generate tempest configuration file
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempestconf }}/bin/activate
+        printenv
+        discover-tempest-config \
+          --out etc/cloud_tempest.conf \
+          --debug \
+          -v \
+          --create \
+          --os-cloud {{ cloud_user }} \
+          auth.tempest_roles Member \
+          service_available.swift False \
+          image.http_image {{ url_cirros_image }}
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+        executable: /bin/bash
+
+  - name: Print generated tempest.conf
+    shell: |
+        set -ex
+        cat {{ tempestconf_src_relative_path }}/etc/cloud_tempest.conf
+
+  vars:
+    tempestconf_src_relative_path: "{{ zuul._projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"
