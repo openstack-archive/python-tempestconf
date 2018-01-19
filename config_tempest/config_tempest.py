@@ -836,6 +836,7 @@ def create_tempest_images(client, conf, image_path, allow_creation,
     img_path = os.path.join(conf.get("scenario", "img_dir"),
                             os.path.basename(image_path))
     name = image_path[image_path.rfind('/') + 1:]
+    conf.set('scenario', 'img_file', name)
     alt_name = name + "_alt"
     image_id = None
     if conf.has_option('compute', 'image_ref'):

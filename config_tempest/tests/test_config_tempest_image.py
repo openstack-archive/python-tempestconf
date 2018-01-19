@@ -27,7 +27,7 @@ class TestCreateTempestImages(BaseConfigTempestTest):
         super(TestCreateTempestImages, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
         self.client = self._get_clients(self.conf).images
-        self.image_path = "my_path"
+        self.image_path = "my_path/my_image.qcow2"
         self.allow_creation = False
         self.disk_format = ".format"
         self.dir = "/img/"
@@ -55,6 +55,8 @@ class TestCreateTempestImages(BaseConfigTempestTest):
                                    disk_format=self.disk_format)
         self.assertEqual(self.conf.get('compute', 'image_ref'), 'id_c')
         self.assertEqual(self.conf.get('compute', 'image_ref_alt'), 'id_d')
+        self.assertEqual(self.conf.get('scenario', 'img_file'),
+                         'my_image.qcow2')
 
     def test_create_tempest_images_ref_alt_ref(self):
         self.conf.set('compute', 'image_ref', 'id_a')
