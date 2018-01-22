@@ -1065,6 +1065,9 @@ def configure_discovered_services(conf, services):
 
 
 def _download_file(url, destination):
+    if os.path.exists(destination):
+        LOG.info("Image '%s' already fetched to '%s'.", url, destination)
+        return
     LOG.info("Downloading '%s' and saving as '%s'", url, destination)
     f = urllib2.urlopen(url)
     data = f.read()
