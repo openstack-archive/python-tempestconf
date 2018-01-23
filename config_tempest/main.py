@@ -43,7 +43,6 @@ import logging
 import os
 import shutil
 import sys
-import tempest.config
 import urllib2
 
 import os_client_config
@@ -66,6 +65,7 @@ from tempest.lib.services.identity.v3 import users_client as users_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
 from tempest.lib.services.volume.v2 import services_client
+import tempest_conf
 
 LOG = logging.getLogger(__name__)
 
@@ -595,88 +595,6 @@ class ClientManager(object):
             conf.set('identity', 'admin_tenant_id', tenant_id)
 
 
-class TempestConf(ConfigParser.SafeConfigParser):
-    # causes the config parser to preserve case of the options
-    optionxform = str
-
-    # set of pairs `(section, key)` which have a higher priority (are
-    # user-defined) and will usually not be overwritten by `set()`
-    priority_sectionkeys = set()
-
-    CONF = tempest.config.TempestConfigPrivate(parse_conf=False)
-
-    def get_bool_value(self, value):
-        strval = str(value).lower()
-        if strval == 'true':
-            return True
-        elif strval == 'false':
-            return False
-        else:
-            raise ValueError("'%s' is not a boolean" % value)
-
-    def get_defaulted(self, section, key):
-        if self.has_option(section, key):
-            return self.get(section, key)
-        else:
-            return self.CONF.get(section).get(key)
-
-    def set(self, section, key, value, priority=False):
-        """Set value in configuration, similar to `SafeConfigParser.set`
-
-        Creates non-existent sections. Keeps track of options which were
-        specified by the user and should not be normally overwritten.
-
-        :param priority: if True, always over-write the value. If False, don't
-            over-write an existing value if it was written before with a
-            priority (i.e. if it was specified by the user)
-        :returns: True if the value was written, False if not (because of
-            priority)
-        """
-        if not self.has_section(section) and section.lower() != "default":
-            self.add_section(section)
-        if not priority and (section, key) in self.priority_sectionkeys:
-            LOG.debug("Option '[%s] %s = %s' was defined by user, NOT"
-                      " overwriting into value '%s'", section, key,
-                      self.get(section, key), value)
-            return False
-        if priority:
-            self.priority_sectionkeys.add((section, key))
-        LOG.debug("Setting [%s] %s = %s", section, key, value)
-        ConfigParser.SafeConfigParser.set(self, section, key, value)
-        return True
-
-    def remove_values(self, args):
-        """Remove values from configuration file specified in arguments.
-
-        :args - arguments object
-        """
-        for key_path in args.remove:
-            section, key = key_path.split('.')
-            try:
-                conf_values = self.get(section, key).split(',')
-                remove = args.remove[key_path]
-                if len(remove) == 0:
-                    # delete all values in section.key
-                    self.remove_option(section, key)
-                elif len(conf_values) == 1:
-                    # make sure only the value specified by user
-                    # will be deleted if in the key is other value
-                    # than expected, ignore it
-                    if conf_values[0] in args.remove[key_path]:
-                        self.remove_option(section, key)
-                else:
-                    # exclude all unwanted values from the list
-                    # and preserve the original order of items
-                    conf_values = [v for v in conf_values if v not in remove]
-                    self.set(section, key, ",".join(conf_values))
-            except ConfigParser.NoOptionError:
-                # only inform a user, option specified by him doesn't exist
-                LOG.error(sys.exc_info()[1])
-            except ConfigParser.NoSectionError:
-                # only inform a user, section specified by him doesn't exist
-                LOG.error(sys.exc_info()[1])
-
-
 def create_tempest_users(tenants_client, roles_client, users_client, conf,
                          services):
     """Create users necessary for Tempest if they don't exist already."""
@@ -1114,7 +1032,7 @@ def main():
     args = parse_arguments()
     set_logging(args.debug, args.verbose)
 
-    conf = TempestConf()
+    conf = tempest_conf.TempestConf()
     cloud_creds = args.config.get('auth')
     set_options(conf, args.deployer_input, args.non_admin,
                 args.overrides, args.test_accounts, cloud_creds)
@@ -1164,7 +1082,7 @@ def main():
     # remove all unwanted values if were specified
     if args.remove != {}:
         LOG.info("Removing configuration: %s", str(args.remove))
-        conf.remove_values(args)
+        conf.remove_values(args.remove)
     LOG.info("Creating configuration file %s", os.path.abspath(args.out))
     with open(args.out, 'w') as f:
         conf.write(f)

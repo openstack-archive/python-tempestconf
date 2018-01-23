@@ -15,12 +15,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from config_tempest import api_discovery as api
-from config_tempest import config_tempest as tool
 from fixtures import MonkeyPatch
 import json
 import mock
 from oslotest import base
+
+from config_tempest import api_discovery as api
+from config_tempest import main as tool
+from config_tempest import tempest_conf
 
 
 class BaseConfigTempestTest(base.BaseTestCase):
@@ -29,7 +31,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
 
     def _get_conf(self, V2, V3):
         """Creates fake conf for testing purposes"""
-        conf = tool.TempestConf()
+        conf = tempest_conf.TempestConf()
         uri = "http://172.16.52.151:5000/"
         conf.set("identity", "username", "demo")
         conf.set("identity", "password", "secret")
@@ -46,7 +48,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
 
     def _get_alt_conf(self, V2, V3):
         """Contains newer params in place of the deprecated params"""
-        conf = tool.TempestConf()
+        conf = tempest_conf.TempestConf()
         uri = "http://172.16.52.151:5000/"
         conf.set("identity", "username", "demo")
         conf.set("identity", "password", "secret")

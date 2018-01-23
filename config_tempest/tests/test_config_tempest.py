@@ -15,12 +15,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from argparse import Namespace
-from config_tempest import config_tempest as tool
-from config_tempest.tests.base import BaseConfigTempestTest
 from fixtures import MonkeyPatch
 import logging
 import mock
+
+from config_tempest import main as tool
+from config_tempest import tempest_conf
+from config_tempest.tests.base import BaseConfigTempestTest
 
 # disable logging when running unit tests
 logging.disable(logging.CRITICAL)
@@ -35,7 +36,7 @@ class TestClientManager(BaseConfigTempestTest):
 
     def test_get_credentials_v2(self):
         mock_function = mock.Mock()
-        function2mock = 'config_tempest.config_tempest.auth.get_credentials'
+        function2mock = 'config_tempest.main.auth.get_credentials'
         self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.client.get_credentials(self.conf, "name", "Tname", "pass")
         mock_function.assert_called_with(
@@ -46,7 +47,7 @@ class TestClientManager(BaseConfigTempestTest):
 
     def test_get_credentials_v3(self):
         mock_function = mock.Mock()
-        function2mock = 'config_tempest.config_tempest.auth.get_credentials'
+        function2mock = 'config_tempest.main.auth.get_credentials'
         self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.client.get_credentials(self.conf, "name", "project_name",
                                     "pass", identity_version='v3')
@@ -63,7 +64,7 @@ class TestClientManager(BaseConfigTempestTest):
         # check if method returns correct method - KeystoneV2AuthProvider
         mock_function = mock.Mock()
         # mock V2Provider, if other provider is called, it fails
-        func2mock = 'config_tempest.config_tempest.auth.KeystoneV2AuthProvider'
+        func2mock = 'config_tempest.main.auth.KeystoneV2AuthProvider'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         resp = self.client.get_auth_provider(self.conf, "")
         self.assertEqual(resp, mock_function())
@@ -76,11 +77,11 @@ class TestClientManager(BaseConfigTempestTest):
         # check if method returns KeystoneV3AuthProvider
         # make isinstance return True
         mockIsInstance = mock.Mock(return_value=True)
-        self.useFixture(MonkeyPatch('config_tempest.config_tempest.isinstance',
+        self.useFixture(MonkeyPatch('config_tempest.main.isinstance',
                                     mockIsInstance))
         mock_function = mock.Mock()
         # mock V3Provider, if other provider is called, it fails
-        func2mock = 'config_tempest.config_tempest.auth.KeystoneV3AuthProvider'
+        func2mock = 'config_tempest.main.auth.KeystoneV3AuthProvider'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         resp = self.client.get_auth_provider(self.conf, "")
         self.assertEqual(resp, mock_function())
@@ -100,7 +101,7 @@ class TestClientManager(BaseConfigTempestTest):
 
     def test_init_manager_as_admin(self):
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = ('config_tempest.config_tempest.ProjectsClient.'
+        func2mock = ('config_tempest.main.ProjectsClient.'
                      'get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         self._get_clients(self.conf, admin=True)
@@ -118,7 +119,7 @@ class TestClientManager(BaseConfigTempestTest):
         self.conf = self._get_alt_conf("v2.0", "v3")
         self.client = self._get_clients(self.conf)
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = ('config_tempest.config_tempest.ProjectsClient'
+        func2mock = ('config_tempest.main.ProjectsClient'
                      '.get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         self._get_clients(self.conf, admin=True)
@@ -161,7 +162,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
-        func2mock = ('config_tempest.config_tempest.ProjectsClient.'
+        func2mock = ('config_tempest.main.ProjectsClient.'
                      'get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
 
@@ -173,7 +174,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
             'auth_url': 'http://auth.url.com/'
         }
         # create an empty conf
-        conf = tool.TempestConf()
+        conf = tempest_conf.TempestConf()
         conf.set('identity', 'uri', cloud_args['auth_url'], priority=True)
         # call the function and check if data were obtained properly
         tool.set_cloud_config_values(non_admin, cloud_args, conf)
@@ -227,101 +228,6 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
                                 self.conf.get('identity', 'admin_username'),
                                 self.conf.get('identity', 'admin_password'),
                                 self.conf.get('identity', 'admin_tenant_name'))
-
-
-class TestTempestConf(BaseConfigTempestTest):
-    def setUp(self):
-        super(TestTempestConf, self).setUp()
-        self.conf = tool.TempestConf()
-
-    def test_set_value(self):
-        resp = self.conf.set("section", "key", "value")
-        self.assertTrue(resp)
-        self.assertEqual(self.conf.get("section", "key"), "value")
-        self.assertEqual(self.conf.get_defaulted("section", "key"), "value")
-
-    def test_set_value_overwrite(self):
-        # set value wihout priority (default: priority=False)
-        resp = self.conf.set("section", "key", "value")
-        # value should be overwritten, because it wasn't set with priority
-        resp = self.conf.set("section", "key", "value")
-        self.assertTrue(resp)
-
-    def test_set_value_overwrite_priority(self):
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key", "value")
-        self.assertFalse(resp)
-
-    def test_set_value_overwrite_by_priority(self):
-        resp = self.conf.set("section", "key", "value")
-        resp = self.conf.set("section", "key", "value", priority=True)
-        self.assertTrue(resp)
-
-    def test_set_value_overwrite_priority_by_priority(self):
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        self.assertTrue(resp)
-
-    def test_get_bool_value(self):
-        self.assertTrue(self.conf.get_bool_value("True"))
-        self.assertFalse(self.conf.get_bool_value("False"))
-        self.assertRaises(ValueError, self.conf.get_bool_value, "no")
-
-    def test_remove_values(self):
-        api_exts = "router_availability_zone,rbac-policies,pagination,sorting,"
-        api_exts += "standard-attr-description,router,binding,metering,"
-        api_exts += "allowed-address-pairs,project-id,dvr,l3-flavors,tag-ext"
-        remove_exts = ["router", "project-id", "dvr"]
-        args = Namespace(
-            remove={
-                "identity.username": ["demo"],
-                "identity.tenant_name": ["tenant"],
-                "compute.image_ssh_user": ["rhel", "cirros"],
-                "network-feature-enabled.api_extensions": remove_exts
-            }
-        )
-        self.conf = self._get_conf("v2.0", "v3")
-        self.conf.set("compute", "image_ssh_user", "cirros")
-        self.conf.set("network-feature-enabled", "api_extensions", api_exts)
-        self.conf.remove_values(args)
-        self.assertFalse(self.conf.has_option("identity", "username"))
-        self.assertTrue(self.conf.has_option("identity", "tenant_name"))
-        self.assertFalse(self.conf.has_option("compute", "image_ssh_user"))
-        conf_exts = self.conf.get("network-feature-enabled", "api_extensions")
-        conf_exts = conf_exts.split(',')
-        for ext in api_exts.split(','):
-            if ext in remove_exts:
-                self.assertFalse(ext in conf_exts)
-            else:
-                self.assertTrue(ext in conf_exts)
-
-    def test_remove_values_having_hyphen(self):
-        api_exts = "dvr, l3-flavors, rbac-policies, project-id"
-        remove_exts = ["dvr", "project-id"]
-        args = Namespace(
-            remove={
-                "network-feature-enabled.api-extensions": remove_exts
-            }
-        )
-        self.conf = self._get_conf("v2.0", "v3")
-        self.conf.set("network-feature-enabled", "api-extensions", api_exts)
-        self.conf.remove_values(args)
-        conf_exts = self.conf.get("network-feature-enabled", "api-extensions")
-        conf_exts = conf_exts.split(',')
-        for ext in api_exts.split(','):
-            if ext in remove_exts:
-                self.assertFalse(ext in conf_exts)
-            else:
-                self.assertTrue(ext in conf_exts)
-
-    @mock.patch('config_tempest.config_tempest.LOG')
-    def test_remove_not_defined_values(self, mock_logging):
-        self.conf.remove_values(Namespace(remove={"notExistSection.key": []}))
-        # check if LOG.error was called
-        self.assertTrue(mock_logging.error.called)
-        self.conf.remove_values(Namespace(remove={"section.notExistKey": []}))
-        # check if LOG.error was called
-        self.assertTrue(mock_logging.error.called)
 
 
 class TestConfigTempest(BaseConfigTempestTest):
@@ -494,7 +400,7 @@ class TestFlavors(BaseConfigTempestTest):
         self.client = self._get_clients(self.conf).flavors
 
     def _mock_create_tempest_flavor(self, mock_function):
-        func2mock = 'config_tempest.config_tempest.find_or_create_flavor'
+        func2mock = 'config_tempest.main.find_or_create_flavor'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         tool.create_tempest_flavors(client=self.client,
                                     conf=self.conf,

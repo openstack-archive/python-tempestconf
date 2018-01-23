@@ -15,10 +15,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from config_tempest import config_tempest as tool
-from config_tempest.tests.base import BaseConfigTempestTest
 from fixtures import MonkeyPatch
 import mock
+
+from config_tempest import main as tool
+from config_tempest.tests.base import BaseConfigTempestTest
 
 
 class TestCreateTempestImages(BaseConfigTempestTest):
@@ -33,7 +34,7 @@ class TestCreateTempestImages(BaseConfigTempestTest):
         self.dir = "/img/"
         self.conf.set("scenario", "img_dir", self.dir)
 
-    @mock.patch('config_tempest.config_tempest.find_or_upload_image')
+    @mock.patch('config_tempest.main.find_or_upload_image')
     def test_create_tempest_images_exception(self, mock_find_upload):
         mock_find_upload.side_effect = Exception
         exc = Exception
@@ -45,7 +46,7 @@ class TestCreateTempestImages(BaseConfigTempestTest):
                           allow_creation=self.allow_creation,
                           disk_format=self.disk_format)
 
-    @mock.patch('config_tempest.config_tempest.find_or_upload_image')
+    @mock.patch('config_tempest.main.find_or_upload_image')
     def _test_create_tempest_images(self, mock_find_upload):
         mock_find_upload.side_effect = ["id_c", "id_d"]
         tool.create_tempest_images(client=self.client,
@@ -127,7 +128,7 @@ class TestFindOrUploadImage(BaseConfigTempestTest):
         conf = self._get_conf("v2.0", "v3")
         self.client = self._get_clients(conf).images
 
-    @mock.patch('config_tempest.config_tempest._find_image')
+    @mock.patch('config_tempest.main._find_image')
     def test_find_or_upload_image_not_found_creation_not_allowed(
             self, mock_find_image):
         mock_find_image.return_value = None
@@ -136,9 +137,9 @@ class TestFindOrUploadImage(BaseConfigTempestTest):
                           image_id=None, image_name=None,
                           allow_creation=False)
 
-    @mock.patch('config_tempest.config_tempest._find_image')
-    @mock.patch('config_tempest.config_tempest._download_file')
-    @mock.patch('config_tempest.config_tempest._upload_image')
+    @mock.patch('config_tempest.main._find_image')
+    @mock.patch('config_tempest.main._download_file')
+    @mock.patch('config_tempest.main._upload_image')
     def _test_find_or_upload_image_not_found_creation_allowed_format(
             self, mock_upload_image,
             mock_download_file, mock_find_image, format):
@@ -167,9 +168,9 @@ class TestFindOrUploadImage(BaseConfigTempestTest):
             format="https")
 
     @mock.patch('shutil.copyfile')
-    @mock.patch('config_tempest.config_tempest._find_image')
-    @mock.patch('config_tempest.config_tempest._download_file')
-    @mock.patch('config_tempest.config_tempest._upload_image')
+    @mock.patch('config_tempest.main._find_image')
+    @mock.patch('config_tempest.main._download_file')
+    @mock.patch('config_tempest.main._upload_image')
     def test_find_or_upload_image_not_found_creation_allowed_ftp_old(
             self, mock_upload_image, mock_download_file, mock_find_image,
             mock_copy):
@@ -190,7 +191,7 @@ class TestFindOrUploadImage(BaseConfigTempestTest):
         self.assertEqual(image_id, "my_fake_id")
 
     @mock.patch('os.path.isfile')
-    @mock.patch('config_tempest.config_tempest._find_image')
+    @mock.patch('config_tempest.main._find_image')
     def test_find_or_upload_image_found_downloaded(
             self, mock_find_image, mock_isfile):
         mock_find_image.return_value = \
@@ -201,9 +202,9 @@ class TestFindOrUploadImage(BaseConfigTempestTest):
             image_name=None, allow_creation=True)
         self.assertEqual(image_id, "my_fake_id")
 
-    @mock.patch('config_tempest.config_tempest._download_image')
+    @mock.patch('config_tempest.main._download_image')
     @mock.patch('os.path.isfile')
-    @mock.patch('config_tempest.config_tempest._find_image')
+    @mock.patch('config_tempest.main._find_image')
     def test_find_or_upload_image_found_not_downloaded(
             self, mock_find_image, mock_isfile, mock_download_image):
         image_id = "my_fake_id"

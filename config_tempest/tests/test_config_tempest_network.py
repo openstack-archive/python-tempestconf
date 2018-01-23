@@ -15,10 +15,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from config_tempest import config_tempest as tool
-from config_tempest.tests.base import BaseConfigTempestTest
 from fixtures import MonkeyPatch
 import mock
+
+from config_tempest import main as tool
+from config_tempest.tests.base import BaseConfigTempestTest
 
 
 class TestCreateTempestNetworks(BaseConfigTempestTest):
@@ -92,7 +93,7 @@ class TestCreateTempestNetworks(BaseConfigTempestTest):
         self.assertEqual(self.conf.get('network', 'floating_network_name'),
                          'tempest-network')
 
-    @mock.patch('config_tempest.config_tempest.LOG')
+    @mock.patch('config_tempest.main.LOG')
     def test_create_network_auto_discover_not_found(self, mock_logging):
         neutron_client = self.clients.get_neutron_client()
         # delete subnets => network will not be found
