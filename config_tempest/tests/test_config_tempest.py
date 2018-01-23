@@ -538,6 +538,10 @@ class TestFlavors(BaseConfigTempestTest):
         mock_function.assert_has_calls(calls, any_order=True)
 
     def test_create_flavor_not_allowed(self):
+        # mock list_flavors() to return empty list
+        mock_function = mock.Mock(return_value={"flavors": []})
+        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + '.list_flavors',
+                                    mock_function))
         exc = Exception
         self.assertRaises(exc,
                           tool.find_or_create_flavor,
