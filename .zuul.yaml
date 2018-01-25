@@ -1,6 +1,4 @@
----
 - project:
-    name: openstack/python-tempestconf
     check:
       jobs:
         - python-tempestconf-tox-cover
@@ -43,8 +41,8 @@
       - zuul: openstack-dev/devstack
     run: playbooks/python-tempestconf-tempest-devstack.yaml
     vars:
-      user: "admin"
-      cloud_user: "devstack-admin"
+      user: admin
+      cloud_user: devstack-admin
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -66,8 +64,8 @@
       - zuul: openstack-dev/devstack
     run: playbooks/python-tempestconf-tempest-devstack.yaml
     vars:
-      user: "demo"
-      cloud_user: "devstack"
+      user: demo
+      cloud_user: devstack
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -92,7 +90,7 @@
     run: playbooks/python-tempestconf-tempest-packstack.yaml
     vars:
       scenario: scenario000
-      user: "admin"
+      user: admin
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -117,7 +115,7 @@
     run: playbooks/python-tempestconf-tempest-packstack.yaml
     vars:
       scenario: scenario000
-      user: "demo"
+      user: demo
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
