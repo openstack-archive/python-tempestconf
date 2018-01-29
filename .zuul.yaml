@@ -84,6 +84,7 @@
       - openstack/python-tempestconf
       - openstack/tempest
       - openstack-dev/devstack
+    timeout: 5400
     roles:
       - zuul: openstack/packstack
       - zuul: openstack/python-tempestconf
@@ -109,6 +110,7 @@
       - openstack/python-tempestconf
       - openstack/tempest
       - openstack-dev/devstack
+    timeout: 5400
     roles:
       - zuul: openstack/packstack
       - zuul: openstack/python-tempestconf
