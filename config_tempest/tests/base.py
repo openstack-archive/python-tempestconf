@@ -20,7 +20,6 @@ import json
 import mock
 from oslotest import base
 
-from config_tempest import api_discovery as api
 from config_tempest.clients import ClientManager
 from config_tempest.credentials import Credentials
 from config_tempest import tempest_conf
@@ -83,6 +82,8 @@ class BaseServiceTest(base.BaseTestCase):
     """Test case base class for all api_discovery unit tests"""
 
     FAKE_TOKEN = "s6d5f45sdf4s564f4s6464sdfsd514"
+    FAKE_CLIENT_MOCK = 'config_tempest.tests.base.BaseServiceTest' + \
+                       '.FakeServiceClient'
     FAKE_HEADERS = {
         'Accept': 'application/json', 'X-Auth-Token': FAKE_TOKEN
     }
@@ -128,6 +129,14 @@ class BaseServiceTest(base.BaseTestCase):
                     'status': 'deprecated',
                     'id': 'v2.0',
                 }]
+            }
+        }
+    )
+    FAKE_IDENTITY_VERSION = (
+        {
+            'version': {
+                'status': 'stable',
+                'id': 'v3.8',
             }
         }
     )
@@ -202,22 +211,54 @@ class BaseServiceTest(base.BaseTestCase):
         def __init__(self):
             self.content = json.dumps(self.FAKE_V3_EXTENSIONS)
 
+    class FakeServiceClient(object):
+        def __init__(self, services=None):
+            self.client = mock.Mock()
+            self.return_value = mock.Mock()
+            self.services = services
+
+        def list_networks(self):
+            return self.return_value
+
+        def list_services(self, **kwargs):
+            return self.services
+
     def _fake_service_do_get_method(self, fake_data):
-        function2mock = 'config_tempest.api_discovery.Service.do_get'
+        function2mock = 'config_tempest.services.base.Service.do_get'
         do_get_output = json.dumps(fake_data)
         mocked_do_get = mock.Mock()
         mocked_do_get.return_value = do_get_output
         self.useFixture(MonkeyPatch(function2mock, mocked_do_get))
 
-    def _test_get_service_class(self, service, cls):
-        resp = api.get_service_class(service)
-        self.assertEqual(resp, cls)
-
-    def _get_extensions(self, service, expected_resp, fake_data):
+    def _set_get_extensions(self, service, expected_resp, fake_data):
+        # mock do_get response
         self._fake_service_do_get_method(fake_data)
+        # set the fake extensions
+        service.set_extensions()
+        # check if extensions were set
+        self.assertItemsEqual(service.extensions, expected_resp)
+        # check if get method returns the right data
         resp = service.get_extensions()
+        self.assertItemsEqual(resp, expected_resp)
+
+    def _set_get_versions(self, service, expected_resp, fake_data):
+        # mock do_get response
+        self._fake_service_do_get_method(fake_data)
+        # set the fake versions
+        service.set_versions()
+        # check if versions were set
+        self.assertItemsEqual(service.versions, expected_resp)
+        # check if get method returns the right data
+        resp = service.get_versions()
         self.assertItemsEqual(resp, expected_resp)
 
     def _test_deserialize_versions(self, service, expected_resp, fake_data):
         resp = service.deserialize_versions(fake_data)
         self.assertItemsEqual(resp, expected_resp)
+
+    def _assert_conf_get_not_raises(self, exc, section, value):
+        try:
+            self.conf.get(section, value)
+        except exc:
+            return
+        self.assertTrue(False)

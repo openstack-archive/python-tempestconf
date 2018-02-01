@@ -1,4 +1,4 @@
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2016, 2017 Red Hat, Inc.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,13 +14,11 @@
 # under the License.
 
 import ConfigParser
-import logging
 import sys
 
+from constants import LOG
 from oslo_config import cfg
 import tempest.config
-
-LOG = logging.getLogger(__name__)
 
 
 class TempestConf(ConfigParser.SafeConfigParser):
