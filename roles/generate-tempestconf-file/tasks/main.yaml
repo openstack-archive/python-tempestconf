@@ -64,4 +64,4 @@
         cp {{ tempestconf_src_relative_path }}/etc/tempest.conf {{ devstack_base_dir }}/tempest/etc/tempest.conf
 
   vars:
-    tempestconf_src_relative_path: "{{ zuul._projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"
+    tempestconf_src_relative_path: "{{ zuul.projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"
