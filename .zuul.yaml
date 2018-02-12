@@ -76,7 +76,7 @@
 
 - job:
     name: python-tempestconf-tempest-packstack-admin
-    parent: packstack-base
+    parent: packstack-allinone
     description: |
       Tempest job for python-tempestconf on a packstack environment as the admin user.
     required-projects:
@@ -101,7 +101,7 @@
 
 - job:
     name: python-tempestconf-tempest-packstack-demo
-    parent: packstack-base
+    parent: packstack-allinone
     description: |
       Tempest job for python-tempestconf on a packstack environment as the demo user.
     required-projects:

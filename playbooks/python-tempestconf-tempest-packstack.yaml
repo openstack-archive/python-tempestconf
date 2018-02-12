@@ -39,3 +39,5 @@
     - name: Run Tempest Tests
       include_role:
         name: run-tempest
+      vars:
+        tempest_concurrency: 2
