@@ -968,6 +968,8 @@ def create_tempest_networks(clients, conf, has_neutron, public_network_id):
 def configure_keystone_feature_flags(conf, services):
     """Set keystone feature flags based upon version ID."""
     supported_versions = services.get('identity', {}).get('versions', [])
+    if len(supported_versions) <= 1:
+        return
     for version in supported_versions:
         major, minor = version.split('.')[:2]
         # Enable the domain specific roles feature flag. For more information,

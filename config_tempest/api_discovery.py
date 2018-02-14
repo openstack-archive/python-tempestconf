@@ -156,10 +156,17 @@ class IdentityService(VersionedService):
         return []
 
     def deserialize_versions(self, body):
-        if 'v2' in self.service_url:
-            return map(lambda x: x['id'], body['versions']['values'])
-        else:
-            return []
+        try:
+            versions = []
+            for v in body['versions']['values']:
+                    # TripleO is in transition to v3 only, so the environment
+                    # still returns v2 versions even though they're deprecated.
+                    # Therefor pick only versions with stable status.
+                if v['status'] == 'stable':
+                    versions.append(v['id'])
+            return versions
+        except KeyError:
+            return [body['version']['id']]
 
     def get_versions(self):
         return super(IdentityService, self).get_versions(top_level=False)

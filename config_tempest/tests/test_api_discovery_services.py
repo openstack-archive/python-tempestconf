@@ -138,7 +138,14 @@ class TestIdentityService(BaseServiceTest):
                              self.FAKE_IDENTITY_EXTENSIONS)
 
     def test_deserialize_versions(self):
-        expected_resp = ['v3.8', 'v2.0']
+        expected_resp = ['v3.8']
+        self._test_deserialize_versions(self.Service,
+                                        expected_resp,
+                                        self.FAKE_IDENTITY_VERSIONS)
+        expected_resp = ['v2.1', 'v3.8']
+        # add not deprecated v2 version to FAKE_IDENTITY_VERSIONS
+        v2 = {'status': 'stable', 'id': 'v2.1'}
+        self.FAKE_IDENTITY_VERSIONS['versions']['values'].append(v2)
         self._test_deserialize_versions(self.Service,
                                         expected_resp,
                                         self.FAKE_IDENTITY_VERSIONS)
