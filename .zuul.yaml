@@ -66,6 +66,8 @@
     vars:
       user: demo
       cloud_user: devstack
+      test_demo: True
+      cloud_admin: devstack-admin
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -118,6 +120,8 @@
     vars:
       scenario: scenario000
       user: demo
+      test_demo: True
+      cloud_admin: packstack-admin
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$

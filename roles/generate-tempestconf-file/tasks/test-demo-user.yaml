@@ -1,0 +1,40 @@
+  - name: Generate tempest configuration file as demo user (expected to fail)
+    shell: |
+        ./generate-tempestconf.sh
+    args:
+      chdir: "{{ tempestconf_src_relative_path }}"
+      executable: /bin/bash
+    register: result
+    failed_when: result.rc == 0
+
+  - name: Create m1.nano and m1.micro flavors for demo user
+    shell: |
+        set -x
+        openstack flavor create --os-cloud {{ cloud_admin }} \
+          --public \
+          --ram {{ item.ram }} \
+          --vcpus 1 \
+          --disk 0 \
+          {{ item.name }}
+    with_items:
+      - { name: "m1.nano", ram: 64 }
+      - { name: "m1.micro", ram: 128 }
+
+  - name: Download cirros image
+    get_url:
+      url: "{{ url_cirros_image }}"
+      dest: "{{ tempestconf_src_relative_path }}/etc/"
+      mode: 0660
+
+  - name: Create image and image alt for demo user
+    shell: |
+        set -x
+        openstack image create --os-cloud {{ cloud_admin }} \
+          --disk-format qcow2 \
+          --public \
+          --file {{ tempestconf_src_relative_path }}/etc/{{ url_cirros_image | basename }} \
+          {{ item }}
+    with_items:
+      - "{{ url_cirros_image | basename }}"
+      - '{{ url_cirros_image | basename }}_alt'
+
