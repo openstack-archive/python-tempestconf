@@ -321,7 +321,7 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
     """Set values from client's cloud config file.
 
     Set admin and non-admin credentials and uri from cloud credentials.
-    Note: the values may be later overriden by values specified in CLI.
+    Note: the values may be later overridden by values specified in CLI.
 
     :type non_admin: Boolean
     :param cloud_creds: auth data from os-client-config
