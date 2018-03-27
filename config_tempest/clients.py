@@ -1,0 +1,231 @@
+# Copyright 2018 Red Hat, Inc.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+from tempest.lib import exceptions
+from tempest.lib.services.compute import flavors_client
+from tempest.lib.services.compute import networks_client as nova_net_client
+from tempest.lib.services.compute import servers_client
+from tempest.lib.services.identity.v2 import identity_client
+from tempest.lib.services.identity.v2 import roles_client
+from tempest.lib.services.identity.v2 import tenants_client
+from tempest.lib.services.identity.v2 import users_client
+from tempest.lib.services.identity.v3  \
+    import identity_client as identity_v3_client
+from tempest.lib.services.identity.v3 import projects_client
+from tempest.lib.services.identity.v3 import roles_client as roles_v3_client
+from tempest.lib.services.identity.v3 import services_client as s_client
+from tempest.lib.services.identity.v3 import users_client as users_v3_client
+from tempest.lib.services.image.v2 import images_client
+from tempest.lib.services.network import networks_client
+from tempest.lib.services.volume.v2 import services_client
+
+
+class ProjectsClient(object):
+    """The class is a wrapper for managing projects/tenants.
+
+    It instantiates tempest projects_client and provides methods for creating
+    and finding projects (identity version v3)/tenants (identity version v2).
+    """
+    def __init__(self, auth, catalog_type, identity_region, endpoint_type,
+                 identity_version, **default_params):
+        self.identity_version = identity_version
+        self.project_class = tenants_client.TenantsClient if \
+            self.identity_version == "v2" else projects_client.ProjectsClient
+        self.client = self.project_class(auth, catalog_type, identity_region,
+                                         endpoint_type, **default_params)
+
+    def get_project_by_name(self, project_name):
+        if self.identity_version == "v2":
+            projects = self.client.list_tenants()['tenants']
+        else:
+            projects = self.client.list_projects()['projects']
+        for project in projects:
+            if project['name'] == project_name:
+                return project
+        raise exceptions.NotFound(
+            'No such tenant/project (%s) in %s' % (project_name, projects))
+
+    def create_project(self, name, description):
+        if self.identity_version == "v2":
+            self.client.create_tenant(name=name, description=description)
+        else:
+            self.client.create_project(name=name, description=description)
+
+
+class ClientManager(object):
+    """Manager of various OpenStack API clients.
+
+    Connections to clients are created on-demand, i.e. the client tries to
+    connect to the server only when it's being requested.
+    """
+    def __init__(self, conf, creds):
+        """Init method of ClientManager.
+
+        :param conf: TempestConf object
+        :param creds: Credentials object
+        """
+
+        self.identity_region = conf.get_defaulted('identity', 'region')
+        self.auth_provider = creds.get_auth_provider()
+
+        default_params = {
+            'disable_ssl_certificate_validation':
+                conf.get_defaulted('identity',
+                                   'disable_ssl_certificate_validation'),
+            'ca_certs': conf.get_defaulted('identity', 'ca_certificates_file')
+        }
+        compute_params = {
+            'service': conf.get_defaulted('compute', 'catalog_type'),
+            'region': self.identity_region,
+            'endpoint_type': conf.get_defaulted('compute', 'endpoint_type')
+        }
+        compute_params.update(default_params)
+
+        self.identity = self.get_identity_client(conf, default_params)
+
+        self.tenants = ProjectsClient(
+            self.auth_provider,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            'publicURL',
+            creds.identity_version,
+            **default_params)
+
+        self.set_roles_client(
+            auth=self.auth_provider,
+            creds=creds,
+            conf=conf,
+            endpoint_type='publicURL',
+            default_params=default_params)
+
+        self.set_users_client(
+            auth=self.auth_provider,
+            creds=creds,
+            conf=conf,
+            endpoint_type='publicURL',
+            default_params=default_params)
+
+        self.images = images_client.ImagesClient(
+            self.auth_provider,
+            conf.get_defaulted('image', 'catalog_type'),
+            self.identity_region,
+            **default_params)
+
+        self.servers = servers_client.ServersClient(self.auth_provider,
+                                                    **compute_params)
+        self.flavors = flavors_client.FlavorsClient(self.auth_provider,
+                                                    **compute_params)
+
+        self.service_client = s_client.ServicesClient(
+            self.auth_provider,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            **default_params)
+
+        self.volume_service = services_client.ServicesClient(
+            self.auth_provider,
+            conf.get_defaulted('volume', 'catalog_type'),
+            self.identity_region,
+            **default_params)
+
+        self.networks = None
+
+        def create_nova_network_client():
+            if self.networks is None:
+                self.networks = nova_net_client.NetworksClient(
+                    self.auth_provider, **compute_params)
+            return self.networks
+
+        def create_neutron_client():
+            if self.networks is None:
+                self.networks = networks_client.NetworksClient(
+                    self.auth_provider,
+                    conf.get_defaulted('network', 'catalog_type'),
+                    self.identity_region,
+                    endpoint_type=conf.get_defaulted('network',
+                                                     'endpoint_type'),
+                    **default_params)
+            return self.networks
+
+        self.get_nova_net_client = create_nova_network_client
+        self.get_neutron_client = create_neutron_client
+
+        # Set admin tenant id needed for keystone v3 tests.
+        if creds.admin:
+            tenant = self.tenants.get_project_by_name(creds.tenant_name)
+            conf.set('identity', 'admin_tenant_id', tenant['id'])
+
+    def get_identity_client(self, conf, default_params):
+        """Obtain identity client.
+
+        :type conf: TempestConf object
+        :type default_params: dict
+        """
+        if "v2.0" in conf.get("identity", "uri"):
+            return identity_client.IdentityClient(
+                self.auth_provider,
+                conf.get_defaulted('identity', 'catalog_type'),
+                self.identity_region, endpoint_type='publicURL',
+                **default_params)
+        else:
+            return identity_v3_client.IdentityClient(
+                self.auth_provider,
+                conf.get_defaulted('identity', 'catalog_type'),
+                self.identity_region, endpoint_type='publicURL',
+                **default_params)
+
+    def set_users_client(self, auth, creds, conf, endpoint_type,
+                         default_params):
+        """Sets users client.
+
+        :param auth: auth provider
+        :type auth: auth.KeystoneV2AuthProvider (or V3)
+        :type creds: Credentials object
+        :type conf: TempestConf object
+        :type endpoint_type: string
+        :type default_params: dict
+        """
+        users_class = users_client.UsersClient
+        if "v3" in creds.identity_version:
+            users_class = users_v3_client.UsersClient
+
+        self.users = users_class(
+            auth,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            endpoint_type=endpoint_type,
+            **default_params)
+
+    def set_roles_client(self, auth, creds, conf, endpoint_type,
+                         default_params):
+        """Sets roles client.
+
+        :param auth: auth provider
+        :type auth: auth.KeystoneV2AuthProvider (or V3)
+        :type creds: Credentials object
+        :type conf: TempestConf object
+        :type endpoint_type: string
+        :type default_params: dict
+        """
+        roles_class = roles_client.RolesClient
+        if "v3" in creds.identity_version:
+            roles_class = roles_v3_client.RolesClient
+
+        self.roles = roles_class(
+            auth,
+            conf.get_defaulted('identity', 'catalog_type'),
+            self.identity_region,
+            endpoint_type=endpoint_type,
+            **default_params)

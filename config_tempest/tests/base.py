@@ -21,7 +21,8 @@ import mock
 from oslotest import base
 
 from config_tempest import api_discovery as api
-from config_tempest import main as tool
+from config_tempest.clients import ClientManager
+from config_tempest.credentials import Credentials
 from config_tempest import tempest_conf
 
 
@@ -63,13 +64,18 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "use_dynamic_credentials", "True")
         return conf
 
+    def _get_creds(self, conf, admin=False):
+        return Credentials(conf, admin)
+
     @mock.patch('os_client_config.cloud_config.CloudConfig')
-    def _get_clients(self, conf, mock_args, admin=False):
+    def _get_clients(self, conf, mock_args, creds=None):
         """Returns ClientManager instance"""
+        if creds is None:
+            creds = self._get_creds(conf)
         mock_function = mock.Mock(return_value=False)
         func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
-        return tool.ClientManager(conf, admin=admin)
+        return ClientManager(conf, creds)
 
 
 class BaseServiceTest(base.BaseTestCase):
