@@ -512,7 +512,12 @@ def create_tempest_images(client, conf, image_path, allow_creation,
 
 
 def check_ceilometer_service(client, conf, services):
-    services = client.list_services(**{'type': 'metering'})
+    try:
+        services = client.list_services(**{'type': 'metering'})
+    except exceptions.Forbidden:
+        LOG.warning("User has no permissions to list services - "
+                    "metering service can't be discovered.")
+        return
     if services and len(services['services']):
         metering = services['services'][0]
         if 'ceilometer' in metering['name'] and metering['enabled']:
@@ -524,8 +529,13 @@ def check_volume_backup_service(client, conf, services):
     if 'volumev3' not in services:
         LOG.info("No volume service found, skipping backup service check")
         return
-    params = {'binary': 'cinder-backup'}
-    backup_service = client.list_services(**params)
+    try:
+        params = {'binary': 'cinder-backup'}
+        backup_service = client.list_services(**params)
+    except exceptions.Forbidden:
+        LOG.warning("User has no permissions to list services - "
+                    "cinder-backup service can't be discovered.")
+        return
 
     if backup_service:
         # We only set backup to false if the service isn't running otherwise we
