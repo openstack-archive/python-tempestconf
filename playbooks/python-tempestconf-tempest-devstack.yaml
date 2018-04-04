@@ -24,6 +24,9 @@
     - name: ACL devstack files
       include_role:
         name: acl-devstack-files
+    - name: Edit clouds.yaml file
+      include_role:
+        name: tempestconf-workaround-auth-url
     - name: Generate tempest configuration file
       include_role:
         name: generate-tempestconf-file

@@ -23,30 +23,6 @@
         virtualenv: "{{ virtualenvs.tempestconf }}"
         chdir: "{{ tempestconf_src_relative_path }}"
 
-  - name: Cat clouds.yaml file
-    shell: |
-        set -ex
-        cat /etc/openstack/clouds.yaml
-    ignore_errors: True
-    args:
-       executable: /bin/bash
-
-  - name: "Workaround for AUTH URL in clouds.yaml"
-    replace:
-        path: /etc/openstack/clouds.yaml
-        regexp: "auth_url:.*"
-        replace: "auth_url: http://{{ ansible_default_ipv4.address }}/identity/v3"
-    become: true
-    ignore_errors: True
-
-  - name: Cat edited clouds.yaml file
-    shell: |
-        set -ex
-        cat /etc/openstack/clouds.yaml
-    ignore_errors: True
-    args:
-       executable: /bin/bash
-
   - name: Generate tempest configuration file
     shell: |
         set -ex

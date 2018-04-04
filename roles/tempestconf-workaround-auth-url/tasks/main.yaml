@@ -1,0 +1,23 @@
+  - name: Cat clouds.yaml file
+    shell: |
+        set -ex
+        cat {{ clouds_file_path }}
+    ignore_errors: True
+    args:
+       executable: /bin/bash
+
+  - name: Workaround for AUTH URL in clouds.yaml
+    replace:
+        path: "{{ clouds_file_path }}"
+        regexp: "auth_url:.*"
+        replace: "auth_url: http://{{ ansible_default_ipv4.address }}/identity/v3"
+    become: true
+    ignore_errors: True
+
+  - name: Cat edited clouds.yaml file
+    shell: |
+        set -ex
+        cat {{ clouds_file_path }}
+    ignore_errors: True
+    args:
+      executable: /bin/bash
