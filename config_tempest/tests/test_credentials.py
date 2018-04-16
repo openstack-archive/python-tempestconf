@@ -28,6 +28,28 @@ class TestCredentials(BaseConfigTempestTest):
         self.conf = self._get_conf("v2.0", "v3")
         self.creds = self._get_creds(self.conf)
 
+    def test_get_credential(self):
+        # set conf containing the newer values (admin creds in auth section)
+        self.creds._conf = self._get_alt_conf("v2.0", "v3")
+        resp = self.creds.get_credential("username")
+        self.assertEqual(resp, "demo")
+        # set admin credentials
+        self.creds.admin = True
+        resp = self.creds.get_credential("username")
+        self.assertEqual(resp, "admin")
+
+    def test_get_identity_credential(self):
+        for i in range(0, 2):
+            resp = self.creds.get_identity_credential("username")
+            self.assertEqual(resp, "demo")
+            # set admin credentials
+            self.creds.admin = True
+            resp = self.creds.get_identity_credential("admin_username")
+            self.assertEqual(resp, "admin")
+            # use conf which contains the newer values - (admin creds
+            # in auth section)
+            self.creds._conf = self._get_alt_conf("v2.0", "v3")
+
     def test_get_identity_version_v2(self):
         resp = self.creds._get_identity_version()
         self.assertEqual(resp, 'v2')
@@ -37,6 +59,23 @@ class TestCredentials(BaseConfigTempestTest):
         creds = self._get_creds(conf)
         resp = creds._get_identity_version()
         self.assertEqual(resp, 'v3')
+
+    def test_get_creds_kwargs(self):
+        expected_resp = {
+            'username': 'demo',
+            'password': 'secret',
+            'tenant_name': 'demo'
+        }
+        self.assertEqual(self.creds._get_creds_kwargs(), expected_resp)
+        self.creds.identity_version = 'v3'
+        expected_resp = {
+            'username': 'demo',
+            'password': 'secret',
+            'project_name': 'demo',
+            'domain_name': 'Default',
+            'user_domain_name': 'Default'
+        }
+        self.assertEqual(self.creds._get_creds_kwargs(), expected_resp)
 
     def test_set_credentials_v2(self):
         mock_function = mock.Mock()

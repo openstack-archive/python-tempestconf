@@ -1,17 +1,17 @@
 # Copyright 2016 Red Hat, Inc.
 # All Rights Reserved.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 """
 This script will generate the etc/tempest.conf file by applying a series of
 specified options in the following order:
@@ -36,71 +36,26 @@ https://docs.openstack.org/developer/os-client-config/
 obtained by querying the cloud.
 """
 
-import api_discovery
 import argparse
 import ConfigParser
 import logging
 import os
-import shutil
 import sys
-import urllib2
 
 from clients import ClientManager
+import constants as C
+from constants import LOG
 from credentials import Credentials
+from flavors import Flavors
 import os_client_config
 from oslo_config import cfg
-from tempest.lib import exceptions
+from services import boto
+from services import ceilometer
+from services.horizon import configure_horizon
+from services.services import Services
+from services import volume
 import tempest_conf
-
-LOG = logging.getLogger(__name__)
-
-# Get the current tempest workspace path
-TEMPEST_WORKSPACE = os.getcwd()
-
-DEFAULTS_FILE = os.path.join(TEMPEST_WORKSPACE, "etc",
-                             "default-overrides.conf")
-DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.5/"
-                 "cirros-0.3.5-x86_64-disk.img")
-DEFAULT_IMAGE_FORMAT = 'qcow2'
-
-# services and their codenames
-SERVICE_NAMES = {
-    'baremetal': 'ironic',
-    'compute': 'nova',
-    'database': 'trove',
-    'data-processing': 'sahara',
-    'image': 'glance',
-    'network': 'neutron',
-    'object-store': 'swift',
-    'orchestration': 'heat',
-    'share': 'manila',
-    'telemetry': 'ceilometer',
-    'volume': 'cinder',
-    'messaging': 'zaqar',
-    'metric': 'gnocchi',
-    'event': 'panko',
-}
-
-# what API versions could the service have and should be enabled/disabled
-# depending on whether they get discovered as supported. Services with only one
-# version don't need to be here, neither do service versions that are not
-# configurable in tempest.conf
-SERVICE_VERSIONS = {
-    'image': {'supported_versions': ['v1', 'v2'], 'catalog': 'image'},
-    'identity': {'supported_versions': ['v2', 'v3'], 'catalog': 'identity'},
-    'volume': {'supported_versions': ['v2', 'v3'], 'catalog': 'volumev3'}
-}
-
-# Keep track of where the extensions are saved for that service.
-# This is necessary because the configuration file is inconsistent - it uses
-# different option names for service extension depending on the service.
-SERVICE_EXTENSION_KEY = {
-    'compute': 'api_extensions',
-    'object-store': 'discoverable_apis',
-    'network': 'api_extensions',
-    'volume': 'api_extensions',
-    'identity': 'api_extensions'
-}
+from users import Users
 
 
 def set_logging(debug, verbose):
@@ -154,9 +109,9 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     :param cloud_creds: Cloud credentials from client's config
     :type cloud_creds: dict
     """
-    if os.path.isfile(DEFAULTS_FILE):
-        LOG.info("Reading defaults from file '%s'", DEFAULTS_FILE)
-        conf.read(DEFAULTS_FILE)
+    if os.path.isfile(C.DEFAULTS_FILE):
+        LOG.info("Reading defaults from file '%s'", C.DEFAULTS_FILE)
+        conf.read(C.DEFAULTS_FILE)
 
     if deployer_input and os.path.isfile(deployer_input):
         read_deployer_input(deployer_input, conf)
@@ -192,6 +147,14 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     for section, key, value in overrides:
         conf.set(section, key, value, priority=True)
 
+    uri = conf.get("identity", "uri")
+    if "v3" in uri:
+        conf.set("identity", "auth_version", "v3")
+        conf.set("identity", "uri_v3", uri)
+    else:
+        # TODO(arxcruz) make a check if v3 is enabled
+        conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
+
 
 def parse_arguments():
     cloud_config = os_client_config.OpenStackConfig()
@@ -223,14 +186,14 @@ def parse_arguments():
                         help='Run without admin creds')
     parser.add_argument('--test-accounts', default=None, metavar='PATH',
                         help='Use accounts from accounts.yaml')
-    parser.add_argument('--image-disk-format', default=DEFAULT_IMAGE_FORMAT,
+    parser.add_argument('--image-disk-format', default=C.DEFAULT_IMAGE_FORMAT,
                         help="""a format of an image to be uploaded to glance.
-                                Default is '%s'""" % DEFAULT_IMAGE_FORMAT)
-    parser.add_argument('--image', default=DEFAULT_IMAGE,
+                                Default is '%s'""" % C.DEFAULT_IMAGE_FORMAT)
+    parser.add_argument('--image', default=C.DEFAULT_IMAGE,
                         help="""an image to be uploaded to glance. The name of
                                 the image is the leaf name of the path which
                                 can be either a filename or url. Default is
-                                '%s'""" % DEFAULT_IMAGE)
+                                '%s'""" % C.DEFAULT_IMAGE)
     parser.add_argument('--network-id',
                         help="""The ID of an existing network in our openstack
                                 instance with external connectivity""")
@@ -247,7 +210,6 @@ def parse_arguments():
                         " together, since creating" " resources requires"
                         " admin rights")
     args.overrides = parse_overrides(args.overrides)
-    args.remove = parse_values_to_remove(args.remove)
     cloud = cloud_config.get_one_cloud(argparse=args)
     return cloud
 
@@ -333,451 +295,9 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
             'Could not load some identity options from cloud config file')
 
 
-def create_tempest_users(tenants_client, roles_client, users_client, conf,
-                         services):
-    """Create users necessary for Tempest if they don't exist already."""
-    create_user_with_tenant(tenants_client, users_client,
-                            conf.get('identity', 'username'),
-                            conf.get('identity', 'password'),
-                            conf.get('identity', 'tenant_name'))
-
-    username = conf.get_defaulted('auth', 'admin_username')
-    if username is None:
-        username = conf.get_defaulted('identity', 'admin_username')
-    give_role_to_user(tenants_client, roles_client, users_client,
-                      username,
-                      conf.get('identity', 'tenant_name'), role_name='admin')
-
-    # Prior to juno, and with earlier juno defaults, users needed to have
-    # the heat_stack_owner role to use heat stack apis. We assign that role
-    # to the user if the role is present.
-    if 'orchestration' in services:
-        give_role_to_user(tenants_client, roles_client, users_client,
-                          conf.get('identity', 'username'),
-                          conf.get('identity', 'tenant_name'),
-                          role_name='heat_stack_owner',
-                          role_required=False)
-
-    create_user_with_tenant(tenants_client, users_client,
-                            conf.get('identity', 'alt_username'),
-                            conf.get('identity', 'alt_password'),
-                            conf.get('identity', 'alt_tenant_name'))
-
-
-def give_role_to_user(tenants_client, roles_client, users_client, username,
-                      tenant_name, role_name, role_required=True):
-    """Give the user a role in the project (tenant).""",
-    tenant_id = tenants_client.get_project_by_name(tenant_name)['id']
-    users = users_client.list_users()
-    user_ids = [u['id'] for u in users['users'] if u['name'] == username]
-    user_id = user_ids[0]
-    roles = roles_client.list_roles()
-    role_ids = [r['id'] for r in roles['roles'] if r['name'] == role_name]
-    if not role_ids:
-        if role_required:
-            raise Exception("required role %s not found" % role_name)
-        LOG.debug("%s role not required", role_name)
-        return
-    role_id = role_ids[0]
-    try:
-        roles_client.create_user_role_on_project(tenant_id, user_id, role_id)
-        LOG.debug("User '%s' was given the '%s' role in project '%s'",
-                  username, role_name, tenant_name)
-    except exceptions.Conflict:
-        LOG.debug("(no change) User '%s' already has the '%s' role in"
-                  " project '%s'", username, role_name, tenant_name)
-
-
-def create_user_with_tenant(tenants_client, users_client, username,
-                            password, tenant_name):
-    """Create a user and a tenant if it doesn't exist."""
-
-    LOG.info("Creating user '%s' with tenant '%s' and password '%s'",
-             username, tenant_name, password)
-    tenant_description = "Tenant for Tempest %s user" % username
-    email = "%s@test.com" % username
-    # create a tenant
-    try:
-        tenants_client.create_project(name=tenant_name,
-                                      description=tenant_description)
-    except exceptions.Conflict:
-        LOG.info("(no change) Tenant '%s' already exists", tenant_name)
-
-    tenant_id = tenants_client.get_project_by_name(tenant_name)['id']
-
-    # create a user
-    try:
-        users_client.create_user(**{'name': username, 'password': password,
-                                    'tenantId': tenant_id, 'email': email})
-    except exceptions.Conflict:
-        LOG.info("User '%s' already exists.", username)
-
-
-def create_tempest_flavors(client, conf, allow_creation):
-    """Find or create flavors 'm1.nano' and 'm1.micro' and set them in conf.
-
-    If 'flavor_ref' and 'flavor_ref_alt' are specified in conf, it will first
-    try to find those - otherwise it will try finding or creating 'm1.nano' and
-    'm1.micro' and overwrite those options in conf.
-
-    :param allow_creation: if False, fail if flavors were not found
-    """
-    # m1.nano flavor
-    flavor_id = None
-    if conf.has_option('compute', 'flavor_ref'):
-        flavor_id = conf.get('compute', 'flavor_ref')
-    flavor_id = find_or_create_flavor(client,
-                                      flavor_id, 'm1.nano',
-                                      allow_creation, ram=64)
-    conf.set('compute', 'flavor_ref', flavor_id)
-
-    # m1.micro flavor
-    alt_flavor_id = None
-    if conf.has_option('compute', 'flavor_ref_alt'):
-        alt_flavor_id = conf.get('compute', 'flavor_ref_alt')
-    alt_flavor_id = find_or_create_flavor(client,
-                                          alt_flavor_id, 'm1.micro',
-                                          allow_creation, ram=128)
-    conf.set('compute', 'flavor_ref_alt', alt_flavor_id)
-
-
-def find_or_create_flavor(client, flavor_id, flavor_name,
-                          allow_creation, ram=64, vcpus=1, disk=0):
-    """Try finding flavor by ID or name, create if not found.
-
-    :param flavor_id: first try finding the flavor by this
-    :param flavor_name: find by this if it was not found by ID, create new
-        flavor with this name if not found at all
-    :param allow_creation: if False, fail if flavors were not found
-    :param ram: memory of created flavor in MB
-    :param vcpus: number of VCPUs for the flavor
-    :param disk: size of disk for flavor in GB
-    """
-    flavor = None
-    flavors = client.list_flavors()['flavors']
-    # try finding it by the ID first
-    if flavor_id:
-        found = [f for f in flavors if f['id'] == flavor_id]
-        if found:
-            flavor = found[0]
-    # if not found previously, try finding it by name
-    if flavor_name and not flavor:
-        found = [f for f in flavors if f['name'] == flavor_name]
-        if found:
-            flavor = found[0]
-
-    if not flavor and not allow_creation:
-        raise Exception("Flavor '%s' not found, but resource creation"
-                        " isn't allowed. Either use '--create' or provide"
-                        " an existing flavor" % flavor_name)
-
-    if not flavor:
-        LOG.info("Creating flavor '%s'", flavor_name)
-        flavor = client.create_flavor(name=flavor_name,
-                                      ram=ram, vcpus=vcpus,
-                                      disk=disk, id=None)
-        return flavor['flavor']['id']
-    else:
-        LOG.info("(no change) Found flavor '%s'", flavor['name'])
-
-    return flavor['id']
-
-
-def create_tempest_images(client, conf, image_path, allow_creation,
-                          disk_format):
-    img_path = os.path.join(conf.get("scenario", "img_dir"),
-                            os.path.basename(image_path))
-    name = image_path[image_path.rfind('/') + 1:]
-    conf.set('scenario', 'img_file', name)
-    alt_name = name + "_alt"
-    image_id = None
-    if conf.has_option('compute', 'image_ref'):
-        image_id = conf.get('compute', 'image_ref')
-    image_id = find_or_upload_image(client,
-                                    image_id, name, allow_creation,
-                                    image_source=image_path,
-                                    image_dest=img_path,
-                                    disk_format=disk_format)
-    alt_image_id = None
-    if conf.has_option('compute', 'image_ref_alt'):
-        alt_image_id = conf.get('compute', 'image_ref_alt')
-    alt_image_id = find_or_upload_image(client,
-                                        alt_image_id, alt_name, allow_creation,
-                                        image_source=image_path,
-                                        image_dest=img_path,
-                                        disk_format=disk_format)
-
-    conf.set('compute', 'image_ref', image_id)
-    conf.set('compute', 'image_ref_alt', alt_image_id)
-
-
-def check_ceilometer_service(client, conf, services):
-    try:
-        services = client.list_services(**{'type': 'metering'})
-    except exceptions.Forbidden:
-        LOG.warning("User has no permissions to list services - "
-                    "metering service can't be discovered.")
-        return
-    if services and len(services['services']):
-        metering = services['services'][0]
-        if 'ceilometer' in metering['name'] and metering['enabled']:
-            conf.set('service_available', 'ceilometer', 'True')
-
-
-def check_volume_backup_service(client, conf, services):
-    """Verify if the cinder backup service is enabled"""
-    if 'volumev3' not in services:
-        LOG.info("No volume service found, skipping backup service check")
-        return
-    try:
-        params = {'binary': 'cinder-backup'}
-        backup_service = client.list_services(**params)
-    except exceptions.Forbidden:
-        LOG.warning("User has no permissions to list services - "
-                    "cinder-backup service can't be discovered.")
-        return
-
-    if backup_service:
-        # We only set backup to false if the service isn't running otherwise we
-        # keep the default value
-        service = backup_service['services']
-        if not service or service[0]['state'] == 'down':
-            conf.set('volume-feature-enabled', 'backup', 'False')
-
-
-def find_or_upload_image(client, image_id, image_name, allow_creation,
-                         image_source='', image_dest='', disk_format=''):
-    image = _find_image(client, image_id, image_name)
-    if not image and not allow_creation:
-        raise Exception("Image '%s' not found, but resource creation"
-                        " isn't allowed. Either use '--create' or provide"
-                        " an existing image_ref" % image_name)
-
-    if image:
-        LOG.info("(no change) Found image '%s'", image['name'])
-        path = os.path.abspath(image_dest)
-        if not os.path.isfile(path):
-            _download_image(client, image['id'], path)
-    else:
-        LOG.info("Creating image '%s'", image_name)
-        if image_source.startswith("http:") or \
-           image_source.startswith("https:"):
-                _download_file(image_source, image_dest)
-        else:
-            shutil.copyfile(image_source, image_dest)
-        image = _upload_image(client, image_name, image_dest, disk_format)
-    return image['id']
-
-
-def create_tempest_networks(clients, conf, has_neutron, public_network_id):
-    label = None
-    public_network_name = None
-    # TODO(tkammer): separate logic to different func of Nova network
-    # vs Neutron
-    if has_neutron:
-        client = clients.get_neutron_client()
-
-        # if user supplied the network we should use
-        if public_network_id:
-            LOG.info("Looking for existing network id: {0}"
-                     "".format(public_network_id))
-
-            # check if network exists
-            network_list = client.list_networks()
-            for network in network_list['networks']:
-                if network['id'] == public_network_id:
-                    public_network_name = network['name']
-                    break
-            else:
-                raise ValueError('provided network id: {0} was not found.'
-                                 ''.format(public_network_id))
-
-        # no network id provided, try to auto discover a public network
-        else:
-            LOG.info("No network supplied, trying auto discover for network")
-            network_list = client.list_networks()
-            for network in network_list['networks']:
-                if network['router:external'] and network['subnets']:
-                    LOG.info("Found network, using: {0}".format(network['id']))
-                    public_network_id = network['id']
-                    public_network_name = network['name']
-                    break
-
-            # Couldn't find an existing external network
-            else:
-                LOG.error("No external networks found. "
-                          "Please note that any test that relies on external "
-                          "connectivity would most likely fail.")
-
-        if public_network_id is not None:
-            conf.set('network', 'public_network_id', public_network_id)
-        if public_network_name is not None:
-            conf.set('network', 'floating_network_name', public_network_name)
-
-    else:
-        client = clients.get_nova_net_client()
-        networks = client.list_networks()
-        if networks:
-            label = networks['networks'][0]['label']
-
-    if label:
-        conf.set('compute', 'fixed_network_name', label)
-    elif not has_neutron:
-        raise Exception('fixed_network_name could not be discovered and'
-                        ' must be specified')
-
-
-def configure_keystone_feature_flags(conf, services):
-    """Set keystone feature flags based upon version ID."""
-    supported_versions = services.get('identity', {}).get('versions', [])
-    if len(supported_versions) <= 1:
-        return
-    for version in supported_versions:
-        major, minor = version.split('.')[:2]
-        # Enable the domain specific roles feature flag. For more information,
-        # see https://developer.openstack.org/api-ref/identity/v3
-        if major == 'v3' and int(minor) >= 6:
-            conf.set('identity-feature-enabled',
-                     'forbid_global_implied_dsr',
-                     'True')
-
-
-def configure_boto(conf, services):
-    """Set boto URLs based on discovered APIs."""
-    if 'ec2' in services:
-        conf.set('boto', 'ec2_url', services['ec2']['url'])
-    if 's3' in services:
-        conf.set('boto', 's3_url', services['s3']['url'])
-
-
-def configure_horizon(conf):
-    """Derive the horizon URIs from the identity's URI."""
-    uri = conf.get('identity', 'uri')
-    u = urllib2.urlparse.urlparse(uri)
-    base = '%s://%s%s' % (u.scheme, u.netloc.replace(
-        ':' + str(u.port), ''), '/dashboard')
-    assert base.startswith('http:') or base.startswith('https:')
-    has_horizon = True
-    try:
-        urllib2.urlopen(base)
-    except urllib2.URLError:
-        has_horizon = False
-    conf.set('service_available', 'horizon', str(has_horizon))
-    conf.set('dashboard', 'dashboard_url', base + '/')
-    conf.set('dashboard', 'login_url', base + '/auth/login/')
-
-
-def configure_discovered_services(conf, services):
-    """Set service availability and supported extensions and versions.
-
-    Set True/False per service in the [service_available] section of `conf`
-    depending of wheter it is in services. In the [<service>-feature-enabled]
-    section, set extensions and versions found in `services`.
-
-    :param conf: ConfigParser configuration
-    :param services: dictionary of discovered services - expects each service
-        to have a dictionary containing 'extensions' and 'versions' keys
-    """
-    # check if volume service is disabled
-    if conf.has_section('services') and conf.has_option('services', 'volume'):
-        if not conf.getboolean('services', 'volume'):
-            SERVICE_NAMES.pop('volume')
-            SERVICE_VERSIONS.pop('volume')
-    # set service availability
-    for service, codename in SERVICE_NAMES.iteritems():
-        # ceilometer is still transitioning from metering to telemetry
-        if service == 'telemetry' and 'metering' in services:
-            service = 'metering'
-        conf.set('service_available', codename, str(service in services))
-
-    # TODO(arxcruz): Remove this once/if we get the following reviews merged
-    # in all branches supported by tempestconf, or once/if tempestconf do not
-    # support anymore the OpenStack release where those patches are not
-    # available.
-    # https://review.openstack.org/#/c/492526/
-    # https://review.openstack.org/#/c/492525/
-
-    if 'alarming' in services:
-        conf.set('service_available', 'aodh', 'True')
-        conf.set('service_available', 'aodh_plugin', 'True')
-
-    # set supported API versions for services with more of them
-    for service, service_info in SERVICE_VERSIONS.iteritems():
-        supported_versions = services.get(
-            service_info['catalog'], {}).get('versions', [])
-        section = service + '-feature-enabled'
-        for version in service_info['supported_versions']:
-            is_supported = any(version in item
-                               for item in supported_versions)
-            conf.set(section, 'api_' + version, str(is_supported))
-
-    # set service extensions
-    keystone_v3_support = conf.get('identity-feature-enabled', 'api_v3')
-    for service, ext_key in SERVICE_EXTENSION_KEY.iteritems():
-        if service in services:
-            extensions = ','.join(services[service].get('extensions', ""))
-            if service == 'object-store':
-                # tempest.conf is inconsistent and uses 'object-store' for the
-                # catalog name but 'object-storage-feature-enabled'
-                service = 'object-storage'
-            elif service == 'identity' and keystone_v3_support:
-                identity_v3_ext = api_discovery.get_identity_v3_extensions(
-                    conf.get("identity", "uri_v3"))
-                extensions = list(set(extensions.split(',') + identity_v3_ext))
-                extensions = ','.join(extensions)
-            conf.set(service + '-feature-enabled', ext_key, extensions)
-
-
-def _download_file(url, destination):
-    if os.path.exists(destination):
-        LOG.info("Image '%s' already fetched to '%s'.", url, destination)
-        return
-    LOG.info("Downloading '%s' and saving as '%s'", url, destination)
-    f = urllib2.urlopen(url)
-    data = f.read()
-    with open(destination, "wb") as dest:
-        dest.write(data)
-
-
-def _download_image(client, id, path):
-    """Download file from glance."""
-    LOG.info("Downloading image %s to %s", id, path)
-    body = client.show_image_file(id)
-    LOG.debug(type(body.data))
-    with open(path, 'wb') as out:
-        out.write(body.data)
-
-
-def _upload_image(client, name, path, disk_format):
-    """Upload image file from `path` into Glance with `name."""
-    LOG.info("Uploading image '%s' from '%s'", name, os.path.abspath(path))
-
-    with open(path) as data:
-        image = client.create_image(name=name,
-                                    disk_format=disk_format,
-                                    container_format='bare',
-                                    visibility="public")
-        client.store_image_file(image['id'], data)
-        return image
-
-
-def _find_image(client, image_id, image_name):
-    """Find image by ID or name (the image client doesn't have this)."""
-    if image_id:
-        try:
-            return client.show_image(image_id)
-        except exceptions.NotFound:
-            pass
-    found = filter(lambda x: x['name'] == image_name,
-                   client.list_images()['images'])
-    if found:
-        return found[0]
-    else:
-        return None
-
-
 def main():
     args = parse_arguments()
+    args.remove = parse_values_to_remove(args.remove)
     set_logging(args.debug, args.verbose)
 
     conf = tempest_conf.TempestConf()
@@ -785,46 +305,35 @@ def main():
     set_options(conf, args.deployer_input, args.non_admin,
                 args.overrides, args.test_accounts, cloud_creds)
 
-    uri = conf.get("identity", "uri")
-    api_version = 2
-    if "v3" in uri:
-        api_version = 3
-        conf.set("identity", "auth_version", "v3")
-        conf.set("identity", "uri_v3", uri)
-    else:
-        # TODO(arxcruz) make a check if v3 is enabled
-        conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
     credentials = Credentials(conf, not args.non_admin)
     clients = ClientManager(conf, credentials)
-    swift_discover = conf.get_defaulted('object-storage-feature-enabled',
-                                        'discoverability')
-    services = api_discovery.discover(
-        clients.auth_provider,
-        clients.identity_region,
-        object_store_discovery=conf.get_bool_value(swift_discover),
-        api_version=api_version,
-        disable_ssl_certificate_validation=conf.get_defaulted(
-            'identity',
-            'disable_ssl_certificate_validation'
-        )
-    )
+    services = Services(clients, conf, credentials)
+
     if args.create and args.test_accounts is None:
-        create_tempest_users(clients.tenants, clients.roles, clients.users,
-                             conf, services)
-    create_tempest_flavors(clients.flavors, conf, args.create)
-    create_tempest_images(clients.images, conf, args.image, args.create,
-                          args.image_disk_format)
-    has_neutron = "network" in services
+        users = Users(clients.tenants, clients.roles, clients.users, conf)
+        users.create_tempest_users(services.is_service('orchestration'))
+    flavors = Flavors(clients.flavors, args.create, conf)
+    flavors.create_tempest_flavors()
 
-    LOG.info("Setting up network")
-    LOG.debug("Is neutron present: {0}".format(has_neutron))
-    create_tempest_networks(clients, conf, has_neutron, args.network_id)
+    image = services.get_service('image')
+    image.set_image_preferences(args.create, args.image,
+                                args.image_disk_format)
+    image.create_tempest_images(conf)
 
-    configure_discovered_services(conf, services)
-    check_volume_backup_service(clients.volume_service, conf, services)
-    check_ceilometer_service(clients.service_client, conf, services)
-    configure_boto(conf, services)
-    configure_keystone_feature_flags(conf, services)
+    has_neutron = services.is_service("network")
+    network = services.get_service("network")
+    network.create_tempest_networks(has_neutron, conf, args.network_id)
+
+    services.set_service_availability()
+    services.set_supported_api_versions()
+    services.set_service_extensions()
+    volume.check_volume_backup_service(conf, clients.volume_client,
+                                       services.is_service("volumev3"))
+    ceilometer.check_ceilometer_service(conf, clients.service_client)
+    boto.configure_boto(conf,
+                        s3_service=services.get_service("s3"))
+    identity = services.get_service('identity')
+    identity.configure_keystone_feature_flags(conf)
     configure_horizon(conf)
 
     # remove all unwanted values if were specified

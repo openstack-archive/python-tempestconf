@@ -1,17 +1,17 @@
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2016, 2018 Red Hat, Inc.
 # All Rights Reserved.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 from tempest.lib import exceptions
 from tempest.lib.services.compute import flavors_client
@@ -41,8 +41,10 @@ class ProjectsClient(object):
     def __init__(self, auth, catalog_type, identity_region, endpoint_type,
                  identity_version, **default_params):
         self.identity_version = identity_version
-        self.project_class = tenants_client.TenantsClient if \
-            self.identity_version == "v2" else projects_client.ProjectsClient
+        if self.identity_version == "v2":
+            self.project_class = tenants_client.TenantsClient
+        else:
+            self.project_class = projects_client.ProjectsClient
         self.client = self.project_class(auth, catalog_type, identity_region,
                                          endpoint_type, **default_params)
 
@@ -76,24 +78,19 @@ class ClientManager(object):
         :param conf: TempestConf object
         :param creds: Credentials object
         """
-
-        self.identity_region = conf.get_defaulted('identity', 'region')
+        self.identity_region = creds.identity_region
         self.auth_provider = creds.get_auth_provider()
 
-        default_params = {
-            'disable_ssl_certificate_validation':
-                conf.get_defaulted('identity',
-                                   'disable_ssl_certificate_validation'),
-            'ca_certs': conf.get_defaulted('identity', 'ca_certificates_file')
-        }
-        compute_params = {
-            'service': conf.get_defaulted('compute', 'catalog_type'),
-            'region': self.identity_region,
-            'endpoint_type': conf.get_defaulted('compute', 'endpoint_type')
-        }
+        default_params = self._get_default_params(conf)
+        compute_params = self._get_compute_params(conf)
         compute_params.update(default_params)
 
-        self.identity = self.get_identity_client(conf, default_params)
+        catalog_type = conf.get_defaulted('identity', 'catalog_type')
+
+        self.identity = self.get_identity_client(
+            creds.identity_version,
+            catalog_type,
+            default_params)
 
         self.tenants = ProjectsClient(
             self.auth_provider,
@@ -105,15 +102,15 @@ class ClientManager(object):
 
         self.set_roles_client(
             auth=self.auth_provider,
-            creds=creds,
-            conf=conf,
+            identity_version=creds.identity_version,
+            catalog_type=catalog_type,
             endpoint_type='publicURL',
             default_params=default_params)
 
         self.set_users_client(
             auth=self.auth_provider,
-            creds=creds,
-            conf=conf,
+            identity_version=creds.identity_version,
+            catalog_type=catalog_type,
             endpoint_type='publicURL',
             default_params=default_params)
 
@@ -134,7 +131,7 @@ class ClientManager(object):
             self.identity_region,
             **default_params)
 
-        self.volume_service = services_client.ServicesClient(
+        self.volume_client = services_client.ServicesClient(
             self.auth_provider,
             conf.get_defaulted('volume', 'catalog_type'),
             self.identity_region,
@@ -167,65 +164,99 @@ class ClientManager(object):
             tenant = self.tenants.get_project_by_name(creds.tenant_name)
             conf.set('identity', 'admin_tenant_id', tenant['id'])
 
-    def get_identity_client(self, conf, default_params):
+    def _get_default_params(self, conf):
+        default_params = {
+            'disable_ssl_certificate_validation':
+                conf.get_defaulted('identity',
+                                   'disable_ssl_certificate_validation'),
+            'ca_certs': conf.get_defaulted('identity', 'ca_certificates_file')
+        }
+        return default_params
+
+    def _get_compute_params(self, conf):
+        compute_params = {
+            'service': conf.get_defaulted('compute', 'catalog_type'),
+            'region': self.identity_region,
+            'endpoint_type': conf.get_defaulted('compute', 'endpoint_type')
+        }
+        return compute_params
+
+    def get_identity_client(self, identity_version, catalog_type,
+                            default_params):
         """Obtain identity client.
 
-        :type conf: TempestConf object
+        :type identity_version: string
         :type default_params: dict
         """
-        if "v2.0" in conf.get("identity", "uri"):
-            return identity_client.IdentityClient(
+        if "v3" in identity_version:
+            return identity_v3_client.IdentityClient(
                 self.auth_provider,
-                conf.get_defaulted('identity', 'catalog_type'),
+                catalog_type,
                 self.identity_region, endpoint_type='publicURL',
                 **default_params)
         else:
-            return identity_v3_client.IdentityClient(
+            return identity_client.IdentityClient(
                 self.auth_provider,
-                conf.get_defaulted('identity', 'catalog_type'),
+                catalog_type,
                 self.identity_region, endpoint_type='publicURL',
                 **default_params)
 
-    def set_users_client(self, auth, creds, conf, endpoint_type,
-                         default_params):
+    def get_service_client(self, service_name):
+        """Returns name of the service's client.
+
+        :type service_name: string
+        :rtype: client object or None when the client doesn't exist
+        """
+        if service_name == "image":
+            return self.images
+        elif service_name == "network":
+            # return whole ClientManager object because NetworkService
+            # currently needs to have an access to get_neutron/nova_client
+            # methods which are chosen according to neutron presence
+            return self
+        else:
+            return None
+
+    def set_users_client(self, auth, identity_version, catalog_type,
+                         endpoint_type, default_params):
         """Sets users client.
 
         :param auth: auth provider
         :type auth: auth.KeystoneV2AuthProvider (or V3)
-        :type creds: Credentials object
-        :type conf: TempestConf object
+        :type identity_version: string
+        :type catalog_type: string
         :type endpoint_type: string
         :type default_params: dict
         """
         users_class = users_client.UsersClient
-        if "v3" in creds.identity_version:
+        if "v3" in identity_version:
             users_class = users_v3_client.UsersClient
 
         self.users = users_class(
             auth,
-            conf.get_defaulted('identity', 'catalog_type'),
+            catalog_type,
             self.identity_region,
             endpoint_type=endpoint_type,
             **default_params)
 
-    def set_roles_client(self, auth, creds, conf, endpoint_type,
-                         default_params):
+    def set_roles_client(self, auth, identity_version, catalog_type,
+                         endpoint_type, default_params):
         """Sets roles client.
 
         :param auth: auth provider
         :type auth: auth.KeystoneV2AuthProvider (or V3)
-        :type creds: Credentials object
-        :type conf: TempestConf object
+        :type identity_version: string
+        :type catalog_type: string
         :type endpoint_type: string
         :type default_params: dict
         """
         roles_class = roles_client.RolesClient
-        if "v3" in creds.identity_version:
+        if "v3" in identity_version:
             roles_class = roles_v3_client.RolesClient
 
         self.roles = roles_class(
             auth,
-            conf.get_defaulted('identity', 'catalog_type'),
+            catalog_type,
             self.identity_region,
             endpoint_type=endpoint_type,
             **default_params)

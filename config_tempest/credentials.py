@@ -1,17 +1,17 @@
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2016, 2018 Red Hat, Inc.
 # All Rights Reserved.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 from tempest.lib import auth
 
@@ -35,6 +35,8 @@ class Credentials(object):
         self.password = self.get_credential('password')
         self.tenant_name = self.get_credential('tenant_name')
         self.identity_version = self._get_identity_version()
+        self.api_version = 3 if self.identity_version == "v3" else 2
+        self.identity_region = self._conf.get_defaulted('identity', 'region')
         self.disable_ssl_certificate_validation = self._conf.get_defaulted(
             'identity',
             'disable_ssl_certificate_validation'
