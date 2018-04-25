@@ -1,4 +1,4 @@
-Generate configuration file for tempest
+# Generate configuration file for tempest
 
 Installs python-tempestconf cloned from git and generates tempest.conf which
 is then copied to tempest directory.
@@ -57,4 +57,43 @@ is then copied to tempest directory.
 
    Additional parameters for tempestconf if more specific parameters are
    needed, different from the ones which are the same for devstack and tempest.
+
+.. zuul:rolevar:: test_demo_user
+   :type: Boolean
+   :default: False
+
+   If checking of demo user abilities is desired to be enabled, set this
+   variable to True.
+   When True, a set of tasks, where generation of tempest configuration is
+   intended to fail, is included. The set includes also tasks, which create
+   tempest resources. After that, the generation of the tempest configuration is
+   suppossed to pass.
+   NOTE: If the variable is set to True, it's needed to set cloud_admin variable
+   as well, see info below.
+
+.. zuul:rolevar:: output_path
+   :type: string
+   :default: None
+
+   If the variable is defined, the newly generated tempest.conf will be saved
+   accordingly.
+   Example:
+   output_path: /etc/openstack/tempest.conf
+   Result:
+   The generated tempest.conf file will be saved as /etc/openstack/tempest.conf
+
+.. zuul:rolevar:: cloud_admin
+   :type: string
+   :default: None
+
+   Name of credentials from clouds.yaml file, which will be used to create
+   tempest resources in case, test_demo_user variable is set to True.
+
+.. zuul:rolevar:: test_accounts_file
+   :type: string
+   :default: /etc/openstack/accounts.yaml
+
+   A path to a tempest accounts file. This path will be injected to
+   test_accounts_file option in auth section of tempest.conf, when
+   test_demo_user is set to True.
 

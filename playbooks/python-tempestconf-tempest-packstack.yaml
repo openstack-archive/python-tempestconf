@@ -1,4 +1,6 @@
 - hosts: all
+  vars:
+    test_demo_user: "{{ test_demo is defined }}"
   tasks:
     # packstack-integration-tempest role is inherited from
     # openstack/packstack project
@@ -36,11 +38,30 @@
       vars:
         cloudname: "packstack-admin"
         source_credentials_commands: "source {{ ansible_user_dir }}/keystonerc_admin"
-    - name: Generate configuration file for python-tempestconf
+    - name: Generate configuration file for Tempest
       include_role:
         name: generate-tempestconf-file
       vars:
         source_credentials_commands: "source {{ ansible_user_dir }}/keystonerc_{{ user }}"
+    # Let's create tempest.conf with admin permissions needed for
+    # tempest accounts file generation
+    - name: Generate configuration file for Tempest as admin
+      include_role:
+        name: generate-tempestconf-file
+      vars:
+        output_path: "/etc/openstack/tempest_admin.conf"
+        source_credentials_commands: "source {{ ansible_user_dir }}/keystonerc_admin"
+        test_demo_user: False
+        user: admin
+      when: test_demo is defined
+    - name: Generate accounts file for Tempest
+      include_role:
+        name: generate-accounts-file
+      vars:
+        accounts_file_destination: "/etc/openstack"
+        source_credentials_commands: "source {{ ansible_user_dir }}/keystonerc_admin"
+        tempest_config_file: "/etc/openstack/tempest_admin.conf"
+      when: test_demo is defined
     # run-tempest role is inherited from openstack/tempest project
     - name: Run Tempest Tests
       include_role:

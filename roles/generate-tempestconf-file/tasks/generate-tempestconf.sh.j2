@@ -1,0 +1,22 @@
+# Script to generate tempest.conf
+set -ex
+export PATH=$PATH:/usr/local/sbin:/usr/sbin
+source {{ virtualenvs.tempestconf }}/bin/activate
+{{ source_credentials_commands }}
+printenv
+discover-tempest-config \
+--debug \
+-v \
+{% if user == "admin" %}
+--create \
+{% else %}
+--non-admin \
+{% endif %}
+{% if test_demo_user %}
+--test-accounts {{ test_accounts_file }} \
+{% endif %}
+identity.uri $OS_AUTH_URL \
+identity.admin_password $OS_PASSWORD \
+service_available.swift False \
+{{ aditional_tempestconf_params }} \
+image.http_image {{ url_cirros_image }}

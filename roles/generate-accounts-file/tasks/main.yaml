@@ -1,0 +1,80 @@
+- block:
+  - name: Create tempest venv with latest pip, setuptools and pbr
+    pip:
+       virtualenv: "{{ virtualenvs.tempest }}"
+       name: "{{ item }}"
+       state: latest
+    with_items:
+       - pip
+       - setuptools
+       - pbr
+
+  - name: Install tempest
+    pip:
+        name: "."
+        virtualenv: "{{ virtualenvs.tempest }}"
+        chdir: "{{ tempest_src_relative_path }}"
+
+  # Need to have these tasks until this bug:
+  # https://bugs.launchpad.net/tempest/+bug/1624066 is resolved
+  # (mkopec) The bug should be resolved, but it's probably not,
+  # so meanwhile let's have these tasks
+  - name: Backup etc/tempest.conf if exists
+    shell: |
+        mv ./etc/tempest.conf ./etc/tempest.conf.orig
+    ignore_errors: yes
+    args:
+        executable: /bin/bash
+        chdir: "{{ tempest_src_relative_path }}"
+
+  - name: Copy the provided tempest.conf to etc/
+    become: yes
+    shell: |
+        set -ex
+        cp {{ tempest_config_file }} ./etc/tempest.conf
+        ls -all ./etc/
+    args:
+        executable: /bin/bash
+        chdir: "{{ tempest_src_relative_path }}"
+
+  - name: Generate tempest accounts.yaml file
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempest }}/bin/activate
+        {{ source_credentials_commands }}
+        printenv
+        tempest account-generator \
+            --config-file ./etc/tempest.conf \
+            --concurrency {{ tempest_concurrency }} \
+            etc/accounts.yaml
+    args:
+        executable: /bin/bash
+        chdir: "{{ tempest_src_relative_path }}"
+
+  - name: Restore etc/tempest.conf
+    shell: |
+        mv ./etc/tempest.conf.orig ./etc/tempest.conf
+    ignore_errors: yes
+    args:
+        executable: /bin/bash
+        chdir: "{{ tempest_src_relative_path }}"
+
+  - name: Cat generated accounts.yaml file
+    shell: |
+        cat ./etc/accounts.yaml
+    args:
+       executable: /bin/bash
+       chdir: "{{ tempest_src_relative_path }}"
+
+  - name: Copy generated accounts.yaml file
+    become: yes
+    shell: |
+        cp ./etc/accounts.yaml {{ accounts_file_destination }}/accounts.yaml
+    args:
+       executable: /bin/bash
+       chdir: "{{ tempest_src_relative_path }}"
+    when: accounts_file_destination is defined
+
+  vars:
+    tempest_src_relative_path: "{{ zuul.projects['git.openstack.org/openstack/tempest'].src_dir }}"

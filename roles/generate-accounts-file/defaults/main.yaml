@@ -1,0 +1,3 @@
+tempest_concurrency: 2
+virtualenvs:
+    tempest: ~/.virtualenvs/.tempest

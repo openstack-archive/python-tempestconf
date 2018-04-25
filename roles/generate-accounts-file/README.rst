@@ -1,0 +1,65 @@
+# Generate accounts.yaml file for tempest
+
+Installs tempest cloned from git and generates accounts.yaml file.
+accounts.yaml file will be saved inside the cloned folder in etc/ subfolder.
+
+The tempest configuration file, which is needed to generate tempest
+accounts.yaml file will be copied into etc/ as well, however it will be
+renamed to tempest_admin.conf so that, it doesn't conflict with tempest.conf
+which may be there.
+
+
+**Role Variables**
+
+.. zuul:rolevar:: tempest_concurrency
+   :default: 2
+
+    The number of parallel test processes.
+
+.. zuul:rolevar:: tempest_config_file
+   :type: string
+   :default: None
+
+    A path to a tempest configuration file. It must contain credentials
+    which allows to create resources.
+
+.. zuul:rolevar: source_credentials_commands
+   :type: string
+   :default: None
+
+   Commands divided by a semicolon which defines sourcing credentials for
+   a user who has permissions to create resources. They need to be defined
+   in the playbook the role is called from.
+   For example for devstack:
+
+   `source ./openrc admin admin`
+
+   and for packstack:
+
+   `source ./keystonerc_admin`
+
+.. zuul:rolevar:: virtualenvs
+   :type: dict
+
+    A dictionary of paths to virtual environments.
+
+   .. zuul:rolevar:: tempest
+      :default: ~/.virtualenvs/.tempest
+
+       The path to the virtual environment of Tempest.
+
+.. zuul:rolevar:: tempest_src_relative_path
+   :type: string
+
+    A relative path to Tempest project which is by default cloned to the
+    Zuul home directory. Value of the variable is set in the role to that
+    default path. If needed, the variable can be overridden from the
+    playbook where the role is called.
+
+.. zuul:rolevar:: accounts_file_destination
+   :type: string
+   :default: None
+
+    If the variable is defined, the newly generated accounts.yaml file
+    will be copied to the directory specified by the variable.
+

@@ -12,7 +12,7 @@
         - setuptools
         - pbr
 
-  - name: Debug, list tempetsconf dir
+  - name: Debug, list tempestconf dir
     shell: |
         set -ex
         ls -all .
@@ -34,34 +34,42 @@
     args:
        executable: /bin/bash
 
-  - name: Generate tempest configuration file
-    shell: |
-        set -ex
-        export PATH=$PATH:/usr/local/sbin:/usr/sbin
-        source {{ virtualenvs.tempestconf }}/bin/activate
-        {{ source_credentials_commands }}
-        printenv
-        discover-tempest-config \
-          --debug \
-          -v \
-          --create \
-          identity.uri $OS_AUTH_URL \
-          identity.admin_password $OS_PASSWORD \
-          service_available.swift False \
-          {{ aditional_tempestconf_params }} \
-          image.http_image {{ url_cirros_image }}
-    args:
-        chdir: "{{ tempestconf_src_relative_path }}"
-        executable: /bin/bash
+  - name: Generate tempest configuration script
+    template:
+        src: generate-tempestconf.sh.j2
+        dest: "{{ tempestconf_src_relative_path }}/generate-tempestconf.sh"
+        mode: 0744
 
-  - name: Print generated tempest.conf and copy it to tempest directory
+  - include: test-demo-user.yaml
+    when: test_demo_user
+
+  - name: Generate tempest configuration filea
+    shell: |
+        ./generate-tempestconf.sh
+    args:
+      chdir: "{{ tempestconf_src_relative_path }}"
+      executable: /bin/bash
+
+  - name: Print generated tempest.conf
     shell: |
         set -x
-        cat {{ tempestconf_src_relative_path }}/etc/tempest.conf
-        ls /opt/stack/
-        ls /opt/stack/tempest
         ls /opt/stack/tempest/etc
+        cat {{ tempestconf_src_relative_path }}/etc/tempest.conf
+
+  # tempest role which will run tests has tempest in {{ devstack_base_dir }}
+  # location, therefore the file is copied there
+  - name: Copy tempest.conf to the tempest directory
+    shell: |
+        set -x
         cp {{ tempestconf_src_relative_path }}/etc/tempest.conf {{ devstack_base_dir }}/tempest/etc/tempest.conf
+    when: output_path is not defined
+
+  - name: Copy tempest.conf to the specified location
+    become: yes
+    shell: |
+        set -x
+        cp  {{ tempestconf_src_relative_path }}/etc/tempest.conf {{ output_path }}
+    when: output_path is defined
 
   vars:
     tempestconf_src_relative_path: "{{ zuul.projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"
