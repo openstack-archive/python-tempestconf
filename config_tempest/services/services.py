@@ -52,11 +52,7 @@ class Services(object):
 
         for entry in auth_data[self.service_catalog]:
             name = entry['type']
-            ep = self.get_endpoints(entry)
-
-            url = ep[self.public_url]
-            if 'identity' in url:
-                url = self.edit_identity_url(ep[self.public_url])
+            url = self.parse_endpoints(self.get_endpoints(entry), name)
 
             service_class = self.get_service_class(name)
             service = service_class(name, url, token, self._ssl_validation,
@@ -92,6 +88,26 @@ class Services(object):
         else:
             self.service_catalog = 'serviceCatalog'
             self.public_url = 'publicURL'
+
+    def parse_endpoints(self, ep, name):
+        """Parse an endpoint(s).
+
+        :param ep: endpoint(s)
+        :type ep: dict or list in case of no endpoints
+        :param name: name of a service
+        :type name: string
+        :return: url
+        :rtype: string
+        """
+        # endpoint list can be empty
+        if len(ep) == 0:
+            url = ""
+            C.LOG.info("Service %s has no endpoints", name)
+        else:
+            url = ep[self.public_url]
+        if 'identity' in url:
+            url = self.edit_identity_url(ep[self.public_url])
+        return url
 
     def edit_identity_url(self, url):
         """A port and identity version are added to url if contains 'identity'

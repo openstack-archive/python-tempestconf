@@ -83,6 +83,29 @@ class TestServices(BaseConfigTempestTest):
         self.assertEqual(services.service_catalog, 'catalog')
         self.assertEqual(services.public_url, 'url')
 
+    def test_parse_endpoints_empty(self):
+        services = self._create_services_instance()
+        services.public_url = "url"
+        ep = []
+        url = services.parse_endpoints(ep, "ServiceName")
+        self.assertEqual("", url)
+
+    def test_parse_endpoints(self):
+        services = self._create_services_instance()
+        services.public_url = "url"
+        ep = {
+            'url': 'http://10.0.0.107:8386/v1.1/96409a589d',
+            'interface': 'public',
+            'region': 'regioneOne',
+        }
+        url = services.parse_endpoints(ep, "ServiceName")
+        self.assertEqual('http://10.0.0.107:8386/v1.1/96409a589d', url)
+        ep['url'] = 'https://10.0.0.101/identity'
+        auth_url = 'https://10.0.0.101:13000/v2.0'
+        services._clients.auth_provider.auth_url = auth_url
+        url = services.parse_endpoints(ep, 'ServiceName')
+        self.assertEqual('https://10.0.0.101:13000/identity/v2', url)
+
     def test_edit_identity_url(self):
         services = self._create_services_instance()
         url_port = 'https://10.0.0.101:13000/v2.0'
