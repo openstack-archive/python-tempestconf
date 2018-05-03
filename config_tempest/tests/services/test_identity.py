@@ -73,11 +73,12 @@ class TestIdentityService(BaseServiceTest):
                                         self.FAKE_IDENTITY_VERSION)
         expected_resp = ['v2.1', 'v3.8']
         # add not deprecated v2 version to FAKE_IDENTITY_VERSIONS
-        v2 = {'status': 'stable', 'id': 'v2.1'}
-        self.FAKE_IDENTITY_VERSIONS['versions']['values'].append(v2)
+        v2 = [{'status': 'stable', 'id': 'v2.1'}]
+        versions = self.FAKE_IDENTITY_VERSIONS['versions']['values'] + v2
+        fake_versions = {'versions': {'values': versions}}
         self._test_deserialize_versions(self.Service,
                                         expected_resp,
-                                        self.FAKE_IDENTITY_VERSIONS)
+                                        fake_versions)
 
     @mock.patch('config_tempest.services.identity'
                 '.IdentityService.get_versions')
