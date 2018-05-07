@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    The deployer-input file will be loaded automatically if exists in the
+    default path, which is ~/tempest-deployer-input.conf.
+    This will fix the cases that user forgot to add --deployer-input and
+    python-tempestconf forgot some configuration due of that.
+    Also a new argument (--no-default-deployer) is added, which will make
+    python-tempestconf not to load the file automatically.
