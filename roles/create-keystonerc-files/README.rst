@@ -1,6 +1,7 @@
 Create keystonerc files
+=======================
 
-Creates keystonerc files for tempest, print them to the output and copy them
+Create keystonerc files for tempest, print them to the output and copy them
 to the wanted destination.
 
 **Role Variables**
@@ -8,7 +9,7 @@ to the wanted destination.
 .. zuul:rolevar:: admin_user
    :type: dict
 
-    A dictionary of admin user credentials.
+   A dictionary of admin user credentials.
 
    .. zuul:rolevar:: username
       :default: admin
@@ -34,7 +35,7 @@ to the wanted destination.
 .. zuul:rolevar:: demo_user
    :type: dict
 
-    A dictionary of demo user credentials.
+   A dictionary of demo user credentials.
 
    .. zuul:rolevar:: username
       :default: demo

@@ -43,7 +43,7 @@
   - include: test-demo-user.yaml
     when: test_demo_user
 
-  - name: Generate tempest configuration filea
+  - name: Generate tempest configuration file
     shell: |
         ./generate-tempestconf.sh
     args:

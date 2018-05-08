@@ -9,7 +9,7 @@
         - setuptools
         - pbr
 
-  - name: Debug, list tempetsconf dir
+  - name: Debug, list tempestconf dir
     shell: |
         set -ex
         ls -all .
