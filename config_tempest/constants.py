@@ -43,6 +43,7 @@ SERVICE_NAMES = {
     'messaging': 'zaqar',
     'metric': 'gnocchi',
     'event': 'panko',
+    'workflowv2': 'mistral',
 }
 
 # what API versions could the service have and should be enabled/disabled
