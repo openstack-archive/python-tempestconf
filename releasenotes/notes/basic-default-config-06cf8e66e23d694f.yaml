@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Remove the requirement of a default-overrides.conf file when user is not
+    executing python-tempestconf inside an initialized tempest directory.

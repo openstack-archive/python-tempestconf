@@ -72,6 +72,39 @@ def set_logging(debug, verbose):
         LOG.setLevel(logging.INFO)
 
 
+def load_basic_defaults(conf):
+    """Load basic default options into conf file.
+
+    :type conf: TempestConf object
+    """
+    LOG.debug("Setting basic default values")
+    default_values = {
+        "identity": [
+            ("username", "demo"),
+            ("password", "secrete"),
+            ("tenant_name", "demo"),
+            ("alt_username", "alt_demo"),
+            ("alt_password", "secrete"),
+            ("alt_tenant_name", "alt_demo")
+        ],
+        "scenario": [
+            ("img_dir", "etc")
+        ],
+        "auth": [
+            ("tempest_roles", "_member_"),
+            ("admin_username", "admin"),
+            ("admin_project_name", "admin"),
+            ("admin_domain_name", "Default")
+        ]}
+
+    for section in default_values.keys():
+        if not conf.has_section(section):
+            conf.add_section(section)
+        for key, value in default_values[section]:
+            if not conf.has_option(section, key):
+                conf.set(section, key, value)
+
+
 def read_deployer_input(deployer_input_file, conf):
     """Read deployer-input file and set values in conf accordingly.
 
@@ -112,6 +145,8 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     if os.path.isfile(C.DEFAULTS_FILE):
         LOG.info("Reading defaults from file '%s'", C.DEFAULTS_FILE)
         conf.read(C.DEFAULTS_FILE)
+    else:
+        load_basic_defaults(conf)
 
     if deployer_input and os.path.isfile(deployer_input):
         read_deployer_input(deployer_input, conf)
