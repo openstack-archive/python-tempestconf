@@ -55,9 +55,15 @@ class ImageService(VersionedService):
 
         :type conf: TempestConf object
         """
-        img_path = os.path.join(conf.get("scenario", "img_dir"),
+        img_dir = os.path.join(conf.get("scenario", "img_dir"))
+        img_path = os.path.join(img_dir,
                                 os.path.basename(self.image_path))
         name = self.image_path[self.image_path.rfind('/') + 1:]
+        if not os.path.exists(img_dir):
+            try:
+                os.makedirs(img_dir)
+            except OSError:
+                raise
         conf.set('scenario', 'img_file', name)
         alt_name = name + "_alt"
         image_id = None

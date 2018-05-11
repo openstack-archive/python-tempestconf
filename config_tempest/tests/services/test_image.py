@@ -47,9 +47,11 @@ class TestImageService(BaseServiceTest):
 
     @mock.patch('config_tempest.services.image.ImageService'
                 '.find_or_upload_image')
-    def _test_create_tempest_images(self, mock_find_upload):
+    @mock.patch('os.makedirs')
+    def _test_create_tempest_images(self, mock_makedirs, mock_find_upload):
         mock_find_upload.side_effect = ["id_c", "id_d"]
         self.Service.create_tempest_images(conf=self.conf)
+        mock_makedirs.assert_called()
         self.assertEqual(self.conf.get('compute', 'image_ref'), 'id_c')
         self.assertEqual(self.conf.get('compute', 'image_ref_alt'), 'id_d')
         self.assertEqual(self.conf.get('scenario', 'img_file'),
