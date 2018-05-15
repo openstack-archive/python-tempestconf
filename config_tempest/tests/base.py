@@ -116,6 +116,19 @@ class BaseServiceTest(base.BaseTestCase):
                 "values": [
                     {"id": 'v2.0'}
                 ]
+            }, {
+                "status": "DEPRECATED",
+                "updated": "2013-07-23T11:33:21Z",
+                "links": [{
+                    "href": "http://10.200.16.10:8774/v1/",
+                    "rel": "self"
+                }],
+                "min_version": "1.0",
+                "version": "1.0",
+                "id": "v1.0",
+                "values": [
+                    {"id": 'v1.0'}
+                ]
             }]
         }
     )

@@ -50,6 +50,12 @@ SERVICE_NAMES = {
 # depending on whether they get discovered as supported. Services with only one
 # version don't need to be here, neither do service versions that are not
 # configurable in tempest.conf
+# TODO(mkopec) since Queens, there are only image v2, identity v3 and
+# volume v3 versions, however, for backward compatibility let's keep
+# all versions here
+# TODO(mkopec) Move this information about supported versions somewhere else,
+# so that we don't have to have this global object, for example move the
+# information to service classes
 SERVICE_VERSIONS = {
     'image': {'supported_versions': ['v1', 'v2'], 'catalog': 'image'},
     'identity': {'supported_versions': ['v2', 'v3'], 'catalog': 'identity'},
