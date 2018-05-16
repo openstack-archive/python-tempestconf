@@ -15,6 +15,7 @@
 
 from tempest.lib import exceptions
 from tempest.lib.services.compute import flavors_client
+from tempest.lib.services.compute import hosts_client
 from tempest.lib.services.compute import networks_client as nova_net_client
 from tempest.lib.services.compute import servers_client
 from tempest.lib.services.identity.v2 import identity_client
@@ -106,6 +107,12 @@ class ClientManager(object):
             catalog_type=catalog_type,
             endpoint_type='publicURL',
             default_params=default_params)
+
+        self.hosts_client = hosts_client.HostsClient(
+            self.auth_provider,
+            conf.get_defaulted('compute', 'catalog_type'),
+            self.identity_region,
+            **default_params)
 
         self.set_users_client(
             auth=self.auth_provider,
@@ -208,6 +215,11 @@ class ClientManager(object):
         :type service_name: string
         :rtype: client object or None when the client doesn't exist
         """
+        # TODO(arxcruz): This function is under used, it should return
+        # a dictionary of all services for a particular client, for
+        # example, we need hosts_client and flavors_client for compute
+        # should return {'hosts': self.hosts_client, 'flavors': self.flavors }
+        # and so on.
         if service_name == "image":
             return self.images
         elif service_name == "network":
@@ -215,6 +227,8 @@ class ClientManager(object):
             # currently needs to have an access to get_neutron/nova_client
             # methods which are chosen according to neutron presence
             return self
+        elif service_name == "compute":
+            return self.hosts_client
         else:
             return None
 

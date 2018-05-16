@@ -13,7 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import mock
+
 from config_tempest.services.compute import ComputeService
+from config_tempest.tempest_conf import TempestConf
 from config_tempest.tests.base import BaseServiceTest
 
 
@@ -32,3 +35,17 @@ class TestComputeService(BaseServiceTest):
     def test_set_get_versions(self):
         exp_resp = ['v2.0', 'v2.1']
         self._set_get_versions(self.Service, exp_resp, self.FAKE_VERSIONS)
+
+    @mock.patch('config_tempest.services.compute'
+                '.ComputeService._get_number_of_hosts')
+    def test_set_default_tempest_options(self, mock_get_number_of_hosts):
+        mock_get_number_of_hosts.return_value = 2
+        conf = TempestConf()
+        self.Service.set_default_tempest_options(conf)
+        self.assertEqual(
+            conf.get('compute-feature-enabled',
+                     'resize'), 'True')
+        self.assertEqual(
+            conf.get('compute-feature-enabled',
+                     'console_output'), 'True')
+        mock_get_number_of_hosts.assert_called_once()

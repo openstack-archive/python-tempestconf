@@ -1,0 +1,8 @@
+---
+prelude: >
+    Improve nova discovery settings
+features:
+  - |
+    Discover when there is more than one compute node and set the resize
+    option according, when the tool is executed with admin credentials.
+    Set by default the console_output to true.

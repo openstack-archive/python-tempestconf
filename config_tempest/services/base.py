@@ -75,6 +75,9 @@ class Service(object):
     def get_versions(self):
         return self.versions
 
+    def set_default_tempest_options(self, conf):
+        pass
+
 
 class VersionedService(Service):
     def set_versions(self, top_level=True):
