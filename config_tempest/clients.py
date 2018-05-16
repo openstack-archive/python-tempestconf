@@ -29,7 +29,12 @@ from tempest.lib.services.identity.v3 import services_client as s_client
 from tempest.lib.services.identity.v3 import users_client as users_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
-from tempest.lib.services.volume.v2 import services_client
+try:
+    # Since Rocky, volume.v3.services_client is the default
+    from tempest.lib.services.volume.v3 import services_client
+except ImportError:
+    # For backward compatibility
+    from tempest.lib.services.volume.v2 import services_client
 
 
 class ProjectsClient(object):
