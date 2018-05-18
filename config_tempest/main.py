@@ -191,9 +191,9 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
         conf.set("identity", "uri_v3", uri.replace("v2.0", "v3"))
 
 
-def parse_arguments():
-    cloud_config = os_client_config.OpenStackConfig()
+def get_arg_parser():
     parser = argparse.ArgumentParser(__doc__)
+    cloud_config = os_client_config.OpenStackConfig()
     cloud_config.register_argparse_arguments(parser, sys.argv)
     parser.add_argument('--create', action='store_true', default=False,
                         help='create default tempest resources')
@@ -238,15 +238,18 @@ def parse_arguments():
                                 configuration file.
                                 For example: --remove identity.username=myname
                                 --remove feature-enabled.api_ext=http,https""")
+    return parser
 
+
+def parse_arguments():
+    parser = get_arg_parser()
     args = parser.parse_args()
     if args.create and args.non_admin:
         raise Exception("Options '--create' and '--non-admin' cannot be used"
                         " together, since creating" " resources requires"
                         " admin rights")
     args.overrides = parse_overrides(args.overrides)
-    cloud = cloud_config.get_one_cloud(argparse=args)
-    return cloud
+    return args
 
 
 def parse_values_to_remove(options):
@@ -330,34 +333,59 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
             'Could not load some identity options from cloud config file')
 
 
-def main():
-    args = parse_arguments()
-    args.remove = parse_values_to_remove(args.remove)
-    set_logging(args.debug, args.verbose)
+def get_cloud_creds(args_namespace):
+    """Get cloud credentials based on argument namespace.
+
+    If args contains --os-cloud argument, the method returns cloud
+    credentials related to that cloud, otherwise, returns credentials
+    of the current cloud.
+
+    :type args_namespace: argparse.Namespace
+    :return: cloud credentials
+    :rtype: dict
+    EXAMPLE: {'username': 'demo', 'project_name': 'demo',
+              'user_domain_name': 'Default',
+              'auth_url': 'http://172.16.52.8:5000/v3',
+              'password': 'f0921edc3c2b4fc8', 'project_domain_name': 'Default'}
+    """
+    cloud = os_client_config.OpenStackConfig()
+    cloud = cloud.get_one_cloud(argparse=args_namespace)
+    cloud_creds = cloud.config.get('auth')
+    return cloud_creds
+
+
+def config_tempest(**kwargs):
+    # convert a list of remove values to a dict
+    remove = parse_values_to_remove(kwargs.get('remove', []))
+    set_logging(kwargs.get('debug', False), kwargs.get('verbose', False))
 
     conf = tempest_conf.TempestConf()
-    cloud_creds = args.config.get('auth')
-    set_options(conf, args.deployer_input, args.non_admin,
-                args.overrides, args.test_accounts, cloud_creds)
+    set_options(conf, kwargs.get('deployer_input'),
+                kwargs.get('non_admin', False),
+                kwargs.get('overrides', []), kwargs.get('test_accounts'),
+                kwargs.get('cloud_creds'))
 
-    credentials = Credentials(conf, not args.non_admin)
+    credentials = Credentials(conf, not kwargs.get('non_admin', False))
     clients = ClientManager(conf, credentials)
     services = Services(clients, conf, credentials)
 
-    if args.create and args.test_accounts is None:
+    if kwargs.get('create', False) and kwargs.get('test_accounts') is None:
         users = Users(clients.tenants, clients.roles, clients.users, conf)
         users.create_tempest_users(services.is_service('orchestration'))
-    flavors = Flavors(clients.flavors, args.create, conf)
+    flavors = Flavors(clients.flavors, kwargs.get('create', False), conf)
     flavors.create_tempest_flavors()
 
     image = services.get_service('image')
-    image.set_image_preferences(args.create, args.image,
-                                args.image_disk_format)
+    image.set_image_preferences(kwargs.get('create', False),
+                                kwargs.get('image_name', C.DEFAULT_IMAGE),
+                                kwargs.get('image_disk_format',
+                                           C.DEFAULT_IMAGE_FORMAT))
     image.create_tempest_images(conf)
 
     has_neutron = services.is_service("network")
     network = services.get_service("network")
-    network.create_tempest_networks(has_neutron, conf, args.network_id)
+    network.create_tempest_networks(has_neutron, conf,
+                                    kwargs.get('network_id'))
 
     services.set_service_availability()
     services.set_supported_api_versions()
@@ -365,19 +393,40 @@ def main():
     volume.check_volume_backup_service(conf, clients.volume_client,
                                        services.is_service("volumev3"))
     ceilometer.check_ceilometer_service(conf, clients.service_client)
-    boto.configure_boto(conf,
-                        s3_service=services.get_service("s3"))
+    boto.configure_boto(conf, s3_service=services.get_service("s3"))
     identity = services.get_service('identity')
     identity.configure_keystone_feature_flags(conf)
     configure_horizon(conf)
 
     # remove all unwanted values if were specified
-    if args.remove != {}:
-        LOG.info("Removing configuration: %s", str(args.remove))
-        conf.remove_values(args.remove)
-    LOG.info("Creating configuration file %s", os.path.abspath(args.out))
-    with open(args.out, 'w') as f:
+    if remove != {}:
+        LOG.info("Removing configuration: %s", str(remove))
+        conf.remove_values(remove)
+    out_path = kwargs.get('out', 'etc/tempest.conf')
+    LOG.info("Creating configuration file %s", os.path.abspath(out_path))
+    with open(out_path, 'w') as f:
         conf.write(f)
+
+
+def main():
+    args = parse_arguments()
+    cloud_creds = get_cloud_creds(args)
+    config_tempest(
+        create=args.create,
+        cloud_creds=cloud_creds,
+        debug=args.debug,
+        deployer_input=args.deployer_input,
+        image_name=args.image,
+        image_disk_format=args.image_disk_format,
+        network_id=args.network_id,
+        non_admin=args.non_admin,
+        os_cloud=args.os_cloud,
+        out=args.out,
+        overrides=args.overrides,
+        remove=args.remove,
+        test_accounts=args.test_accounts,
+        verbose=args.verbose
+    )
 
 
 if __name__ == "__main__":
