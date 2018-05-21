@@ -59,7 +59,6 @@ class IdentityService(VersionedService):
         As keystone V3 uses a JSON Home to store the extensions.
         This method implements a different discovery method.
 
-        :param keystone_v3_url: Keystone V3 auth url
         :return: A list with the discovered extensions
         """
         try:
@@ -70,7 +69,7 @@ class IdentityService(VersionedService):
             LOG.error("Request on service '%s' with url '%s' failed",
                       'identity', self.service_url)
             raise re
-        ext_h = 'http://docs.openstack.org/api/openstack-identity/3/ext/'
+        ext_h = 'https://docs.openstack.org/api/openstack-identity/3/ext/'
         res = [x for x in json.loads(r.content)['resources'].keys()]
         ext = [ex for ex in res if 'ext' in ex]
         ext = [str(e).replace(ext_h, '').split('/')[0] for e in ext]
