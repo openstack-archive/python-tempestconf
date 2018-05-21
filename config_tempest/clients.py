@@ -186,6 +186,7 @@ class ClientManager(object):
         """Obtain identity client.
 
         :type identity_version: string
+        :type catalog_type: string
         :type default_params: dict
         """
         if "v3" in identity_version:
