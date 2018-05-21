@@ -75,6 +75,8 @@ class TempestConf(ConfigParser.SafeConfigParser):
         :type section: String
         :param key: a key in a section in a tempest.conf file
         :type key: String
+        :param value: a value to be set to the section.key
+        :type value: String
         :param priority: if True, always over-write the value. If False, don't
             over-write an existing value if it was written before with a
             priority (i.e. if it was specified by the user)
