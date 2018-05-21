@@ -67,6 +67,31 @@ class Services(object):
 
             self._services.append(service)
 
+        service_name = 'volume'
+        versions = C.SERVICE_VERSIONS[service_name]['supported_versions']
+        self.merge_exts_multiversion_service(service_name, versions)
+
+    def merge_exts_multiversion_service(self, name, versions):
+        """Merges extensions of a service given by its name
+
+        Looking for extensions from all versions of the service
+        defined by name and merges them to that provided service.
+
+        :param name: Name of the service
+        :type name: string
+        :param versions: Supported versions
+        :type versions: list
+        """
+        if not self.is_service(name):
+            return
+        s = self.get_service(name)
+        services_lst = []
+        for v in versions:
+            if self.is_service(name + v):
+                services_lst.append(self.get_service(name + v))
+        services_lst.append(s)
+        s.extensions = self.merge_extensions(services_lst)
+
     def get_endpoints(self, entry):
         for ep in entry['endpoints']:
             if self._creds.api_version == 3:
@@ -198,6 +223,19 @@ class Services(object):
                 is_supported = any(version in item
                                    for item in supported_versions)
                 self._conf.set(section, 'api_' + version, str(is_supported))
+
+    def merge_extensions(self, service_objects):
+        """Merges extensions from all provided service objects
+
+        :param service_objects:
+        :type service_objects: list
+        :return: Merged extensions
+        :rtype: list
+        """
+        extensions = []
+        for o in service_objects:
+            extensions += o.extensions
+        return extensions
 
     def set_service_extensions(self):
         postfix = "-feature-enabled"
