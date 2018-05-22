@@ -202,7 +202,7 @@ class BaseServiceTest(base.BaseTestCase):
     )
 
     class FakeRequestResponse(object):
-        URL = 'http://docs.openstack.org/api/openstack-identity/3/ext/'
+        URL = 'https://docs.openstack.org/api/openstack-identity/3/ext/'
         FAKE_V3_EXTENSIONS = (
             {
                 'resources': {
