@@ -1,0 +1,13 @@
+---
+features:
+  - |
+    Because of integration of the tool with refstack-client a new parameter,
+    --create-accounts-file, is added. The parameter defines a path where
+    a minimal accounts.yaml file will be created.
+    The accounts.yaml file is important in refstack testing, because the tests
+    are run with non admin credentials. Therefor to make it easier for refstack
+    users, if a user doesn't specify a path to an existing accounts.yaml file
+    (via test_accounts parameter), but uses a create_accounts_file
+    instead, the file will be created in the specified location and set to
+    the tempest.conf as test_accounts_file under auth section.
+    For this feature a new requirement is specified - PyYAML.
