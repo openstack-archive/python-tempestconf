@@ -359,7 +359,8 @@ def config_tempest(**kwargs):
     remove = parse_values_to_remove(kwargs.get('remove', []))
     set_logging(kwargs.get('debug', False), kwargs.get('verbose', False))
 
-    conf = tempest_conf.TempestConf()
+    write_credentials = kwargs.get('test_accounts') is None
+    conf = tempest_conf.TempestConf(write_credentials=write_credentials)
     set_options(conf, kwargs.get('deployer_input'),
                 kwargs.get('non_admin', False),
                 kwargs.get('overrides', []), kwargs.get('test_accounts'),
@@ -403,9 +404,7 @@ def config_tempest(**kwargs):
         LOG.info("Removing configuration: %s", str(remove))
         conf.remove_values(remove)
     out_path = kwargs.get('out', 'etc/tempest.conf')
-    LOG.info("Creating configuration file %s", os.path.abspath(out_path))
-    with open(out_path, 'w') as f:
-        conf.write(f)
+    conf.write(out_path)
 
 
 def main():

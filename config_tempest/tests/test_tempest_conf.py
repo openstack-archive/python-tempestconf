@@ -102,7 +102,7 @@ class TestTempestConf(BaseConfigTempestTest):
             else:
                 self.assertTrue(ext in conf_exts)
 
-    @mock.patch('config_tempest.tempest_conf.LOG')
+    @mock.patch('config_tempest.tempest_conf.C.LOG')
     def test_remove_not_defined_values(self, mock_logging):
         self.conf.remove_values({"notExistSection.key": []})
         # check if LOG.error was called
