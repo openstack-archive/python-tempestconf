@@ -1,0 +1,18 @@
+---
+features:
+  - |
+    validation.image_sh_user option is heavily used in CI and it's also needed
+    in refstack. Therefor the value is set to cirros automatically from now
+    everytime when image used is cirros.
+    The hardcoded value in default-overrides.conf is removed.
+other:
+  - |
+    By this change compute.image_ssh_user is removed from
+    default-overrides.conf too, because it was deprecated. All of the
+    image_ssh_user values from different sections were moved to validation
+    section by this change:
+
+    https://review.openstack.org/#/c/434097/
+
+    Since that change, there is only one image_ssh_user value and it's the one
+    under validation section.
