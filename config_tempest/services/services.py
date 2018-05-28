@@ -65,6 +65,9 @@ class Services(object):
             # discover versions of the service
             service.set_versions()
 
+            # default tempest options
+            service.set_default_tempest_options(self._conf)
+
             self._services.append(service)
 
         service_name = 'volume'
@@ -209,6 +212,13 @@ class Services(object):
         if self.is_service('alarming'):
             self._conf.set('service_available', 'aodh', 'True')
             self._conf.set('service_available', 'aodh_plugin', 'True')
+
+        # TODO(arxcruz): This should be set in compute service, not here,
+        # however, it requires a refactor in the code, which is not our
+        # goal right now
+        self._conf.set('compute-feature-enabled',
+                       'attach_encrypted_volume',
+                       str(self.is_service('key-manager')))
 
     def set_supported_api_versions(self):
         # set supported API versions for services with more of them

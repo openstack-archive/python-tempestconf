@@ -14,7 +14,9 @@
 # under the License.
 
 from base import VersionedService
+import config_tempest.constants as C
 import json
+from tempest.lib import exceptions
 
 
 class ComputeService(VersionedService):
@@ -28,3 +30,24 @@ class ComputeService(VersionedService):
         body = self.do_get(url, top_level=top_level)
         body = json.loads(body)
         self.versions = self.deserialize_versions(body)
+
+    def set_default_tempest_options(self, conf):
+        conf.set('compute-feature-enabled', 'console_output', 'True')
+        # Resize only works if it has at least 2 compute nodes
+        # or if nova has the option allow_resize_to_same_host
+        # set to true. Unfortunately we can't get this info from
+        # nova api, so we only set it when we know there's 2
+        # compute nodes
+        if self._get_number_of_hosts() >= 2:
+            conf.set('compute-feature-enabled', 'resize', 'True')
+
+    def _get_number_of_hosts(self):
+        # Right now the client returned is hosts, in the future
+        # change it to a dict, and get the client as requested
+        try:
+            hosts = self.client.list_hosts()['hosts']
+            compute_hosts = [h for h in hosts if h['service'] == 'compute']
+            return len(compute_hosts)
+        except exceptions.Forbidden:
+            C.LOG.info('Can not retrieve hosts, user are not allowed')
+            return 1
