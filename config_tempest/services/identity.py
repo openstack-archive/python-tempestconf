@@ -95,7 +95,7 @@ class IdentityService(VersionedService):
         except KeyError:
             return [body['version']['id']]
 
-    def configure_keystone_feature_flags(self, conf):
+    def set_default_tempest_options(self, conf):
         """Set keystone feature flags based upon version ID."""
         supported_versions = self.get_versions()
         if len(supported_versions) <= 1:

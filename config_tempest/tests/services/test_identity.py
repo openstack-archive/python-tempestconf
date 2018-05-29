@@ -82,10 +82,10 @@ class TestIdentityService(BaseServiceTest):
 
     @mock.patch('config_tempest.services.identity'
                 '.IdentityService.get_versions')
-    def test_configure_keystone_feature_flags(self, mock_get_versions):
+    def test_set_default_tempest_options(self, mock_get_versions):
         conf = TempestConf()
         mock_get_versions.return_value = ['v3.8', 'v2.0']
-        self.Service.configure_keystone_feature_flags(conf)
+        self.Service.set_default_tempest_options(conf)
         self.assertEqual(
             conf.get('identity-feature-enabled',
                      'forbid_global_implied_dsr'), 'True')

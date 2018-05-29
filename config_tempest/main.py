@@ -49,11 +49,7 @@ from credentials import Credentials
 from flavors import Flavors
 import os_client_config
 from oslo_config import cfg
-from services import boto
-from services import ceilometer
-from services.horizon import configure_horizon
 from services.services import Services
-from services import volume
 import tempest_conf
 from users import Users
 
@@ -405,13 +401,6 @@ def config_tempest(**kwargs):
     services.set_service_availability()
     services.set_supported_api_versions()
     services.set_service_extensions()
-    volume.check_volume_backup_service(conf, clients.volume_client,
-                                       services.is_service("volumev3"))
-    ceilometer.check_ceilometer_service(conf, clients.service_client)
-    boto.configure_boto(conf, s3_service=services.get_service("s3"))
-    identity = services.get_service('identity')
-    identity.configure_keystone_feature_flags(conf)
-    configure_horizon(conf)
 
     # remove all unwanted values if were specified
     if remove != {}:

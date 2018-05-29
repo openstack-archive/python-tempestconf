@@ -16,19 +16,22 @@
 import urlparse
 
 from base import Service
+import boto
+import ceilometer
 from compute import ComputeService
 import config_tempest.constants as C
+import horizon
 from identity import IdentityService
 from image import ImageService
 from network import NetworkService
 from object_storage import ObjectStorageService
-from volume import VolumeService
+import volume
 
 service_dict = {'compute': ComputeService,
                 'image': ImageService,
                 'network': NetworkService,
                 'object-store': ObjectStorageService,
-                'volumev3': VolumeService,
+                'volumev3': volume.VolumeService,
                 'identity': IdentityService}
 
 
@@ -194,6 +197,17 @@ class Services(object):
             if not self._conf.getboolean('services', 'volume'):
                 C.SERVICE_NAMES.pop('volume')
                 C.SERVICE_VERSIONS.pop('volume')
+        # check availability of volume backup service
+        volume.check_volume_backup_service(self._conf,
+                                           self._clients.volume_client,
+                                           self.is_service("volumev3"))
+
+        ceilometer.check_ceilometer_service(self._conf,
+                                            self._clients.service_client)
+
+        boto.configure_boto(self._conf, s3_service=self.get_service("s3"))
+
+        horizon.configure_horizon(self._conf)
 
         for service, codename in C.SERVICE_NAMES.iteritems():
             # ceilometer is still transitioning from metering to telemetry
