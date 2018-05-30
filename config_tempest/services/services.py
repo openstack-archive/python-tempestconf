@@ -25,6 +25,7 @@ from identity import IdentityService
 from image import ImageService
 from network import NetworkService
 from object_storage import ObjectStorageService
+from octavia import LoadBalancerService
 import volume
 
 service_dict = {'compute': ComputeService,
@@ -34,7 +35,8 @@ service_dict = {'compute': ComputeService,
                 'volumev3': volume.VolumeService,
                 'identity': IdentityService,
                 'ec2': boto.Ec2Service,
-                's3': boto.S3Service}
+                's3': boto.S3Service,
+                'load-balancer': LoadBalancerService}
 
 
 class Services(object):
