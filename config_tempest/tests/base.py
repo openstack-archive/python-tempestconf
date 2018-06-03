@@ -200,6 +200,17 @@ class BaseServiceTest(base.BaseTestCase):
             }
         }
     )
+    FAKE_ROLES = (
+        {
+            "roles": [
+                {
+                    "name": "ResellerAdmin",
+                    "id": "2b4df7a671a443d741c62b4df7a671a443d741c6",
+                    "domain_id": None
+                }
+            ]
+        }
+    )
 
     class FakeRequestResponse(object):
         URL = 'https://docs.openstack.org/api/openstack-identity/3/ext/'

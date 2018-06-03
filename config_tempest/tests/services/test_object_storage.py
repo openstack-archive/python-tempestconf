@@ -13,7 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import mock
+
+from config_tempest import constants as C
 from config_tempest.services.object_storage import ObjectStorageService
+from config_tempest import tempest_conf
 from config_tempest.tests.base import BaseServiceTest
 
 
@@ -35,3 +39,19 @@ class TestObjectStorageService(BaseServiceTest):
         self.Service.set_extensions()
         self.assertItemsEqual(self.Service.extensions, [])
         self.assertItemsEqual(self.Service.get_extensions(), [])
+
+    def test_list_create_roles(self):
+        conf = tempest_conf.TempestConf()
+        # TODO(mkopec) remove reading of default file when it's removed
+        conf.read(C.DEFAULTS_FILE)
+        client = mock.Mock()
+        return_mock = mock.Mock(return_value=self.FAKE_ROLES)
+        client.list_roles = return_mock
+        client.create_role = mock.Mock()
+        self.Service.list_create_roles(conf, client)
+        self.assertEqual(conf.get('object-storage', 'reseller_admin'),
+                         'ResellerAdmin')
+        # Member role is inherited from tempest.config
+        self.assertEqual(conf.get('object-storage', 'operator_role'),
+                         'Member')
+        self.assertTrue(client.create_role.called)
