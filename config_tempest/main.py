@@ -123,13 +123,16 @@ def read_deployer_input(deployer_input_file, conf):
 
 
 def set_options(conf, deployer_input, non_admin, overrides=[],
-                test_accounts=None, cloud_creds=None):
+                test_accounts=None, cloud_creds=None,
+                no_default_deployer=False):
     """Set options in conf provided by different source.
 
     1. read the default values in default-overrides file
     2. read a file provided by --deployer-input argument
-    3. set values from client's config (os-client-config support) if provided
-    4. set overrides - may override values which were set in the steps above
+    3. read default DEPLOYER_INPUT if --no-deployer-input is False and no
+       deployer_input was passed
+    4. set values from client's config (os-client-config support) if provided
+    5. set overrides - may override values which were set in the steps above
 
     :param conf: TempestConf object
     :param deployer_input: Path to the deployer inut file
@@ -149,7 +152,13 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
         load_basic_defaults(conf)
 
     if deployer_input and os.path.isfile(deployer_input):
+        LOG.info("Reading deployer input from file {}".format(
+            deployer_input))
         read_deployer_input(deployer_input, conf)
+    elif os.path.isfile(C.DEPLOYER_INPUT) and not no_default_deployer:
+        LOG.info("Reading deployer input from file {}".format(
+            C.DEPLOYER_INPUT))
+        read_deployer_input(C.DEPLOYER_INPUT, conf)
 
     if non_admin:
         # non admin, so delete auth admin values which were set
@@ -207,6 +216,11 @@ def get_arg_parser():
                                 key/value pairs they will be applied after the
                                 deployer-input file.
                         """)
+    parser.add_argument('--no-default-deployer', action='store_true',
+                        default=False,
+                        help="""Do not check for the default deployer input in
+                                $home/tempest-deployer-input.conf
+                            """)
     parser.add_argument('overrides', nargs='*', default=[],
                         help="""key value pairs to modify. The key is
                                 section.key where section is a section header

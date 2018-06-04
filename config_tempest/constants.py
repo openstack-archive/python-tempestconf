@@ -21,6 +21,8 @@ LOG = logging.getLogger(__name__)
 # Get the current tempest workspace path
 TEMPEST_WORKSPACE = os.getcwd()
 
+DEPLOYER_INPUT = os.path.join(os.path.expanduser("~"),
+                              "tempest-deployer-input.conf")
 DEFAULTS_FILE = os.path.join(TEMPEST_WORKSPACE, "etc",
                              "default-overrides.conf")
 DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.5/"
