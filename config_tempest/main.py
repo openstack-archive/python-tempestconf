@@ -392,7 +392,7 @@ def config_tempest(**kwargs):
 
     image = services.get_service('image')
     image.set_image_preferences(kwargs.get('create', False),
-                                kwargs.get('image_name', C.DEFAULT_IMAGE),
+                                kwargs.get('image_path', C.DEFAULT_IMAGE),
                                 kwargs.get('image_disk_format',
                                            C.DEFAULT_IMAGE_FORMAT))
     image.create_tempest_images(conf)
@@ -429,7 +429,7 @@ def main():
         cloud_creds=cloud_creds,
         debug=args.debug,
         deployer_input=args.deployer_input,
-        image_name=args.image,
+        image_path=args.image,
         image_disk_format=args.image_disk_format,
         network_id=args.network_id,
         non_admin=args.non_admin,

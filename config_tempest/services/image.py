@@ -44,6 +44,13 @@ class ImageService(VersionedService):
         self.image_path = image_path
         self.disk_format = disk_format
 
+    def set_default_tempest_options(self, conf):
+        # When cirros is the image, set validation.image_ssh_user to cirros.
+        # The option is heavily used in CI and it's also usefull for refstack,
+        # because we don't have to specify overrides.
+        if 'cirros' in self.image_path.rsplit('/')[-1]:
+            conf.set('validation', 'image_ssh_user', 'cirros')
+
     def set_versions(self):
         super(ImageService, self).set_versions(top_level=False)
 
