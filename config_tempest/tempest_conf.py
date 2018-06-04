@@ -14,9 +14,10 @@
 # under the License.
 
 import ConfigParser
+import os
 import sys
 
-from constants import LOG
+import constants as C
 from oslo_config import cfg
 import tempest.config
 
@@ -30,6 +31,10 @@ class TempestConf(ConfigParser.SafeConfigParser):
     priority_sectionkeys = set()
 
     CONF = tempest.config.TempestConfigPrivate(parse_conf=False)
+
+    def __init__(self, write_credentials=True, **kwargs):
+        self.write_credentials = write_credentials
+        ConfigParser.SafeConfigParser.__init__(self, **kwargs)
 
     def get_bool_value(self, value):
         """Returns boolean value of the string value given.
@@ -63,7 +68,8 @@ class TempestConf(ConfigParser.SafeConfigParser):
             else:
                 return self.CONF.get(section).get(key)
         except cfg.NoSuchOptError:
-            LOG.warning("Option %s is not defined in %s section", key, section)
+            C.LOG.warning("Option %s is not defined in %s section",
+                          key, section)
 
     def set(self, section, key, value, priority=False):
         """Set value in configuration, similar to `SafeConfigParser.set`
@@ -88,15 +94,24 @@ class TempestConf(ConfigParser.SafeConfigParser):
         if not self.has_section(section) and section.lower() != "default":
             self.add_section(section)
         if not priority and (section, key) in self.priority_sectionkeys:
-            LOG.debug("Option '[%s] %s = %s' was defined by user, NOT"
-                      " overwriting into value '%s'", section, key,
-                      self.get(section, key), value)
+            C.LOG.debug("Option '[%s] %s = %s' was defined by user, NOT"
+                        " overwriting into value '%s'", section, key,
+                        self.get(section, key), value)
             return False
         if priority:
             self.priority_sectionkeys.add((section, key))
-        LOG.debug("Setting [%s] %s = %s", section, key, value)
+        C.LOG.debug("Setting [%s] %s = %s", section, key, value)
         ConfigParser.SafeConfigParser.set(self, section, key, value)
         return True
+
+    def write(self, out_path):
+        C.LOG.info("Creating configuration file %s", os.path.abspath(out_path))
+        if not self.write_credentials:
+            C.LOG.info("Credentials will not be printed to a tempest.conf, "
+                       "writing credentials is disabled.")
+            self.remove_values(C.ALL_CREDENTIALS_KEYS)
+        with open(out_path, 'w') as f:
+            ConfigParser.SafeConfigParser.write(self, f)
 
     def remove_values(self, to_remove):
         """Remove values from configuration file specified in arguments.
@@ -125,7 +140,7 @@ class TempestConf(ConfigParser.SafeConfigParser):
                     self.set(section, key, ",".join(conf_values))
             except ConfigParser.NoOptionError:
                 # only inform a user, option specified by him doesn't exist
-                LOG.error(sys.exc_info()[1])
+                C.LOG.error(sys.exc_info()[1])
             except ConfigParser.NoSectionError:
                 # only inform a user, section specified by him doesn't exist
-                LOG.error(sys.exc_info()[1])
+                C.LOG.error(sys.exc_info()[1])

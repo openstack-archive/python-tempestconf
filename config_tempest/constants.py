@@ -27,6 +27,25 @@ DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.5/"
                  "cirros-0.3.5-x86_64-disk.img")
 DEFAULT_IMAGE_FORMAT = 'qcow2'
 
+# The dict holds the credentials, which are not supposed to be printed
+# to a tempest.conf when --test-accounts CLI parameter is used.
+ALL_CREDENTIALS_KEYS = {
+    "auth.admin_username": [],
+    "auth.admin_password": [],
+    "auth.admin_project_name": [],
+    "auth.admin_domain_name": [],
+    "identity.username": [],
+    "identity.password": [],
+    "identity.tenant_name": [],
+    "identity.alt_username": [],
+    "identity.alt_password": [],
+    "identity.alt_tenant_name": [],
+    "identity.admin_username": [],
+    "identity.admin_password": [],
+    "identity.admin_tenant_name": [],
+    "identity.admin_domain_name": [],
+}
+
 # services and their codenames
 SERVICE_NAMES = {
     'baremetal': 'ironic',
