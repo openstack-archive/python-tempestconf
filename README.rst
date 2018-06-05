@@ -82,7 +82,7 @@ RPM Installation (RDO)
    ``discover-tempest-config`` is the new name of the **old**
    ``config_tempest.py`` script and it **accepts the same parameters.**
    More about new features can be found
-   `here <https://www.rdoproject.org/blog/2017/02/testing-rdo-with-tempest-new-features-in-ocata/>`__
+   `here <https://blogs.rdoproject.org/2017/02/testing-rdo-with-tempest-new-features-in-ocata/>`__
 
 
 os-client-config support
