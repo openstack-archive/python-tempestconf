@@ -15,7 +15,7 @@
 
 import mock
 
-from config_tempest import constants as C
+from config_tempest import main
 from config_tempest.services.object_storage import ObjectStorageService
 from config_tempest import tempest_conf
 from config_tempest.tests.base import BaseServiceTest
@@ -45,9 +45,9 @@ class TestObjectStorageService(BaseServiceTest):
         self.assertItemsEqual(self.Service.get_extensions(), [])
 
     def test_list_create_roles(self):
-        conf = tempest_conf.TempestConf()
-        # TODO(mkopec) remove reading of default file when it's removed
-        conf.read(C.DEFAULTS_FILE)
+        conf = self.Service.conf
+        # load default values
+        main.load_basic_defaults(self.Service.conf)
         client = mock.Mock()
         return_mock = mock.Mock(return_value=self.FAKE_ROLES)
         client.list_roles = return_mock

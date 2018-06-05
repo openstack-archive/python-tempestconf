@@ -16,9 +16,7 @@
 This script will generate the etc/tempest.conf file by applying a series of
 specified options in the following order:
 
-1. Values from etc/default-overrides.conf, if present. This file will be
-provided by the distributor of the tempest code, a distro for example, to
-specify defaults that are different than the generic defaults for tempest.
+1. Default values provided by the tool.
 
 2. Values using the file provided by the --deployer-input argument to the
 script.
@@ -76,13 +74,19 @@ def load_basic_defaults(conf):
     """
     LOG.debug("Setting basic default values")
     default_values = {
+        "DEFAULT": [
+            ("debug", "true"),
+            ("use_stderr", "false"),
+            ("log_file", "tempest.log")
+        ],
         "identity": [
             ("username", "demo"),
             ("password", "secrete"),
             ("project_name", "demo"),
             ("alt_username", "alt_demo"),
             ("alt_password", "secrete"),
-            ("alt_project_name", "alt_demo")
+            ("alt_project_name", "alt_demo"),
+            ("disable_ssl_certificate_validation", "true")
         ],
         "scenario": [
             ("img_dir", "etc")
@@ -92,10 +96,25 @@ def load_basic_defaults(conf):
             ("admin_username", "admin"),
             ("admin_project_name", "admin"),
             ("admin_domain_name", "Default")
+        ],
+        "object-storage": [
+            ("reseller_admin_role", "ResellerAdmin")
+        ],
+        "oslo-concurrency": [
+            ("lock_path", "/tmp")
+        ],
+        "compute-feature-enabled": [
+            # Default deployment does not use shared storage
+            ("live_migration", "false"),
+            ("live_migrate_paused_instances", "true"),
+            ("preserve_ports", "true")
+        ],
+        "network-feature-enabled": [
+            ("ipv6_subnet_attributes", "true")
         ]}
 
     for section in default_values.keys():
-        if not conf.has_section(section):
+        if section != "DEFAULT" and not conf.has_section(section):
             conf.add_section(section)
         for key, value in default_values[section]:
             if not conf.has_option(section, key):
@@ -124,7 +143,7 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
                 no_default_deployer=False):
     """Set options in conf provided by different source.
 
-    1. read the default values in default-overrides file
+    1. read the default values
     2. read a file provided by --deployer-input argument
     3. read default DEPLOYER_INPUT if --no-deployer-input is False and no
        deployer_input was passed
@@ -142,11 +161,7 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     :param cloud_creds: Cloud credentials from client's config
     :type cloud_creds: dict
     """
-    if os.path.isfile(C.DEFAULTS_FILE):
-        LOG.info("Reading defaults from file '%s'", C.DEFAULTS_FILE)
-        conf.read(C.DEFAULTS_FILE)
-    else:
-        load_basic_defaults(conf)
+    load_basic_defaults(conf)
 
     if deployer_input and os.path.isfile(deployer_input):
         LOG.info("Reading deployer input from file {}".format(
