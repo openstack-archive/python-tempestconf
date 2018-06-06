@@ -38,13 +38,13 @@ ALL_CREDENTIALS_KEYS = {
     "auth.admin_domain_name": [],
     "identity.username": [],
     "identity.password": [],
-    "identity.tenant_name": [],
+    "identity.project_name": [],
     "identity.alt_username": [],
     "identity.alt_password": [],
-    "identity.alt_tenant_name": [],
+    "identity.alt_project_name": [],
     "identity.admin_username": [],
     "identity.admin_password": [],
-    "identity.admin_tenant_name": [],
+    "identity.admin_project_name": [],
     "identity.admin_domain_name": [],
 }
 

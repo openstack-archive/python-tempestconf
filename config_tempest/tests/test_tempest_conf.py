@@ -66,7 +66,7 @@ class TestTempestConf(BaseConfigTempestTest):
         remove_exts = ["router", "project-id", "dvr"]
         remove = {
             "identity.username": ["demo"],
-            "identity.tenant_name": ["tenant"],
+            "identity.project_name": ["tenant"],
             "compute.image_ssh_user": ["rhel", "cirros"],
             "network-feature-enabled.api_extensions": remove_exts
         }
@@ -75,7 +75,7 @@ class TestTempestConf(BaseConfigTempestTest):
         self.conf.set("network-feature-enabled", "api_extensions", api_exts)
         self.conf.remove_values(remove)
         self.assertFalse(self.conf.has_option("identity", "username"))
-        self.assertTrue(self.conf.has_option("identity", "tenant_name"))
+        self.assertTrue(self.conf.has_option("identity", "project_name"))
         self.assertFalse(self.conf.has_option("compute", "image_ssh_user"))
         conf_exts = self.conf.get("network-feature-enabled", "api_extensions")
         conf_exts = conf_exts.split(',')

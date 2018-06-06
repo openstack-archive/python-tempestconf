@@ -33,7 +33,7 @@ class Credentials(object):
         self._conf = conf
         self.username = self.get_credential('username')
         self.password = self.get_credential('password')
-        self.tenant_name = self.get_credential('tenant_name')
+        self.tenant_name = self.get_credential('project_name')
         self.identity_version = self._get_identity_version()
         self.api_version = 3 if self.identity_version == "v3" else 2
         self.identity_region = self._conf.get_defaulted('identity', 'region')
@@ -61,17 +61,13 @@ class Credentials(object):
 
         The function is providing the backwards compatibility for looking up
         the credentials, because admin credentials were moved from identity
-        to auth section and admin_tenant_name was renamed to
-        admin_project_name.
+        to auth section.
         :param key: name of the credential e.g. username, passsword ...
         :type key: string
         :returns: credential
         :rtype: string
         """
-        if key == 'admin_tenant_name':
-            value = self._conf.get_defaulted('auth', 'admin_project_name')
-        else:
-            value = self._conf.get_defaulted('auth', key)
+        value = self._conf.get_defaulted('auth', key)
         if value is None:
             return self._conf.get_defaulted('identity', key)
         return value
@@ -103,7 +99,7 @@ class Credentials(object):
                                  'domain_name': 'Default',
                                  'user_domain_name': 'Default'})
         else:
-            creds_kwargs.update({'tenant_name': self.tenant_name})
+            creds_kwargs.update({'project_name': self.tenant_name})
         return creds_kwargs
 
     def set_credentials(self):
