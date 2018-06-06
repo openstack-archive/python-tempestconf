@@ -37,7 +37,6 @@
           --os-cloud {{ cloud_user }} \
           auth.tempest_roles Member \
           service_available.swift False \
-          image.http_image {{ url_cirros_image }}
     args:
         chdir: "{{ tempestconf_src_relative_path }}"
         executable: /bin/bash
