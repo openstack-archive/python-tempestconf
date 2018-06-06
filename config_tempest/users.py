@@ -46,8 +46,6 @@ class Users(object):
                                      self._conf.get(sec, 'alt_project_name'))
 
         username = self._conf.get_defaulted('auth', 'admin_username')
-        if username is None:
-            username = self._conf.get_defaulted('identity', 'admin_username')
 
         self.give_role_to_user(username, role_name='admin')
 

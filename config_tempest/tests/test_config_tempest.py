@@ -78,11 +78,11 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
                              conf.get('identity', 'project_name'))
         else:
             self.assertEqual(cloud_args['username'],
-                             conf.get('identity', 'admin_username'))
+                             conf.get('auth', 'admin_username'))
             self.assertEqual(cloud_args['password'],
-                             conf.get('identity', 'admin_password'))
+                             conf.get('auth', 'admin_password'))
             self.assertEqual(cloud_args['project_name'],
-                             conf.get('identity', 'admin_project_name'))
+                             conf.get('auth', 'admin_project_name'))
 
     def test_init_manager_client_config(self):
         self._obtain_client_config_data(True)
@@ -117,7 +117,6 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         manager = ClientManager(self.conf, creds)
         # check if cloud_args credentials were overrided by admin ones
         self._check_credentials(manager,
-                                self.conf.get('identity', 'admin_username'),
-                                self.conf.get('identity', 'admin_password'),
-                                self.conf.get('identity',
-                                              'admin_project_name'))
+                                self.conf.get('auth', 'admin_username'),
+                                self.conf.get('auth', 'admin_password'),
+                                self.conf.get('auth', 'admin_project_name'))

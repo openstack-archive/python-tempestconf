@@ -63,7 +63,7 @@ class TestUsers(BaseConfigTempestTest):
         self.Service.create_tempest_users(orchestration)
         if orchestration:
             self.assertEqual(mock_give_role_to_user.mock_calls, [
-                mock.call(self.conf.get('identity',
+                mock.call(self.conf.get('auth',
                                         'admin_username'),
                           role_name='admin'),
                 mock.call(self.conf.get('identity',
@@ -73,7 +73,7 @@ class TestUsers(BaseConfigTempestTest):
             ])
         else:
             mock_give_role_to_user.assert_called_with(
-                self.conf.get('identity', 'admin_username'),
+                self.conf.get('auth', 'admin_username'),
                 role_name='admin')
         self.assertEqual(mock_create_user_with_tenant.mock_calls, [
             mock.call(self.conf.get('identity', 'username'),

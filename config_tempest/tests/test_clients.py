@@ -115,7 +115,7 @@ class TestClientManager(BaseConfigTempestTest):
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         ClientManager(self.conf, self.creds)
         # check if admin tenant id was set
-        admin_tenant_id = self.conf.get("identity", "admin_project_id")
+        admin_tenant_id = self.conf.get("auth", "admin_project_id")
         self.assertEqual(admin_tenant_id, "my_fake_id")
 
     def test_get_service_client(self):
