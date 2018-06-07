@@ -202,6 +202,15 @@ class Services(object):
                                            self._clients.volume_client,
                                            self.is_service("volumev3"))
 
+        # query the config for swift availability and get the current value
+        # in case, it was overridden in CLI
+        swift_default = self._conf.get_bool_value(
+            self._conf.get_defaulted('service_available', 'swift')
+        )
+        if self.is_service('object-store') and swift_default:
+            object_storage = self.get_service('object-store')
+            object_storage.list_create_roles(self._conf, self._clients.roles)
+
         ceilometer.check_ceilometer_service(self._conf,
                                             self._clients.service_client)
 
