@@ -23,12 +23,6 @@ to the output after that.
 
       A path to the virtual environment of python-tempestconf tool.
 
-.. zuul:rolevar:: url_cirros_image
-   :type: string
-   :default: http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
-
-   A URL address of the cirros image.
-
 .. zuul:rolevar:: tempestconf_src_relative_path
    :type: string
 
