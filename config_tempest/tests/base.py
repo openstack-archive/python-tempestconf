@@ -35,13 +35,13 @@ class BaseConfigTempestTest(base.BaseTestCase):
         uri = "http://172.16.52.151:5000/"
         conf.set("identity", "username", "demo")
         conf.set("identity", "password", "secret")
-        conf.set("identity", "tenant_name", "demo")
+        conf.set("identity", "project_name", "demo")
         conf.set("identity", "disable_ssl_certificate_validation", "true")
         conf.set("identity", "auth_version", "v3")
         conf.set("identity", "uri", uri + V2, priority=True)
         conf.set("identity", "uri_v3", uri + V3)
         conf.set("identity", "admin_username", "admin")
-        conf.set("identity", "admin_tenant_name", "adminTenant")
+        conf.set("identity", "admin_project_name", "adminTenant")
         conf.set("identity", "admin_password", "adminPass")
         conf.set("auth", "use_dynamic_credentials", "False")
         return conf
@@ -52,7 +52,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         uri = "http://172.16.52.151:5000/"
         conf.set("identity", "username", "demo")
         conf.set("identity", "password", "secret")
-        conf.set("identity", "tenant_name", "demo")
+        conf.set("identity", "project_name", "demo")
         conf.set("identity", "disable_ssl_certificate_validation", "true")
         conf.set("identity", "auth_version", "v3")
         conf.set("identity", "uri", uri + V2, priority=True)

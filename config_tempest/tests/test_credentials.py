@@ -64,7 +64,7 @@ class TestCredentials(BaseConfigTempestTest):
         expected_resp = {
             'username': 'demo',
             'password': 'secret',
-            'tenant_name': 'demo'
+            'project_name': 'demo'
         }
         self.assertEqual(self.creds._get_creds_kwargs(), expected_resp)
         self.creds.identity_version = 'v3'
@@ -88,7 +88,7 @@ class TestCredentials(BaseConfigTempestTest):
         mock_function.assert_called_with(
             auth_url=None, fill_in=False, identity_version='v2',
             disable_ssl_certificate_validation='true',
-            ca_certs=None, password='pass', tenant_name='Tname',
+            ca_certs=None, password='pass', project_name='Tname',
             username='name')
 
     def test_set_credentials_v3(self):

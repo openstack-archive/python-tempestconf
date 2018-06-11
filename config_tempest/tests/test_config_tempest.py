@@ -37,7 +37,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
     def _check_credentials(self, manager, username, password, tenant_name):
         exp_user = manager.auth_provider.credentials._initial['username']
         exp_pass = manager.auth_provider.credentials._initial['password']
-        exp_tenant = manager.auth_provider.credentials._initial['tenant_name']
+        exp_tenant = manager.auth_provider.credentials._initial['project_name']
         self.assertEqual(exp_user, username)
         self.assertEqual(exp_pass, password)
         self.assertEqual(exp_tenant, tenant_name)
@@ -75,14 +75,14 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
             self.assertEqual(cloud_args['password'],
                              conf.get('identity', 'password'))
             self.assertEqual(cloud_args['project_name'],
-                             conf.get('identity', 'tenant_name'))
+                             conf.get('identity', 'project_name'))
         else:
             self.assertEqual(cloud_args['username'],
                              conf.get('identity', 'admin_username'))
             self.assertEqual(cloud_args['password'],
                              conf.get('identity', 'admin_password'))
             self.assertEqual(cloud_args['project_name'],
-                             conf.get('identity', 'admin_tenant_name'))
+                             conf.get('identity', 'admin_project_name'))
 
     def test_init_manager_client_config(self):
         self._obtain_client_config_data(True)
@@ -100,7 +100,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         self._check_credentials(manager,
                                 self.conf.get('identity', 'username'),
                                 self.conf.get('identity', 'password'),
-                                self.conf.get('identity', 'tenant_name'))
+                                self.conf.get('identity', 'project_name'))
 
     def test_init_manager_client_config_override(self):
         self._override_setup()
@@ -109,7 +109,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         self._check_credentials(manager,
                                 self.conf.get('identity', 'username'),
                                 self.conf.get('identity', 'password'),
-                                self.conf.get('identity', 'tenant_name'))
+                                self.conf.get('identity', 'project_name'))
 
     def test_init_manager_client_config_admin_override(self):
         self._override_setup()
@@ -119,4 +119,5 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         self._check_credentials(manager,
                                 self.conf.get('identity', 'admin_username'),
                                 self.conf.get('identity', 'admin_password'),
-                                self.conf.get('identity', 'admin_tenant_name'))
+                                self.conf.get('identity',
+                                              'admin_project_name'))

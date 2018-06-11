@@ -39,11 +39,11 @@ class Users(object):
         sec = 'identity'
         self.create_user_with_tenant(self._conf.get(sec, 'username'),
                                      self._conf.get(sec, 'password'),
-                                     self._conf.get(sec, 'tenant_name'))
+                                     self._conf.get(sec, 'project_name'))
 
         self.create_user_with_tenant(self._conf.get(sec, 'alt_username'),
                                      self._conf.get(sec, 'alt_password'),
-                                     self._conf.get(sec, 'alt_tenant_name'))
+                                     self._conf.get(sec, 'alt_project_name'))
 
         username = self._conf.get_defaulted('auth', 'admin_username')
         if username is None:
@@ -67,7 +67,7 @@ class Users(object):
         :type role_name: string
         :type role_required: boolean
         """
-        tenant_name = self._conf.get('identity', 'tenant_name')
+        tenant_name = self._conf.get('identity', 'project_name')
         tenant_id = self.tenants_client.get_project_by_name(tenant_name)['id']
         users = self.users_client.list_users()
         user_ids = [u['id'] for u in users['users'] if u['name'] == username]

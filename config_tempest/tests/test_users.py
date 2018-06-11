@@ -59,7 +59,7 @@ class TestUsers(BaseConfigTempestTest):
         alt_tenant_name = "my_tenant"
         self.conf.set("identity", "alt_username", alt_username)
         self.conf.set("identity", "alt_password", alt_password)
-        self.conf.set("identity", "alt_tenant_name", alt_tenant_name)
+        self.conf.set("identity", "alt_project_name", alt_tenant_name)
         self.Service.create_tempest_users(orchestration)
         if orchestration:
             self.assertEqual(mock_give_role_to_user.mock_calls, [
@@ -78,10 +78,10 @@ class TestUsers(BaseConfigTempestTest):
         self.assertEqual(mock_create_user_with_tenant.mock_calls, [
             mock.call(self.conf.get('identity', 'username'),
                       self.conf.get('identity', 'password'),
-                      self.conf.get('identity', 'tenant_name')),
+                      self.conf.get('identity', 'project_name')),
             mock.call(self.conf.get('identity', 'alt_username'),
                       self.conf.get('identity', 'alt_password'),
-                      self.conf.get('identity', 'alt_tenant_name')),
+                      self.conf.get('identity', 'alt_project_name')),
         ])
 
     def test_create_tempest_user(self):
@@ -206,14 +206,14 @@ class TestUsers(BaseConfigTempestTest):
                                mock_get_project_by_name):
 
         mock_get_project_by_name.return_value = \
-            {'id': "fake_tenant_id"}
+            {'id': "fake_project_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
         self.Service.give_role_to_user(
             username=self.username,
             role_name=self.role_name)
         mock_create_user_role_on_project.assert_called_with(
-            "fake_tenant_id", "fake_user_id", "fake_role_id")
+            "fake_project_id", "fake_user_id", "fake_role_id")
 
     @mock.patch('config_tempest.clients.ProjectsClient.'
                 'get_project_by_name')
@@ -234,7 +234,7 @@ class TestUsers(BaseConfigTempestTest):
             mock_get_project_by_name):
         role_name = "fake_role_that_does_not_exist"
         mock_get_project_by_name.return_value = \
-            {'id': "fake_tenant_id"}
+            {'id': "fake_project_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
         exc = Exception
@@ -262,7 +262,7 @@ class TestUsers(BaseConfigTempestTest):
             mock_get_project_by_name):
 
         mock_get_project_by_name.return_value = \
-            {'id': "fake_tenant_id"}
+            {'id': "fake_project_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
         self.Service.give_role_to_user(
@@ -289,7 +289,7 @@ class TestUsers(BaseConfigTempestTest):
             mock_get_project_by_name):
         exc = exceptions.Conflict
         mock_create_user_role_on_project.side_effect = exc
-        mock_get_project_by_name.return_value = {'id': "fake_tenant_id"}
+        mock_get_project_by_name.return_value = {'id': "fake_project_id"}
         mock_list_users.return_value = self.users
         mock_list_roles.return_value = self.roles
         self.Service.give_role_to_user(

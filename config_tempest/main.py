@@ -78,10 +78,10 @@ def load_basic_defaults(conf):
         "identity": [
             ("username", "demo"),
             ("password", "secrete"),
-            ("tenant_name", "demo"),
+            ("project_name", "demo"),
             ("alt_username", "alt_demo"),
             ("alt_password", "secrete"),
-            ("alt_tenant_name", "alt_demo")
+            ("alt_project_name", "alt_demo")
         ],
         "scenario": [
             ("img_dir", "etc")
@@ -167,7 +167,7 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
         conf.set("identity", "admin_username", "")
         # To maintain backward compatibility
         # renamed as admin_project_name in auth section
-        conf.set("identity", "admin_tenant_name", "")
+        conf.set("identity", "admin_project_name", "")
         # To maintain backward compatibility
         # Moved to auth
         conf.set("identity", "admin_password", "")
@@ -327,13 +327,13 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
         if non_admin:
             conf.set('identity', 'username', cloud_creds['username'])
             conf.set('identity',
-                     'tenant_name',
+                     'project_name',
                      cloud_creds['project_name'])
             conf.set('identity', 'password', cloud_creds['password'])
         else:
             conf.set('identity', 'admin_username', cloud_creds['username'])
             conf.set('identity',
-                     'admin_tenant_name',
+                     'admin_project_name',
                      cloud_creds['project_name'])
             conf.set('identity', 'admin_password', cloud_creds['password'])
         conf.set('identity', 'uri', cloud_creds['auth_url'])
