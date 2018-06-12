@@ -54,6 +54,7 @@ class TestIdentityService(BaseServiceTest):
         mocked_requests.return_value = fake_resp
         self.useFixture(MonkeyPatch('requests.get', mocked_requests))
         self.Service.service_url = self.FAKE_URL + "v3"
+        fake_resp.raise_for_status = mock.Mock()
         self.Service.set_identity_v3_extensions()
         self.assertItemsEqual(self.Service.extensions_v3, expected_resp)
         self.assertItemsEqual(self.Service.get_extensions(), expected_resp)
