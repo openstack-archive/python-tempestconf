@@ -174,7 +174,7 @@ class ClientManager(object):
         # Set admin tenant id needed for keystone v3 tests.
         if creds.admin:
             tenant = self.tenants.get_project_by_name(creds.tenant_name)
-            conf.set('identity', 'admin_project_id', tenant['id'])
+            conf.set('auth', 'admin_project_id', tenant['id'])
 
     def _get_default_params(self, conf):
         default_params = {

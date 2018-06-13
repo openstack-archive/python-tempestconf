@@ -42,9 +42,6 @@ ALL_CREDENTIALS_KEYS = {
     "identity.alt_username": [],
     "identity.alt_password": [],
     "identity.alt_project_name": [],
-    "identity.admin_username": [],
-    "identity.admin_password": [],
-    "identity.admin_project_name": [],
     "identity.admin_domain_name": [],
 }
 

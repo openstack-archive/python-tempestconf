@@ -1,0 +1,10 @@
+---
+other:
+  - |
+    The following options are moved from identity section:
+      - admin_username
+      - admin_password
+      - admin_project_name
+
+    to auth section as this is done in Tempest since
+    Tempest 12.

@@ -16,6 +16,6 @@ discover-tempest-config \
 --test-accounts {{ test_accounts_file }} \
 {% endif %}
 identity.uri $OS_AUTH_URL \
-identity.admin_password $OS_PASSWORD \
+auth.admin_password $OS_PASSWORD \
 service_available.swift False \
 {{ aditional_tempestconf_params }} \

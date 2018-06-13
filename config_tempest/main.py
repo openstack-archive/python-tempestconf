@@ -162,15 +162,6 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
         conf.set("auth", "admin_username", "")
         conf.set("auth", "admin_project_name", "")
         conf.set("auth", "admin_password", "")
-        # To maintain backward compatibilty
-        # Moved to auth
-        conf.set("identity", "admin_username", "")
-        # To maintain backward compatibility
-        # renamed as admin_project_name in auth section
-        conf.set("identity", "admin_project_name", "")
-        # To maintain backward compatibility
-        # Moved to auth
-        conf.set("identity", "admin_password", "")
         conf.set("auth", "use_dynamic_credentials", "False")
 
     # get and set auth data from client's config
@@ -325,17 +316,20 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
     """
     try:
         if non_admin:
+            # Tempest doesn't have non-admin credentials, but we're gonna
+            # keep them under identity for future usage
             conf.set('identity', 'username', cloud_creds['username'])
             conf.set('identity',
                      'project_name',
                      cloud_creds['project_name'])
             conf.set('identity', 'password', cloud_creds['password'])
         else:
-            conf.set('identity', 'admin_username', cloud_creds['username'])
-            conf.set('identity',
+            # admin credentials are under auth section
+            conf.set('auth', 'admin_username', cloud_creds['username'])
+            conf.set('auth',
                      'admin_project_name',
                      cloud_creds['project_name'])
-            conf.set('identity', 'admin_password', cloud_creds['password'])
+            conf.set('auth', 'admin_password', cloud_creds['password'])
         conf.set('identity', 'uri', cloud_creds['auth_url'])
 
     except cfg.NoSuchOptError:

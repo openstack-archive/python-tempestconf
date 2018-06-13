@@ -33,7 +33,11 @@
           --out etc/cloud_tempest.conf \
           --debug \
           -v \
+          {% if cloud_user == "devstack-admin" %}
           --create \
+          {% else %}
+          --non-admin \
+          {% endif %}
           --os-cloud {{ cloud_user }} \
           auth.tempest_roles Member \
           service_available.swift False \
