@@ -1,5 +1,5 @@
 ============================================
- tempest_config Release Notes
+ python-tempestconf Release Notes
 ============================================
 
 .. toctree::
