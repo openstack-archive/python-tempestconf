@@ -65,10 +65,17 @@ class IdentityService(VersionedService):
             r = requests.get(self.service_url,
                              verify=False,
                              headers={'Accept': 'application/json-home'})
-        except requests.exceptions.RequestException as re:
-            LOG.error("Request on service '%s' with url '%s' failed",
-                      'identity', self.service_url)
-            raise re
+            # check for http status
+            r.raise_for_status()
+        except requests.exceptions.HTTPError:
+            LOG.warning("Request on service '%s' with url '%s' failed, "
+                        "checking for v3", 'identity', self.service_url)
+            if 'v3' not in self.service_url:
+                self.service_url = self.service_url + '/v3'
+                r = requests.get(self.service_url,
+                                 verify=False,
+                                 headers={'Accept': 'application/json-home'})
+
         ext_h = 'https://docs.openstack.org/api/openstack-identity/3/ext/'
         res = [x for x in json.loads(r.content)['resources'].keys()]
         ext = [ex for ex in res if 'ext' in ex]
