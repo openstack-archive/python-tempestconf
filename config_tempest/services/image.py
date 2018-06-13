@@ -29,26 +29,22 @@ class ImageService(VersionedService):
         super(ImageService, self).__init__(name, service_url, token,
                                            disable_ssl_validation,
                                            client)
-        self.allow_creation = False
-        self.image_path = ""
-        self.disk_format = ""
 
-    def set_image_preferences(self, allow_creation, image_path, disk_format):
+    def set_image_preferences(self, disk_format, non_admin):
         """Sets image prefferences.
 
-        :type allow_creation: boolean
-        :type image_path: string
         :type disk_format: string
+        :type non_admin: bool
         """
-        self.allow_creation = allow_creation
-        self.image_path = image_path
         self.disk_format = disk_format
+        self.non_admin = non_admin
 
     def set_default_tempest_options(self, conf):
         # When cirros is the image, set validation.image_ssh_user to cirros.
         # The option is heavily used in CI and it's also usefull for refstack,
         # because we don't have to specify overrides.
-        if 'cirros' in self.image_path.rsplit('/')[-1]:
+        if 'cirros' in conf.get_defaulted('image',
+                                          'http_image').rsplit('/')[-1]:
             conf.set('validation', 'image_ssh_user', 'cirros')
 
     def set_versions(self):
@@ -63,9 +59,10 @@ class ImageService(VersionedService):
         :type conf: TempestConf object
         """
         img_dir = os.path.join(conf.get("scenario", "img_dir"))
+        image_path = conf.get_defaulted('image', 'http_image')
         img_path = os.path.join(img_dir,
-                                os.path.basename(self.image_path))
-        name = self.image_path[self.image_path.rfind('/') + 1:]
+                                os.path.basename(image_path))
+        name = image_path[image_path.rfind('/') + 1:]
         if not os.path.exists(img_dir):
             try:
                 os.makedirs(img_dir)
@@ -77,13 +74,13 @@ class ImageService(VersionedService):
         if conf.has_option('compute', 'image_ref'):
             image_id = conf.get('compute', 'image_ref')
         image_id = self.find_or_upload_image(image_id, name,
-                                             image_source=self.image_path,
+                                             image_source=image_path,
                                              image_dest=img_path)
         alt_image_id = None
         if conf.has_option('compute', 'image_ref_alt'):
             alt_image_id = conf.get('compute', 'image_ref_alt')
         alt_image_id = self.find_or_upload_image(alt_image_id, alt_name,
-                                                 image_source=self.image_path,
+                                                 image_source=image_path,
                                                  image_dest=img_path)
 
         conf.set('compute', 'image_ref', image_id)
@@ -99,10 +96,6 @@ class ImageService(VersionedService):
         :type image_dest: string
         """
         image = self._find_image(image_id, image_name)
-        if not image and not self.allow_creation:
-            raise Exception("Image '%s' not found, but resource creation"
-                            " isn't allowed. Either use '--create' or provide"
-                            " an existing image_ref" % image_name)
 
         if image:
             LOG.info("(no change) Found image '%s'", image['name'])
@@ -143,15 +136,20 @@ class ImageService(VersionedService):
         :type name: string
         :type path: string
         """
-        LOG.info("Uploading image '%s' from '%s'", name, os.path.abspath(path))
+        LOG.info("Uploading image '%s' from '%s'",
+                 name, os.path.abspath(path))
+        if self.non_admin:
+            visibility = 'community'
+        else:
+            visibility = 'public'
 
         with open(path) as data:
             image = self.client.create_image(name=name,
                                              disk_format=self.disk_format,
                                              container_format='bare',
-                                             visibility="public")
+                                             visibility=visibility)
             self.client.store_image_file(image['id'], data)
-            return image
+        return image
 
     def _download_image(self, id, path):
         """Download image from glance.

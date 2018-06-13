@@ -36,14 +36,14 @@ class TestImageService(BaseServiceTest):
                                     self.FAKE_URL,
                                     self.FAKE_TOKEN,
                                     disable_ssl_validation=False)
-        self.Service.allow_creation = False
-        self.Service.image_path = "my_path/my_image.qcow2"
         self.Service.disk_format = ".format"
+        self.Service.non_admin = False
         self.Service.client = self.FakeServiceClient()
 
         self.dir = "/img/"
         self.conf = TempestConf()
         self.conf.set("scenario", "img_dir", self.dir)
+        self.conf.set("image", "http_image", "my_image.qcow2")
 
     @mock.patch('config_tempest.services.image.ImageService'
                 '.find_or_upload_image')
@@ -68,7 +68,6 @@ class TestImageService(BaseServiceTest):
         image_source = format + "://any_random_url"
         image_dest = "my_dest"
         image_name = "my_image"
-        self.Service.allow_creation = True
         image_id = self.Service.find_or_upload_image(
             image_id=None, image_dest=image_dest,
             image_name=image_name, image_source=image_source)
@@ -143,7 +142,6 @@ class TestImageService(BaseServiceTest):
         image_source = "ftp://any_random_url"
         image_dest = "place_on_disk"
         image_name = "my_image"
-        self.Service.allow_creation = True
         image_id = self.Service.find_or_upload_image(
             image_id=None, image_name=image_name,
             image_source=image_source, image_dest=image_dest)

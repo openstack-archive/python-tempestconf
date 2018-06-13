@@ -381,10 +381,10 @@ def config_tempest(**kwargs):
     flavors.create_tempest_flavors()
 
     image = services.get_service('image')
-    image.set_image_preferences(kwargs.get('create', False),
-                                kwargs.get('image_path', C.DEFAULT_IMAGE),
-                                kwargs.get('image_disk_format',
-                                           C.DEFAULT_IMAGE_FORMAT))
+    conf.set('image', 'http_image', kwargs.get('image_path', C.DEFAULT_IMAGE))
+    image.set_image_preferences(kwargs.get('image_disk_format',
+                                           C.DEFAULT_IMAGE_FORMAT),
+                                kwargs.get('non_admin', False))
     image.create_tempest_images(conf)
 
     has_neutron = services.is_service("network")

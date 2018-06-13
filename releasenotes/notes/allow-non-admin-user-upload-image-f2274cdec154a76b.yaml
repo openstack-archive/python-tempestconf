@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Allow all users irrespective of Admin and non-admin to upload images to
+    glance and generate image_ref and image_ref_alt for compute.
+  - |
+    image.http_image name is set based on the image name passed or if not
+    passed is taken from the default one.
