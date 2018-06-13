@@ -38,18 +38,6 @@ class TestCredentials(BaseConfigTempestTest):
         resp = self.creds.get_credential("username")
         self.assertEqual(resp, "admin")
 
-    def test_get_identity_credential(self):
-        for i in range(0, 2):
-            resp = self.creds.get_identity_credential("username")
-            self.assertEqual(resp, "demo")
-            # set admin credentials
-            self.creds.admin = True
-            resp = self.creds.get_identity_credential("admin_username")
-            self.assertEqual(resp, "admin")
-            # use conf which contains the newer values - (admin creds
-            # in auth section)
-            self.creds._conf = self._get_alt_conf("v2.0", "v3")
-
     def test_get_identity_version_v2(self):
         resp = self.creds._get_identity_version()
         self.assertEqual(resp, 'v2')

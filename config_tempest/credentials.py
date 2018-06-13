@@ -53,24 +53,14 @@ class Credentials(object):
         :returns: credential
         :rtype: string
         """
-        admin_prefix = 'admin_' if self.admin else ""
-        return self.get_identity_credential(admin_prefix + key)
-
-    def get_identity_credential(self, key):
-        """Get credential requested by its name.
-
-        The function is providing the backwards compatibility for looking up
-        the credentials, because admin credentials were moved from identity
-        to auth section.
-        :param key: name of the credential e.g. username, passsword ...
-        :type key: string
-        :returns: credential
-        :rtype: string
-        """
-        value = self._conf.get_defaulted('auth', key)
-        if value is None:
+        if self.admin:
+            # admin credentials are stored in auth section
+            # and are prefixed by 'admin_'
+            return self._conf.get_defaulted('auth', 'admin_' + key)
+        else:
+            # Tempest doesn't have non admin credentials, but the
+            # tool keeps them in identity section for further usage
             return self._conf.get_defaulted('identity', key)
-        return value
 
     def _get_identity_version(self):
         """Looks for identity version in TempestConf object.
