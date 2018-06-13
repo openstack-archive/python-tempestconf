@@ -32,7 +32,9 @@ service_dict = {'compute': ComputeService,
                 'network': NetworkService,
                 'object-store': ObjectStorageService,
                 'volumev3': volume.VolumeService,
-                'identity': IdentityService}
+                'identity': IdentityService,
+                'ec2': boto.Ec2Service,
+                's3': boto.S3Service}
 
 
 class Services(object):
@@ -213,8 +215,6 @@ class Services(object):
 
         ceilometer.check_ceilometer_service(self._conf,
                                             self._clients.service_client)
-
-        boto.configure_boto(self._conf, s3_service=self.get_service("s3"))
 
         horizon.configure_horizon(self._conf)
 

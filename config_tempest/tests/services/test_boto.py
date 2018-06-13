@@ -13,35 +13,49 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ConfigParser
+import logging
+import mock
 
-from config_tempest.services import base
-from config_tempest.services import boto
-from config_tempest.tempest_conf import TempestConf
-from config_tempest.tests.base import BaseServiceTest
+from config_tempest.services.services import Services
+from config_tempest.tests.base import BaseConfigTempestTest
+
+# disable logging when running unit tests
+logging.disable(logging.CRITICAL)
 
 
-class TestBotoService(BaseServiceTest):
-    def setUp(self):
-        super(TestBotoService, self).setUp()
-        self.conf = TempestConf()
-        self.es2 = base.Service("ec2",
-                                self.FAKE_URL,
-                                self.FAKE_TOKEN,
-                                disable_ssl_validation=False)
-        self.s3 = base.Service("s3",
-                               self.FAKE_URL,
-                               self.FAKE_TOKEN,
-                               disable_ssl_validation=False)
+class TestEc2Service(BaseConfigTempestTest):
 
-    def test_configure_boto(self):
-        boto.configure_boto(self.conf)
-        self._assert_conf_get_not_raises(ConfigParser.NoSectionError,
-                                         "boto",
-                                         "ec2_url")
-        self._assert_conf_get_not_raises(ConfigParser.NoSectionError,
-                                         "boto",
-                                         "s3_url")
-        boto.configure_boto(self.conf, self.es2, self.s3)
-        self.assertEqual(self.conf.get("boto", "ec2_url"), self.FAKE_URL)
-        self.assertEqual(self.conf.get("boto", "s3_url"), self.FAKE_URL)
+    FAKE_URL = "http://10.200.16.10:8774/"
+
+    @mock.patch('config_tempest.services.services.Services.discover')
+    def setUp(self, mock_discover):
+        super(TestEc2Service, self).setUp()
+        conf = self._get_conf('v2', 'v3')
+        self.clients = self._get_clients(conf)
+        self.Services = Services(self.clients, conf, self._get_creds(conf))
+
+    def test_set_default_tempest_options(self):
+        service_class = self.Services.get_service_class("ec2")
+        service = service_class("ec2", self.FAKE_URL, self.clients, False)
+        service.set_default_tempest_options(self.Services._conf)
+        ec2_url = self.Services._conf.get("boto", "ec2_url")
+        self.assertEqual(ec2_url, self.FAKE_URL)
+
+
+class TestS3Service(BaseConfigTempestTest):
+
+    FAKE_URL = "http://10.200.16.10:8774/"
+
+    @mock.patch('config_tempest.services.services.Services.discover')
+    def setUp(self, mock_discover):
+        super(TestS3Service, self).setUp()
+        conf = self._get_conf('v2', 'v3')
+        self.clients = self._get_clients(conf)
+        self.Services = Services(self.clients, conf, self._get_creds(conf))
+
+    def test_set_default_tempest_options(self):
+        service_class = self.Services.get_service_class("s3")
+        service = service_class("s3", self.FAKE_URL, self.clients, False)
+        service.set_default_tempest_options(self.Services._conf)
+        ec2_url = self.Services._conf.get("boto", "s3_url")
+        self.assertEqual(ec2_url, self.FAKE_URL)
