@@ -1,5 +1,5 @@
 ---
-other:
+upgrade:
   - |
     Use of 'tenant' wherever it's set to tempest.conf, is replaced
     by 'project'. This is part 1 of the tenant->project transition.

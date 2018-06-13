@@ -64,7 +64,7 @@ class ProjectsClient(object):
             if project['name'] == project_name:
                 return project
         raise exceptions.NotFound(
-            'No such tenant/project (%s) in %s' % (project_name, projects))
+            'No such project/tenant (%s) in %s' % (project_name, projects))
 
     def create_project(self, name, description):
         if self.identity_version == "v2":
@@ -99,7 +99,7 @@ class ClientManager(object):
             catalog_type,
             default_params)
 
-        self.tenants = ProjectsClient(
+        self.projects = ProjectsClient(
             self.auth_provider,
             conf.get_defaulted('identity', 'catalog_type'),
             self.identity_region,
@@ -178,10 +178,10 @@ class ClientManager(object):
         self.get_nova_net_client = create_nova_network_client
         self.get_neutron_client = create_neutron_client
 
-        # Set admin tenant id needed for keystone v3 tests.
+        # Set admin project id needed for keystone v3 tests.
         if creds.admin:
-            tenant = self.tenants.get_project_by_name(creds.tenant_name)
-            conf.set('auth', 'admin_project_id', tenant['id'])
+            project = self.projects.get_project_by_name(creds.project_name)
+            conf.set('auth', 'admin_project_id', project['id'])
 
     def _get_default_params(self, conf):
         default_params = {
