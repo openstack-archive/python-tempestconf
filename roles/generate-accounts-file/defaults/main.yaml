@@ -1,3 +1,7 @@
-tempest_concurrency: 2
+# Here, we set tempest_concurrency to 3 because with concurrency 2 generate
+# only 10 accounts, and sometimes the tests fail because the account is being
+# used by another test, so it's a good idea to have tempest_concurrency always
+# bigger then tempest test concurrency (in our jobs is set to 2)
+tempest_concurrency: 3
 virtualenvs:
     tempest: ~/.virtualenvs/.tempest

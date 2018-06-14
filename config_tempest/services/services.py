@@ -40,9 +40,6 @@ class Services(object):
         self._clients = clients
         self._conf = conf
         self._creds = creds
-        swift_discover = conf.get_defaulted('object-storage-feature-enabled',
-                                            'discoverability')
-        self._object_store_discovery = conf.get_bool_value(swift_discover)
         self._ssl_validation = creds.disable_ssl_certificate_validation
         self._region = clients.identity_region
         self._services = []
@@ -61,10 +58,7 @@ class Services(object):
             service = service_class(name, url, token, self._ssl_validation,
                                     self._clients.get_service_client(name))
             # discover extensions of the service
-            if name == 'object-store':
-                service.set_extensions(self._object_store_discovery)
-            else:
-                service.set_extensions()
+            service.set_extensions()
             # discover versions of the service
             service.set_versions()
 
@@ -202,15 +196,6 @@ class Services(object):
                                            self._clients.volume_client,
                                            self.is_service("volumev3"))
 
-        # query the config for swift availability and get the current value
-        # in case, it was overridden in CLI
-        swift_default = self._conf.get_bool_value(
-            self._conf.get_defaulted('service_available', 'swift')
-        )
-        if self.is_service('object-store') and swift_default:
-            object_storage = self.get_service('object-store')
-            object_storage.list_create_roles(self._conf, self._clients.roles)
-
         ceilometer.check_ceilometer_service(self._conf,
                                             self._clients.service_client)
 
@@ -282,10 +267,4 @@ class Services(object):
             service_object = self.get_service(service)
             if service_object is not None:
                 extensions = ','.join(service_object.get_extensions())
-
-            if service == 'object-store':
-                # tempest.conf is inconsistent and uses 'object-store' for
-                # the catalog name but 'object-storage-feature-enabled'
-                service = 'object-storage'
-
             self._conf.set(service + postfix, ext_key, extensions)

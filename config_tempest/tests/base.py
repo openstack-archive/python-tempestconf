@@ -211,6 +211,18 @@ class BaseServiceTest(base.BaseTestCase):
             ]
         }
     )
+    FAKE_ACCOUNTS = (
+        {
+            'status': '200',
+            u'content-length': '2',
+            'content-location': 'http://192.168.122.120:8080/healthcheck',
+            u'connection': 'close',
+            u'x-trans-id': 'txec03483c96cd4958a5c6b-005b17c346',
+            u'date': 'Wed, 06 Jun 2018 11:19:34 GMT',
+            u'content-type': 'text/plain',
+            u'x-openstack-request-id': 'txec03483c96cd4958a5c6b-005b17c346'
+        },
+        'OK')
 
     class FakeRequestResponse(object):
         URL = 'https://docs.openstack.org/api/openstack-identity/3/ext/'
