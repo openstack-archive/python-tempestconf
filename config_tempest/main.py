@@ -42,6 +42,7 @@ import logging
 import os
 import sys
 
+import accounts
 from clients import ClientManager
 import constants as C
 from constants import LOG
@@ -222,6 +223,9 @@ def get_arg_parser():
                         help='Run without admin creds')
     parser.add_argument('--test-accounts', default=None, metavar='PATH',
                         help='Use accounts from accounts.yaml')
+    parser.add_argument('--create-accounts-file', default=None,
+                        metavar='PATH', help="""Generate test accounts file
+                        in the specified path.""")
     parser.add_argument('--image-disk-format', default=C.DEFAULT_IMAGE_FORMAT,
                         help="""a format of an image to be uploaded to glance.
                                 Default is '%s'""" % C.DEFAULT_IMAGE_FORMAT)
@@ -396,6 +400,14 @@ def config_tempest(**kwargs):
     services.set_supported_api_versions()
     services.set_service_extensions()
 
+    if kwargs.get('test_accounts') is None:
+        accounts_path = kwargs.get('create_accounts_file')
+        if accounts_path is not None:
+            LOG.info("Creating an accounts.yaml file in: %s", accounts_path)
+            accounts.create_accounts_file(kwargs.get('create', False),
+                                          accounts_path,
+                                          conf)
+
     # remove all unwanted values if were specified
     if remove != {}:
         LOG.info("Removing configuration: %s", str(remove))
@@ -408,12 +420,13 @@ def main():
     args = parse_arguments()
     cloud_creds = get_cloud_creds(args)
     config_tempest(
-        create=args.create,
         cloud_creds=cloud_creds,
+        create=args.create,
+        create_accounts_file=args.create_accounts_file,
         debug=args.debug,
         deployer_input=args.deployer_input,
-        image_path=args.image,
         image_disk_format=args.image_disk_format,
+        image_path=args.image,
         network_id=args.network_id,
         non_admin=args.non_admin,
         os_cloud=args.os_cloud,
