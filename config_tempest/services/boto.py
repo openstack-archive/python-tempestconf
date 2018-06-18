@@ -13,14 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from config_tempest.services.base import Service
 
-def configure_boto(conf, ec2_service=None, s3_service=None):
-    """Set boto URLs based on discovered APIs.
 
-    :type ec2_service: config_tempest.services.base.Service
-    :type s3_service: config_tempest.services.base.Service
-    """
-    if ec2_service:
-        conf.set('boto', 'ec2_url', ec2_service.service_url)
-    if s3_service:
-        conf.set('boto', 's3_url', s3_service.service_url)
+class Ec2Service(Service):
+
+    def set_default_tempest_options(self, conf):
+        conf.set('boto', 'ec2_url', self.service_url)
+
+
+class S3Service(Service):
+
+    def set_default_tempest_options(self, conf):
+        conf.set('boto', 's3_url', self.service_url)
