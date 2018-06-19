@@ -1,0 +1,30 @@
+- hosts: all
+  tasks:
+    - name: Create tempest directory in /tmp/logs
+      file:
+        path: /tmp/logs/tempest
+        state: directory
+      become: True
+
+    # Using command instead of copy due
+    # https://github.com/ansible/ansible/issues/42198
+    - name: Copying tempest logs and config to /tmp/logs/tempest
+      command: "sudo cp {{ item }} /tmp/logs/tempest"
+      with_items:
+        - /opt/stack/tempest/etc/tempest.conf
+        - /opt/stack/tempest/tempest.log
+        - /etc/openstack/accounts.yaml
+      ignore_errors: True
+
+    - name: Upload logs
+      synchronize:
+        src: '/tmp/logs'
+        dest: '{{ zuul.executor.log_root }}'
+        mode: pull
+        copy_links: true
+        verify_host: true
+        rsync_opts:
+          - --include=/logs/**
+          - --include=*/
+          - --exclude=*
+          - --prune-empty-dirs
