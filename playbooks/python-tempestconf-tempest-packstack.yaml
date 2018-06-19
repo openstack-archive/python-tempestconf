@@ -49,6 +49,7 @@
       include_role:
         name: generate-tempestconf-file
       vars:
+        aditional_tempestconf_params: "object-storage.operator_role Member"
         output_path: "/etc/openstack/tempest_admin.conf"
         source_credentials_commands: "source {{ ansible_user_dir }}/keystonerc_admin"
         test_demo_user: False

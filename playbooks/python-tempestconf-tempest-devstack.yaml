@@ -44,7 +44,7 @@
       include_role:
         name: generate-tempestconf-file
       vars:
-        aditional_tempestconf_params: "auth.tempest_roles Member"
+        aditional_tempestconf_params: "auth.tempest_roles Member object-storage.operator_role Member"
         output_path: "/etc/openstack/tempest_admin.conf"
         source_credentials_commands: "export HOST_IP={{ ansible_default_ipv4.address }}; source {{ devstack_base_dir }}/devstack/openrc admin admin; {{ set_auth_url }}"
         test_demo_user: False
