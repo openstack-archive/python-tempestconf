@@ -1,0 +1,8 @@
+---
+prelude: >
+    Use healthcheck api for determine swift service availability
+features:
+  - |
+    Discover swift service only when healthcheck api is working otherwise
+    set it to false.
+    It also removes hardcoded values from swift.

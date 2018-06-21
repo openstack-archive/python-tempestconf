@@ -30,6 +30,7 @@ from tempest.lib.services.identity.v3 import services_client as s_client
 from tempest.lib.services.identity.v3 import users_client as users_v3_client
 from tempest.lib.services.image.v2 import images_client
 from tempest.lib.services.network import networks_client
+from tempest.lib.services.object_storage import account_client
 try:
     # Since Rocky, volume.v3.services_client is the default
     from tempest.lib.services.volume.v3 import services_client
@@ -116,6 +117,12 @@ class ClientManager(object):
         self.hosts_client = hosts_client.HostsClient(
             self.auth_provider,
             conf.get_defaulted('compute', 'catalog_type'),
+            self.identity_region,
+            **default_params)
+
+        self.accounts = account_client.AccountClient(
+            self.auth_provider,
+            conf.get_defaulted('object-storage', 'catalog_type'),
             self.identity_region,
             **default_params)
 
@@ -227,7 +234,7 @@ class ClientManager(object):
         # and so on.
         if service_name == "image":
             return self.images
-        elif service_name == "network":
+        elif service_name in ["network", "object-store"]:
             # return whole ClientManager object because NetworkService
             # currently needs to have an access to get_neutron/nova_client
             # methods which are chosen according to neutron presence

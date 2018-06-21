@@ -28,14 +28,18 @@ class TestObjectStorageService(BaseServiceTest):
                                             self.FAKE_URL,
                                             self.FAKE_TOKEN,
                                             disable_ssl_validation=False)
+        self.Service.conf = tempest_conf.TempestConf()
 
     def test_set_get_extensions(self):
         expected_resp = ['formpost', 'ratelimit',
                          'methods', 'account_quotas']
         self._fake_service_do_get_method(self.FAKE_STORAGE_EXTENSIONS)
-        self.Service.set_extensions(object_store_discovery=True)
+        self.Service.set_extensions()
         self.assertItemsEqual(self.Service.extensions, expected_resp)
         self.assertItemsEqual(self.Service.get_extensions(), expected_resp)
+
+    def test_set_get_extensions_empty(self):
+        self.Service.service_url = self.FAKE_URL + 'v3'
         self.Service.set_extensions()
         self.assertItemsEqual(self.Service.extensions, [])
         self.assertItemsEqual(self.Service.get_extensions(), [])
@@ -49,9 +53,17 @@ class TestObjectStorageService(BaseServiceTest):
         client.list_roles = return_mock
         client.create_role = mock.Mock()
         self.Service.list_create_roles(conf, client)
-        self.assertEqual(conf.get('object-storage', 'reseller_admin'),
+        self.assertEqual(conf.get('object-storage', 'reseller_admin_role'),
                          'ResellerAdmin')
-        # Member role is inherited from tempest.config
         self.assertEqual(conf.get('object-storage', 'operator_role'),
-                         'Member')
+                         'admin')
         self.assertTrue(client.create_role.called)
+
+    def test_check_service_status(self):
+        self.Service.client = mock.Mock()
+        self.Service.client.accounts = mock.Mock()
+        return_mock = mock.Mock(return_value=self.FAKE_ACCOUNTS)
+        self.Service.client.accounts.skip_check = mock.Mock()
+        self.Service.client.accounts.get = return_mock
+        self.Service.check_service_status(self.Service.conf)
+        self.assertTrue(self.Service.check_service_status)
