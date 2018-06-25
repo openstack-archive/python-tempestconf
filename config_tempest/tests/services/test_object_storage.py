@@ -59,11 +59,25 @@ class TestObjectStorageService(BaseServiceTest):
                          'admin')
         self.assertTrue(client.create_role.called)
 
-    def test_check_service_status(self):
+    def test_check_service_status_discover(self):
         self.Service.client = mock.Mock()
         self.Service.client.accounts = mock.Mock()
         return_mock = mock.Mock(return_value=self.FAKE_ACCOUNTS)
         self.Service.client.accounts.skip_check = mock.Mock()
         self.Service.client.accounts.get = return_mock
-        self.Service.check_service_status(self.Service.conf)
-        self.assertTrue(self.Service.check_service_status)
+        resp = self.Service.check_service_status(self.Service.conf)
+        self.assertTrue(resp)
+
+    def test_check_service_status(self):
+        # discoverability set to False (e.g. via overrides)
+        self.Service.conf.set('object-storage-feature-enabled',
+                              'discoverability',
+                              str(False))
+        resp = self.Service.check_service_status(self.Service.conf)
+        self.assertFalse(resp)
+        # discoverability set to True (e.g. via overrides)
+        self.Service.conf.set('object-storage-feature-enabled',
+                              'discoverability',
+                              str(True))
+        resp = self.Service.check_service_status(self.Service.conf)
+        self.assertTrue(resp)

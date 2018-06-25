@@ -72,17 +72,19 @@ class ObjectStorageService(Service):
                     'object-storage-feature-enabled',
                     'discoverability')):
                 return False
+            return True
         except configparser.NoSectionError:
+            # discoverability wasn't set by python-tempestconf,
+            # let's discover it
             # Turning http://.../v1/foobar into http://.../
             self.client.accounts.skip_path()
             resp, _ = self.client.accounts.get("healthcheck", {})
             return resp['status'] == '200'
-        except Exception:
-            return False
 
     def set_default_tempest_options(self, conf):
         """Set default values for swift
 
+        :type conf: TempestConf object
         """
         swift_status = self.check_service_status(conf)
         # Set roles based on service status
