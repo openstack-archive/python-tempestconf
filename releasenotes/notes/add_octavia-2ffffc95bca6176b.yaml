@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    The tempest config tool now can configure tempest.conf with the necessary
+    values, to interact with and test Octavia network load balancing as a
+    service.
+

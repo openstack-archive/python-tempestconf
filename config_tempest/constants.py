@@ -62,6 +62,7 @@ SERVICE_NAMES = {
     'metric': 'gnocchi',
     'event': 'panko',
     'workflowv2': 'mistral',
+    'load-balancer': 'octavia',
 }
 
 # what API versions could the service have and should be enabled/disabled
