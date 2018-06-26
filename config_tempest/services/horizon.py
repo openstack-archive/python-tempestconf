@@ -13,20 +13,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import urllib2
+from six.moves import urllib
 
 
 def configure_horizon(conf):
     """Derive the horizon URIs from the identity's URI."""
     uri = conf.get('identity', 'uri')
-    u = urllib2.urlparse.urlparse(uri)
+    u = urllib.parse.urlparse(uri)
     base = '%s://%s%s' % (u.scheme, u.netloc.replace(
         ':' + str(u.port), ''), '/dashboard')
     assert base.startswith('http:') or base.startswith('https:')
     has_horizon = True
     try:
-        urllib2.urlopen(base)
-    except urllib2.URLError:
+        urllib.request.urlopen(base)
+    except urllib.error.URLError:
         has_horizon = False
     conf.set('service_available', 'horizon', str(has_horizon))
     conf.set('dashboard', 'dashboard_url', base + '/')

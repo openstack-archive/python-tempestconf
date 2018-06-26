@@ -13,12 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ConfigParser
 import json
 
-from base import Service
-from config_tempest.constants import LOG
+from six.moves import configparser
 from tempest.lib import exceptions
+
+from config_tempest.constants import LOG
+from config_tempest.services.base import Service
 
 
 class ObjectStorageService(Service):
@@ -71,7 +72,7 @@ class ObjectStorageService(Service):
                     'object-storage-feature-enabled',
                     'discoverability')):
                 return False
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             # Turning http://.../v1/foobar into http://.../
             self.client.accounts.skip_path()
             resp, _ = self.client.accounts.get("healthcheck", {})

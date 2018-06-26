@@ -1,6 +1,8 @@
 - project:
     check:
       jobs:
+        - openstack-tox-py35:
+            voting: false
         - python-tempestconf-tox-cover
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-demo

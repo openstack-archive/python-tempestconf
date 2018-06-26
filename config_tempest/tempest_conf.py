@@ -13,16 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ConfigParser
 import os
 import sys
 
-import constants as C
+from config_tempest import constants as C
 from oslo_config import cfg
+from six.moves import configparser
 import tempest.config
 
 
-class TempestConf(ConfigParser.SafeConfigParser):
+class TempestConf(configparser.SafeConfigParser):
     # causes the config parser to preserve case of the options
     optionxform = str
 
@@ -34,7 +34,7 @@ class TempestConf(ConfigParser.SafeConfigParser):
 
     def __init__(self, write_credentials=True, **kwargs):
         self.write_credentials = write_credentials
-        ConfigParser.SafeConfigParser.__init__(self, **kwargs)
+        configparser.SafeConfigParser.__init__(self, **kwargs)
 
     def get_bool_value(self, value):
         """Returns boolean value of the string value given.
@@ -101,7 +101,7 @@ class TempestConf(ConfigParser.SafeConfigParser):
         if priority:
             self.priority_sectionkeys.add((section, key))
         C.LOG.debug("Setting [%s] %s = %s", section, key, value)
-        ConfigParser.SafeConfigParser.set(self, section, key, value)
+        configparser.SafeConfigParser.set(self, section, key, value)
         return True
 
     def write(self, out_path):
@@ -111,7 +111,7 @@ class TempestConf(ConfigParser.SafeConfigParser):
                        "writing credentials is disabled.")
             self.remove_values(C.ALL_CREDENTIALS_KEYS)
         with open(out_path, 'w') as f:
-            ConfigParser.SafeConfigParser.write(self, f)
+            configparser.SafeConfigParser.write(self, f)
 
     def remove_values(self, to_remove):
         """Remove values from configuration file specified in arguments.
@@ -138,9 +138,9 @@ class TempestConf(ConfigParser.SafeConfigParser):
                     # and preserve the original order of items
                     conf_values = [v for v in conf_values if v not in remove]
                     self.set(section, key, ",".join(conf_values))
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 # only inform a user, option specified by him doesn't exist
                 C.LOG.error(sys.exc_info()[1])
-            except ConfigParser.NoSectionError:
+            except configparser.NoSectionError:
                 # only inform a user, section specified by him doesn't exist
                 C.LOG.error(sys.exc_info()[1])

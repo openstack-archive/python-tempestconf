@@ -15,9 +15,10 @@
 
 import json
 
-from base import VersionedService
-import config_tempest.constants as C
 from tempest.lib import exceptions
+
+from config_tempest import constants as C
+from config_tempest.services.base import VersionedService
 
 
 class VolumeService(VersionedService):

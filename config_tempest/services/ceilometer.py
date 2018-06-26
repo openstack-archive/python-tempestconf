@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import config_tempest.constants as C
+from config_tempest import constants as C
 from tempest.lib import exceptions
 
 

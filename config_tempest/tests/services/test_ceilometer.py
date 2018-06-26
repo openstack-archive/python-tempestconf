@@ -13,7 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ConfigParser
+
+from six.moves import configparser
 
 from config_tempest.services import ceilometer
 from config_tempest.tempest_conf import TempestConf
@@ -29,7 +30,7 @@ class TestCeilometerService(BaseServiceTest):
         client_service_mock = self.FakeServiceClient(services={})
         ceilometer.check_ceilometer_service(self.conf, client_service_mock)
 
-        self._assert_conf_get_not_raises(ConfigParser.NoSectionError,
+        self._assert_conf_get_not_raises(configparser.NoSectionError,
                                          "service_available",
                                          "ceilometer")
 

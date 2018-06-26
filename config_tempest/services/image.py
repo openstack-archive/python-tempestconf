@@ -15,11 +15,12 @@
 
 import os
 import shutil
-import urllib2
 
-from base import VersionedService
-from config_tempest.constants import LOG
+from six.moves import urllib
 from tempest.lib import exceptions
+
+from config_tempest.constants import LOG
+from config_tempest.services.base import VersionedService
 
 
 class ImageService(VersionedService):
@@ -173,7 +174,7 @@ class ImageService(VersionedService):
             LOG.info("Image '%s' already fetched to '%s'.", url, destination)
             return
         LOG.info("Downloading '%s' and saving as '%s'", url, destination)
-        f = urllib2.urlopen(url)
+        f = urllib.request.urlopen(url)
         data = f.read()
         with open(destination, "wb") as dest:
             dest.write(data)

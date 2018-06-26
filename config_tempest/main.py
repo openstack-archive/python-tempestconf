@@ -37,22 +37,23 @@ obtained by querying the cloud.
 """
 
 import argparse
-import ConfigParser
 import logging
 import os
 import sys
 
-import accounts
-from clients import ClientManager
-import constants as C
-from constants import LOG
-from credentials import Credentials
-from flavors import Flavors
 import os_client_config
 from oslo_config import cfg
-from services.services import Services
-import tempest_conf
-from users import Users
+from six.moves import configparser
+
+from config_tempest import accounts
+from config_tempest.clients import ClientManager
+from config_tempest import constants as C
+from config_tempest.constants import LOG
+from config_tempest.credentials import Credentials
+from config_tempest.flavors import Flavors
+from config_tempest.services.services import Services
+from config_tempest.tempest_conf import TempestConf
+from config_tempest.users import Users
 
 
 def set_logging(debug, verbose):
@@ -111,7 +112,7 @@ def read_deployer_input(deployer_input_file, conf):
     """
     LOG.info("Adding options from deployer-input file '%s'",
              deployer_input_file)
-    deployer_input = ConfigParser.SafeConfigParser()
+    deployer_input = configparser.SafeConfigParser()
     deployer_input.read(deployer_input_file)
     for section in deployer_input.sections():
         # There are no deployer input options in DEFAULT
@@ -368,7 +369,7 @@ def config_tempest(**kwargs):
     set_logging(kwargs.get('debug', False), kwargs.get('verbose', False))
 
     write_credentials = kwargs.get('test_accounts') is None
-    conf = tempest_conf.TempestConf(write_credentials=write_credentials)
+    conf = TempestConf(write_credentials=write_credentials)
     set_options(conf, kwargs.get('deployer_input'),
                 kwargs.get('non_admin', False),
                 kwargs.get('overrides', []), kwargs.get('test_accounts'),

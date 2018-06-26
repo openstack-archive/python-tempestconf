@@ -13,20 +13,22 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import urlparse
 
-from base import Service
-import boto
-import ceilometer
-from compute import ComputeService
-import config_tempest.constants as C
-import horizon
-from identity import IdentityService
-from image import ImageService
-from network import NetworkService
-from object_storage import ObjectStorageService
-from octavia import LoadBalancerService
-import volume
+from six.moves import urllib
+
+from config_tempest import constants as C
+from config_tempest.services.base import Service
+from config_tempest.services import boto
+from config_tempest.services import ceilometer
+from config_tempest.services.compute import ComputeService
+from config_tempest.services import horizon
+from config_tempest.services.identity import IdentityService
+from config_tempest.services.image import ImageService
+from config_tempest.services.network import NetworkService
+from config_tempest.services.object_storage import ObjectStorageService
+from config_tempest.services.octavia import LoadBalancerService
+from config_tempest.services import volume
+
 
 service_dict = {'compute': ComputeService,
                 'image': ImageService,
@@ -148,7 +150,7 @@ class Services(object):
 
         # self._clients.auth_provider.auth_url stores identity.uri(_v3) value
         # from TempestConf
-        port = urlparse.urlparse(self._clients.auth_provider.auth_url).port
+        port = urllib.parse.urlparse(self._clients.auth_provider.auth_url).port
         if port is None:
             port = ""
         else:

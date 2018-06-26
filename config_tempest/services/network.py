@@ -15,8 +15,8 @@
 
 import json
 
-from base import VersionedService
 from config_tempest.constants import LOG
+from config_tempest.services.base import VersionedService
 
 
 class NetworkService(VersionedService):

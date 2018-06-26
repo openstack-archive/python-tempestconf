@@ -16,7 +16,8 @@
 import json
 import re
 import urllib3
-import urlparse
+
+from six.moves import urllib
 
 from config_tempest.constants import LOG
 MULTIPLE_SLASH = re.compile(r'/+')
@@ -39,13 +40,13 @@ class Service(object):
         self.versions = []
 
     def do_get(self, url, top_level=False, top_level_path=""):
-        parts = list(urlparse.urlparse(url))
+        parts = list(urllib.parse.urlparse(url))
         # 2 is the path offset
         if top_level:
             parts[2] = '/' + top_level_path
 
         parts[2] = MULTIPLE_SLASH.sub('/', parts[2])
-        url = urlparse.urlunparse(parts)
+        url = urllib.parse.urlunparse(parts)
 
         try:
             if self.disable_ssl_validation:

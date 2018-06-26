@@ -28,7 +28,8 @@ class TestConfigTempest(BaseConfigTempestTest):
 
     def test_configure_horizon_ipv4(self):
         mock_function = mock.Mock(return_value=True)
-        self.useFixture(MonkeyPatch('urllib2.urlopen', mock_function))
+        self.useFixture(MonkeyPatch('six.moves.urllib.request.urlopen',
+                                    mock_function))
         horizon.configure_horizon(self.conf)
         self.assertEqual(self.conf.get('service_available', 'horizon'), "True")
         self.assertEqual(self.conf.get('dashboard', 'dashboard_url'),
@@ -38,7 +39,8 @@ class TestConfigTempest(BaseConfigTempestTest):
 
     def test_configure_horizon_ipv6(self):
         mock_function = mock.Mock(return_value=True)
-        self.useFixture(MonkeyPatch('urllib2.urlopen', mock_function))
+        self.useFixture(MonkeyPatch('six.moves.urllib.request.urlopen',
+                                    mock_function))
         self.conf.set('identity', 'uri', 'http://[::1]:5000/v3', priority=True)
         horizon.configure_horizon(self.conf)
         self.assertEqual(self.conf.get('service_available', 'horizon'), "True")

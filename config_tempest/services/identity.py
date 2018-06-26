@@ -15,10 +15,11 @@
 
 import json
 import requests
-import urlparse
 
-from base import VersionedService
+from six.moves import urllib
+
 from config_tempest.constants import LOG
+from config_tempest.services.base import VersionedService
 
 
 class IdentityService(VersionedService):
@@ -30,7 +31,7 @@ class IdentityService(VersionedService):
         version = ''
         if 'v2' in self.service_url:
             version = '/v2.0'
-            url_parse = urlparse.urlparse(self.service_url)
+            url_parse = urllib.parse.urlparse(self.service_url)
             self.service_url = '{}://{}{}'.format(url_parse.scheme,
                                                   url_parse.netloc, version)
 

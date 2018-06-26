@@ -13,10 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from base import VersionedService
-import config_tempest.constants as C
 import json
+
 from tempest.lib import exceptions
+
+from config_tempest import constants as C
+from config_tempest.services.base import VersionedService
 
 
 class ComputeService(VersionedService):
