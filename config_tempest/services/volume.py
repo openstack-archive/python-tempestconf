@@ -25,7 +25,7 @@ class VolumeService(VersionedService):
     def set_extensions(self):
         body = self.do_get(self.service_url + '/extensions')
         body = json.loads(body)
-        self.extensions = map(lambda x: x['alias'], body['extensions'])
+        self.extensions = list(map(lambda x: x['alias'], body['extensions']))
 
     def set_versions(self):
         url, top_level = self.no_port_cut_url()

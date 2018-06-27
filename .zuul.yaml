@@ -1,7 +1,7 @@
 - project:
     check:
       jobs:
-        - openstack-tox-py35:
+        - python-tempestconf-tox-py35:
             voting: false
         - python-tempestconf-tox-cover
         - python-tempestconf-tempest-devstack-admin
@@ -16,6 +16,11 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - tripleo-ci-centos-7-containers-multinode
+
+- job:
+    name: python-tempestconf-tox-py35
+    parent: openstack-tox-py35
+    description: Temporary local job which runs unit tests with py35
 
 - job:
     name: python-tempestconf-tox-cover

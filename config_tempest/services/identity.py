@@ -40,7 +40,7 @@ class IdentityService(VersionedService):
             body = self.do_get(self.service_url + '/extensions')
             body = json.loads(body)
             values = body['extensions']['values']
-            self.extensions = map(lambda x: x['alias'], values)
+            self.extensions = list(map(lambda x: x['alias'], values))
             return
         # Keystone api changed in v3, the concept of extensions changed. Right
         # now, all the existing extensions are part of keystone core api, so,

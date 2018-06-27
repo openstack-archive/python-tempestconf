@@ -23,7 +23,7 @@ class NetworkService(VersionedService):
     def set_extensions(self):
         body = self.do_get(self.service_url + '/v2.0/extensions.json')
         body = json.loads(body)
-        self.extensions = map(lambda x: x['alias'], body['extensions'])
+        self.extensions = list(map(lambda x: x['alias'], body['extensions']))
 
     def create_tempest_networks(self, has_neutron, conf, network_id):
         LOG.info("Setting up network")
