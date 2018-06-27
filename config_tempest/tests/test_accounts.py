@@ -36,7 +36,7 @@ class TestAccounts(BaseConfigTempestTest):
         # credentials under auth section
         accounts.create_accounts_file(True, path, self.conf)
         mock_write.assert_called_with(path, "admin", "adminPass",
-                                      "adminTenant")
+                                      "adminProject")
         self.assertEqual(self.conf.get("auth", "test_accounts_file"),
                          os.path.abspath(path))
 

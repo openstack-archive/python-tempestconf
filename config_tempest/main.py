@@ -380,7 +380,7 @@ def config_tempest(**kwargs):
     services = Services(clients, conf, credentials)
 
     if kwargs.get('create', False) and kwargs.get('test_accounts') is None:
-        users = Users(clients.tenants, clients.roles, clients.users, conf)
+        users = Users(clients.projects, clients.roles, clients.users, conf)
         users.create_tempest_users(services.is_service('orchestration'))
     flavors = Flavors(clients.flavors, kwargs.get('create', False), conf)
     flavors.create_tempest_flavors()

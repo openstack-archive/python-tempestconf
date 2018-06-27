@@ -66,7 +66,7 @@ class TestTempestConf(BaseConfigTempestTest):
         remove_exts = ["router", "project-id", "dvr"]
         remove = {
             "identity.username": ["demo"],
-            "identity.project_name": ["tenant"],
+            "identity.project_name": ["project"],
             "compute.image_ssh_user": ["rhel", "cirros"],
             "network-feature-enabled.api_extensions": remove_exts
         }

@@ -34,13 +34,14 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         super(TestOsClientConfigSupport, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
 
-    def _check_credentials(self, manager, username, password, tenant_name):
+    def _check_credentials(self, manager, username, password, project_name):
         exp_user = manager.auth_provider.credentials._initial['username']
         exp_pass = manager.auth_provider.credentials._initial['password']
-        exp_tenant = manager.auth_provider.credentials._initial['project_name']
+        creds = manager.auth_provider.credentials
+        exp_project = creds._initial['project_name']
         self.assertEqual(exp_user, username)
         self.assertEqual(exp_pass, password)
-        self.assertEqual(exp_tenant, tenant_name)
+        self.assertEqual(exp_project, project_name)
 
     @mock.patch('os_client_config.cloud_config.CloudConfig')
     def _override_setup(self, mock_args):

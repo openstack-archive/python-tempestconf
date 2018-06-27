@@ -71,7 +71,7 @@ class TestCredentials(BaseConfigTempestTest):
         self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.creds.username = "name"
         self.creds.password = "pass"
-        self.creds.tenant_name = "Tname"
+        self.creds.project_name = "Tname"
         self.creds.set_credentials()
         mock_function.assert_called_with(
             auth_url=None, fill_in=False, identity_version='v2',
@@ -85,7 +85,7 @@ class TestCredentials(BaseConfigTempestTest):
         self.useFixture(MonkeyPatch(function2mock, mock_function))
         self.creds.username = "name"
         self.creds.password = "pass"
-        self.creds.tenant_name = "project_name"
+        self.creds.project_name = "project_name"
         self.creds.identity_version = "v3"
         self.creds.set_credentials()
         mock_function.assert_called_with(

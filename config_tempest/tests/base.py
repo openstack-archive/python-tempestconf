@@ -41,7 +41,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("identity", "uri", uri + V2, priority=True)
         conf.set("identity", "uri_v3", uri + V3)
         conf.set("auth", "admin_username", "admin")
-        conf.set("auth", "admin_project_name", "adminTenant")
+        conf.set("auth", "admin_project_name", "adminProject")
         conf.set("auth", "admin_password", "adminPass")
         conf.set("auth", "use_dynamic_credentials", "False")
         return conf
@@ -58,7 +58,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("identity", "uri", uri + V2, priority=True)
         conf.set("identity", "uri_v3", uri + V3)
         conf.set("auth", "admin_username", "admin")
-        conf.set("auth", "admin_project_name", "adminTenant")
+        conf.set("auth", "admin_project_name", "adminProject")
         conf.set("auth", "admin_password", "adminPass")
         conf.set("auth", "use_dynamic_credentials", "True")
         return conf

@@ -33,7 +33,7 @@ class Credentials(object):
         self._conf = conf
         self.username = self.get_credential('username')
         self.password = self.get_credential('password')
-        self.tenant_name = self.get_credential('project_name')
+        self.project_name = self.get_credential('project_name')
         self.identity_version = self._get_identity_version()
         self.api_version = 3 if self.identity_version == "v3" else 2
         self.identity_region = self._conf.get_defaulted('identity', 'region')
@@ -85,11 +85,11 @@ class Credentials(object):
         creds_kwargs = {'username': self.username,
                         'password': self.password}
         if self.identity_version == 'v3':
-            creds_kwargs.update({'project_name': self.tenant_name,
+            creds_kwargs.update({'project_name': self.project_name,
                                  'domain_name': 'Default',
                                  'user_domain_name': 'Default'})
         else:
-            creds_kwargs.update({'project_name': self.tenant_name})
+            creds_kwargs.update({'project_name': self.project_name})
         return creds_kwargs
 
     def set_credentials(self):
