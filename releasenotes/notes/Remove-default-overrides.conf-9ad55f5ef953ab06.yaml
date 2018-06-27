@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    etc/default-overrides.conf is removed and is no longer used or read.
+    Important default values were moved to load_basic_defaults method.
