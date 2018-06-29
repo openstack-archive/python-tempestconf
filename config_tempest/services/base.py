@@ -91,7 +91,7 @@ class VersionedService(Service):
         for version in body['versions']:
             if version['status'] != "DEPRECATED":
                 versions.append(version)
-        return map(lambda x: x['id'], versions)
+        return list(map(lambda x: x['id'], versions))
 
     def no_port_cut_url(self):
         # if there is no port defined, cut the url from version to the end

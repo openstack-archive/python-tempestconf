@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from base import VersionedService
+from config_tempest.services.base import VersionedService
 
 
 class LoadBalancerService(VersionedService):

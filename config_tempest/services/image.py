@@ -124,8 +124,8 @@ class ImageService(VersionedService):
                 return self.client.show_image(image_id)
             except exceptions.NotFound:
                 pass
-        found = filter(lambda x: x['name'] == image_name,
-                       self.client.list_images()['images'])
+        found = [x for x in self.client.list_images()['images']
+                 if x['name'] == image_name]
         if found:
             return found[0]
         else:
