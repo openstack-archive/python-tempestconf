@@ -240,6 +240,10 @@ class Services(object):
                 supported_versions = []
             else:
                 supported_versions = service_object.get_versions()
+            # FIXME: object-store config param object-storage needs to be
+            # handled here In future this should be removed from Services class
+            if service == 'object-store':
+                service = 'object-storage'
             section = service + '-feature-enabled'
             for version in service_info['supported_versions']:
                 is_supported = any(version in item
@@ -271,4 +275,8 @@ class Services(object):
             service_object = self.get_service(service)
             if service_object is not None:
                 extensions = ','.join(service_object.get_extensions())
+            # FIXME: object-store config param object-storage needs to be
+            # handled here In future this should be removed from Services class
+            if service == 'object-store':
+                service = 'object-storage'
             self._conf.set(service + postfix, ext_key, extensions)
