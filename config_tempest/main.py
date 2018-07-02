@@ -175,7 +175,7 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
 
     if non_admin:
         # non admin, so delete auth admin values which were set
-        # from default-overides.conf file
+        # in load_basic_defaults method
         conf.set("auth", "admin_username", "")
         conf.set("auth", "admin_project_name", "")
         conf.set("auth", "admin_password", "")
