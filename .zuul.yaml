@@ -1,8 +1,6 @@
 - project:
     check:
       jobs:
-        - python-tempestconf-tox-py35:
-            voting: false
         - python-tempestconf-tox-cover
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-demo
@@ -18,11 +16,6 @@
         - tripleo-ci-centos-7-containers-multinode
 
 - job:
-    name: python-tempestconf-tox-py35
-    parent: openstack-tox-py35
-    description: Temporary local job which runs unit tests with py35
-
-- job:
     name: python-tempestconf-tox-cover
     parent: openstack-tox
     description: Run tox code coverage tests.
@@ -34,10 +27,9 @@
       tox_envlist: cover
 
 - job:
-    name: python-tempestconf-tempest-devstack-admin
+    name: python-tempestconf-devstack-base
     parent: devstack
-    description: |
-      Tempest job for python-tempestconf on a devstack environment as the admin user.
+    description: Base job for python-tempestconf on a devstack environment
     required-projects:
       - openstack/python-tempestconf
       - openstack/tempest
@@ -46,10 +38,11 @@
       - zuul: openstack/python-tempestconf
       - zuul: openstack/tempest
       - zuul: openstack-dev/devstack
-    run: playbooks/python-tempestconf-tempest-devstack.yaml
     vars:
-      user: admin
-      cloud_user: devstack-admin
+      zuul_copy_output:
+        '{{ devstack_base_dir }}/tempest/tempest.log': 'logs'
+        '{{ devstack_base_dir }}/tempest/etc/tempest.conf': 'logs'
+        '/etc/openstack/accounts.yaml': 'logs'
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -57,80 +50,71 @@
       - ^.*\.rst$
 
 - job:
-    name: python-tempestconf-tempest-devstack-demo
-    parent: devstack
-    description: |
-      Tempest job for python-tempestconf on a devstack environment as the demo user.
+    name: python-tempestconf-packstack-base
+    parent: packstack-allinone
+    description: Base job for python-tempestconf on packstack environment
     required-projects:
+      - openstack/packstack
       - openstack/python-tempestconf
       - openstack/tempest
       - openstack-dev/devstack
+    post-run: playbooks/upload-logs.yaml
     roles:
+      - zuul: openstack/packstack
       - zuul: openstack/python-tempestconf
       - zuul: openstack/tempest
       - zuul: openstack-dev/devstack
+    vars:
+      scenario: scenario000
+      zuul_copy_output:
+        '/opt/stack/tempest/etc/tempest.conf': 'logs'
+        '/opt/stack/tempest/tempest.log': 'logs'
+        '/etc/openstack/accounts.yaml': 'logs'
+    irrelevant-files:
+      - config_tempest/tests/.*$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+      - ^.*\.rst$
+
+- job:
+    name: python-tempestconf-tempest-devstack-admin
+    parent: python-tempestconf-devstack-base
+    description: |
+      Tempest job for python-tempestconf on a devstack environment as the admin user.
+    run: playbooks/python-tempestconf-tempest-devstack.yaml
+    vars:
+      user: admin
+      cloud_user: devstack-admin
+
+- job:
+    name: python-tempestconf-tempest-devstack-demo
+    parent: python-tempestconf-devstack-base
+    description: |
+      Tempest job for python-tempestconf on a devstack environment as the demo user.
     run: playbooks/python-tempestconf-tempest-devstack.yaml
     vars:
       user: demo
       cloud_user: devstack
       test_demo: True
       cloud_admin: devstack-admin
-    irrelevant-files:
-      - config_tempest/tests/.*$
-      - ^doc/.*$
-      - ^releasenotes/.*$
-      - ^.*\.rst$
 
 - job:
     name: python-tempestconf-tempest-packstack-admin
-    parent: packstack-allinone
+    parent: python-tempestconf-packstack-base
     description: |
       Tempest job for python-tempestconf on a packstack environment as the admin user.
-    required-projects:
-      - openstack/packstack
-      - openstack/python-tempestconf
-      - openstack/tempest
-      - openstack-dev/devstack
-    timeout: 5400
-    roles:
-      - zuul: openstack/packstack
-      - zuul: openstack/python-tempestconf
-      - zuul: openstack/tempest
-      - zuul: openstack-dev/devstack
     run: playbooks/python-tempestconf-tempest-packstack.yaml
     vars:
-      scenario: scenario000
       user: admin
-    irrelevant-files:
-      - config_tempest/tests/.*$
-      - ^doc/.*$
-      - ^releasenotes/.*$
-      - ^.*\.rst$
 
 - job:
     name: python-tempestconf-tempest-packstack-demo
-    parent: packstack-allinone
+    parent: python-tempestconf-packstack-base
     description: |
       Tempest job for python-tempestconf on a packstack environment as the demo user.
-    required-projects:
-      - openstack/packstack
-      - openstack/python-tempestconf
-      - openstack/tempest
-      - openstack-dev/devstack
-    timeout: 5400
-    roles:
-      - zuul: openstack/packstack
-      - zuul: openstack/python-tempestconf
-      - zuul: openstack/tempest
-      - zuul: openstack-dev/devstack
     run: playbooks/python-tempestconf-tempest-packstack.yaml
     vars:
-      scenario: scenario000
       user: demo
       test_demo: True
       cloud_admin: packstack-admin
-    irrelevant-files:
-      - config_tempest/tests/.*$
-      - ^doc/.*$
-      - ^releasenotes/.*$
-      - ^.*\.rst$
+
