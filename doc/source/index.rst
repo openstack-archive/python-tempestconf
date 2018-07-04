@@ -6,20 +6,22 @@
 Welcome to python-tempestconf's documentation!
 ========================================================
 
+python-tempestconf is a tool for automatic generation of tempest configuration
+based on user's cloud.
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   readme
-   installation
-   usage
-   contributing
+   overview
+   install/index
+   user/index
+   contributor/index
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
