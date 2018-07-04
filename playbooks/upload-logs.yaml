@@ -4,17 +4,19 @@
       file:
         path: /tmp/logs/tempest
         state: directory
-      become: True
+      become: true
 
-    # Using command instead of copy due
-    # https://github.com/ansible/ansible/issues/42198
     - name: Copying tempest logs and config to /tmp/logs/tempest
-      command: "sudo cp {{ item }} /tmp/logs/tempest"
+      copy:
+        src: "{{ item }}"
+        dest: /tmp/logs/tempest
+        remote_src: true
       with_items:
         - /opt/stack/tempest/etc/tempest.conf
         - /opt/stack/tempest/tempest.log
         - /etc/openstack/accounts.yaml
-      ignore_errors: True
+      ignore_errors: true
+      become: true
 
     - name: Upload logs
       synchronize:
