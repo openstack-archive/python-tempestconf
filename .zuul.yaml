@@ -6,14 +6,14 @@
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
-        - tripleo-ci-centos-7-containers-multinode
+        - tripleo-ci-centos-7-scenario002-multinode-oooq-container
     gate:
       jobs:
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
-        - tripleo-ci-centos-7-containers-multinode
+        - tripleo-ci-centos-7-scenario002-multinode-oooq-container
 
 - job:
     name: python-tempestconf-tox-cover
