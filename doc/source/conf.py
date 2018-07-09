@@ -20,7 +20,8 @@
 extensions = [
     'openstackdocstheme',
     #'sphinx.ext.intersphinx',
-    'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc',
+    'sphinxarg.ext'
 ]
 
 html_theme = 'openstackdocs'
