@@ -43,7 +43,8 @@ class TestImageService(BaseServiceTest):
         self.dir = "/img/"
         self.conf = TempestConf()
         self.conf.set("scenario", "img_dir", self.dir)
-        self.conf.set("image", "http_image", "my_image.qcow2")
+        self.conf.set("image", "image_path", "my_image.qcow2")
+        self.conf.set("image", "http_image", "http_image.qcow2")
 
     @mock.patch('config_tempest.services.image.ImageService'
                 '.find_or_upload_image')
