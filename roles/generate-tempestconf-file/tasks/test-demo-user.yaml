@@ -1,11 +1,10 @@
-  - name: Generate tempest configuration file as demo user (expected to fail)
+  - name: Generate tempest.conf as demo user (tool will autodiscover flavors)
     shell: |
         ./generate-tempestconf.sh
     args:
       chdir: "{{ tempestconf_src_relative_path }}"
       executable: /bin/bash
     register: result
-    failed_when: result.rc == 0
 
   - name: Create m1.nano and m1.micro flavors for demo user
     shell: |

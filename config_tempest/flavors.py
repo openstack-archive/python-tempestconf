@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from operator import itemgetter
+
 from config_tempest.constants import LOG
 
 
@@ -27,65 +29,114 @@ class Flavors(object):
         self.client = client
         self.allow_creation = allow_creation
         self._conf = conf
+        self.flavor_list = self.client.list_flavors()['flavors']
 
     def create_tempest_flavors(self):
         """Find or create flavors and set them in conf.
 
         If 'flavor_ref' and 'flavor_ref_alt' are specified in conf, it will
-        first try to find those - otherwise it will try finding or creating
-        'm1.nano' and 'm1.micro' and overwrite those options in conf.
+        try to find them, if not found, it raises an Exception.
+        Otherwise it will try finding or creating 'm1.nano' and 'm1.micro'
+        flavors and set their ids in conf.
         """
-        # m1.nano flavor
-        flavor_id = None
-        if self._conf.has_option('compute', 'flavor_ref'):
-            flavor_id = self._conf.get('compute', 'flavor_ref')
-        flavor_id = self.find_or_create_flavor(flavor_id, 'm1.nano', ram=64)
-        self._conf.set('compute', 'flavor_ref', flavor_id)
+        prefs = [
+            {'key': 'flavor_ref', 'name': 'm1.nano', 'ram': 64},
+            {'key': 'flavor_ref_alt', 'name': 'm1.micro', 'ram': 128}
+        ]
+        for pref in prefs:
+            flavor_id = None
+            if self._conf.has_option('compute', pref['key']):
+                flavor_id = self._conf.get('compute', pref['key'])
+                flavor_id = self.find_flavor_by_id(flavor_id)
+                if flavor_id is None:
+                    raise Exception("%s id '%s' specified by user doesn't"
+                                    " exist", pref['key'], flavor_id)
+            else:
+                # create m1.nano/m1.micro flavor
+                flavor_id = self.create_flavor(pref['name'], ram=pref['ram'])
+                self._conf.set('compute', pref['key'], flavor_id)
 
-        # m1.micro flavor
-        alt_flavor_id = None
-        if self._conf.has_option('compute', 'flavor_ref_alt'):
-            alt_flavor_id = self._conf.get('compute', 'flavor_ref_alt')
-        alt_flavor_id = self.find_or_create_flavor(alt_flavor_id, 'm1.micro',
-                                                   ram=128)
-        self._conf.set('compute', 'flavor_ref_alt', alt_flavor_id)
+    def create_flavor(self, flavor_name, ram=64, vcpus=1, disk=0):
+        """Create flavors or try to discover two smallest ones available.
 
-    def find_or_create_flavor(self, flavor_id, flavor_name,
-                              ram=64, vcpus=1, disk=0):
-        """Try finding flavor by ID or name, create if not found.
-
-        :param flavor_id: first try finding the flavor by this
-        :param flavor_name: find by this if it was not found by ID, create new
-            flavor with this name if not found at allCLIENT_MOCK
+        :param flavor_name: flavor name to be created (usually m1.nano or
+                            m1.micro)
         :param ram: memory of created flavor in MB
         :param vcpus: number of VCPUs for the flavor
         :param disk: size of disk for flavor in GB
         """
-        flavor = None
-        flavors = self.client.list_flavors()['flavors']
-        # try finding it by the ID first
-        if flavor_id:
-            found = [f for f in flavors if f['id'] == flavor_id]
-            if found:
-                flavor = found[0]
-        # if not found, try finding it by name
-        if flavor_name and not flavor:
-            found = [f for f in flavors if f['name'] == flavor_name]
-            if found:
-                flavor = found[0]
-
-        if not flavor and not self.allow_creation:
-            raise Exception("Flavor '%s' not found, but resource creation"
-                            " isn't allowed. Either use '--create' or provide"
-                            " an existing flavor" % flavor_name)
-
-        if not flavor:
+        flavor_id = self.find_flavor_by_name(flavor_name)
+        if flavor_id is not None:
+            LOG.info("(no change) Found flavor '%s'", flavor_name)
+            return flavor_id
+        elif self.allow_creation:
             LOG.info("Creating flavor '%s'", flavor_name)
-            flavor = self.client.create_flavor(name=flavor_name,
-                                               ram=ram, vcpus=vcpus,
-                                               disk=disk, id=None)
-            return flavor['flavor']['id']
+            resp = self.client.create_flavor(name=flavor_name,
+                                             ram=ram, vcpus=vcpus,
+                                             disk=disk, id=None)
+            return resp['flavor']['id']
         else:
-            LOG.info("(no change) Found flavor '%s'", flavor['name'])
+            if len(self.flavor_list) < 2:
+                raise Exception("Creation of flavors is not allowed and not "
+                                "enough available flavors found. Either use --"
+                                "create argument or create flavors manually.")
+            # return id of the discovered flavor
+            return self.discover_smallest_flavor(flavor_name)
 
-        return flavor['id']
+    def find_flavor_by_id(self, flavor_id):
+        """Look for a flavor by its id.
+
+        :type flavor_id: string
+        :return: flavor id or None if not found
+        :rtype: string or None
+        """
+        found = [f for f in self.flavor_list if f['id'] == flavor_id]
+        if found:
+            LOG.info("Found flavor '%s' by it's id '%s'",
+                     found[0]['name'], flavor_id)
+            # return flavor's id
+            return found[0]['id']
+        return None
+
+    def find_flavor_by_name(self, flavor_name):
+        """Look for a flavor by its name.
+
+        :type flavor_name: string
+        :return: flavor id or None if not found
+        :rtype: string or None
+        """
+        found = [f for f in self.flavor_list if f['name'] == flavor_name]
+        if found:
+            # return flavor's id
+            return found[0]['id']
+        return None
+
+    def discover_smallest_flavor(self, flavor_name=""):
+        """Discover the two smallest available flavors in the system.
+
+        If flavor_name contains "micro", the method returns the second
+        smallest flavor found.
+        :param flavor_name: [m1.nano, m1.micro]
+        """
+        LOG.warning("Flavor '%s' not found and creation is not allowed. "
+                    "Tying to autodetect the smallest flavor available.",
+                    flavor_name)
+        flavors = []
+        for flavor in self.flavor_list:
+            f = self.client.show_flavor(flavor['id'])['flavor']
+            flavors.append((f['name'], f['id'], f['ram'],
+                            f['disk'], f['vcpus']))
+
+        # order by ram, disk size and vcpus number and take first two of them
+        flavors = sorted(flavors, key=itemgetter(2, 3, 4))[:2]
+
+        f = None
+        if "micro" in flavor_name:
+            # take the second smaller one
+            f = flavors[1]
+        else:
+            f = flavors[0]
+        LOG.warning("Found '%s' flavor (id: '%s', ram: '%s', disk: '%s', "
+                    "vcpus: '%s') ", f[0], f[1], f[2], f[3], f[4])
+        # return flavor's id
+        return f[0]
