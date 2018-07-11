@@ -2,70 +2,25 @@
 Usage
 ========
 
-To use python-tempestconf in a project::
 
-    import tempest_config
+To install python-tempestconf follow `Installation Guide`_
 
-Git
----
+.. _Installation Guide: ../install/installation.html
 
-1. Clone and change to the directory:
 
-.. code-block:: shell-session
-
-    $ git clone https://git.openstack.org/openstack/python-tempestconf
-    $ cd python-tempestconf
-
-2. Create virtual environment using virtualenv:
-
-.. code-block:: shell-session
-
-    $ virtualenv .venv
-    $ source .venv/bin/activate
-
-3. Source the newly created virtual environment and install
-   requirements:
-
-.. code-block:: shell-session
-
-    (.venv) $ pip install -r requirements.txt
-    (.venv) $ pip install -r test-requirements.txt
-
-4. Source cloud credentials, for example:
-
-.. code-block:: shell-session
-
-    (py27) $ source cloudrc
-
-5. Run python-tempestconf to generate tempest configuration file:
-
-.. code-block:: shell-session
-
-    (py27) $ python config_tempest/config_tempest.py --debug identity.uri $OS_AUTH_URL \
-                identity.admin_password  $OS_PASSWORD --create
-
-After this, ``./etc/tempest.conf`` is generated.
-
-RPM Installation (RDO)
-----------------------
-
-1. python-tempestconf is installed together with openstack-tempest, as
-   a new dependency (starting from the Ocata release)
-
-.. code-block:: shell-session
-
-    # yum install openstack-tempest
-
-2. Source cloud credentials, initialize tempest and run the discovery
-   tool:
+1. Source cloud credentials, for example:
 
 .. code-block:: shell-session
 
     $ source cloudrc
-    $ tempest init testingdir
-    $ cd testingdir
-    $ discover-tempest-config --debug identity.uri $OS_AUTH_URL \
-          identity.admin_password  $OS_PASSWORD --create
+
+2. Run python-tempestconf to generate tempest configuration file:
+
+.. code-block:: shell-session
+
+    $ discover-tempest-config --debug --create
+
+After this, ``./etc/tempest.conf`` is generated.
 
 .. note::
    In Ocata release new features were presented.
@@ -83,17 +38,7 @@ so instead of sourcing openstackrc files you can use clouds.yml files. Location 
 these files should be stored and syntax which is used to specify cloud.yaml files
 can be found `here <https://docs.openstack.org/os-client-config/latest/user/configuration.html#config-files>`__
 
-In case of git usage:
-
 .. code-block:: shell-session
 
-    (py27) $ python config_tempest/config_tempest.py --debug --create --os-cloud <name of cloud>
-
-In case of RPM:
-
-.. code-block:: shell-session
-
-    $ tempest init testingdir
-    $ cd testingdir
     $ discover-tempest-config --debug --create --os-cloud <name of cloud>
 
