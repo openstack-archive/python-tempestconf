@@ -45,8 +45,16 @@ class ImageService(VersionedService):
         # The option is heavily used in CI and it's also usefull for refstack,
         # because we don't have to specify overrides.
         if 'cirros' in conf.get_defaulted('image',
-                                          'http_image').rsplit('/')[-1]:
+                                          'image_path').rsplit('/')[-1]:
             conf.set('validation', 'image_ssh_user', 'cirros')
+        # image.http_image is a tempest option which defines 'http accessible
+        # image', it can be in a compressed format so it can't be mistaken
+        # for an image which will be uploaded to the glance.
+        # image.http_image and image.image_path can be 2 different images.
+        # If image.http_image wasn't set as an override, it will be set to
+        # image.image_path
+        conf.set('image', 'http_image', conf.get_defaulted('image',
+                                                           'image_path'))
 
     def set_versions(self):
         super(ImageService, self).set_versions(top_level=False)
@@ -60,7 +68,7 @@ class ImageService(VersionedService):
         :type conf: TempestConf object
         """
         img_dir = os.path.join(conf.get("scenario", "img_dir"))
-        image_path = conf.get_defaulted('image', 'http_image')
+        image_path = conf.get_defaulted('image', 'image_path')
         img_path = os.path.join(img_dir,
                                 os.path.basename(image_path))
         name = image_path[image_path.rfind('/') + 1:]

@@ -139,7 +139,7 @@ def read_deployer_input(deployer_input_file, conf):
             conf.set(section, key, value, priority=True)
 
 
-def set_options(conf, deployer_input, non_admin, overrides=[],
+def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
                 test_accounts=None, cloud_creds=None,
                 no_default_deployer=False):
     """Set options in conf provided by different source.
@@ -155,6 +155,8 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     :param deployer_input: Path to the deployer inut file
     :type deployer_input: string
     :type non_admin: boolean
+    :param image_path: An image to be uploaded to glance
+    :type image_path: string
     :param overrides: list of tuples: [(section, key, value)]
     :type overrides: list
     :param test_accounts: Path to the accounts.yaml file
@@ -163,6 +165,9 @@ def set_options(conf, deployer_input, non_admin, overrides=[],
     :type cloud_creds: dict
     """
     load_basic_defaults(conf)
+    # image.image_path is a python-tempestconf option which defines which
+    # image will be uploaded to glance
+    conf.set('image', 'image_path', image_path)
 
     if deployer_input and os.path.isfile(deployer_input):
         LOG.info("Reading deployer input from file {}".format(
@@ -387,6 +392,7 @@ def config_tempest(**kwargs):
     conf = TempestConf(write_credentials=write_credentials)
     set_options(conf, kwargs.get('deployer_input'),
                 kwargs.get('non_admin', False),
+                kwargs.get('image_path', C.DEFAULT_IMAGE),
                 kwargs.get('overrides', []), kwargs.get('test_accounts'),
                 kwargs.get('cloud_creds'))
 
@@ -401,7 +407,6 @@ def config_tempest(**kwargs):
     flavors.create_tempest_flavors()
 
     image = services.get_service('image')
-    conf.set('image', 'http_image', kwargs.get('image_path', C.DEFAULT_IMAGE))
     image.set_image_preferences(kwargs.get('image_disk_format',
                                            C.DEFAULT_IMAGE_FORMAT),
                                 kwargs.get('non_admin', False))
