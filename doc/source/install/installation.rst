@@ -44,3 +44,10 @@ RPM Installation (RDO)
 
     $ sudo yum install openstack-tempest
 
+
+Pip installation
+----------------
+
+Install `python-tempestconf` via pip as follows::
+
+   $ pip install python-tempestconf
