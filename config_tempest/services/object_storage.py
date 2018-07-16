@@ -57,6 +57,15 @@ class ObjectStorageService(Service):
                     LOG.info("Role %s already exists", key_value)
         conf.set('object-storage', 'operator_role', 'admin')
 
+    def _check_health_check(self, path):
+        try:
+            self.client.accounts.skip_path()
+            resp, _ = self.client.accounts.get(path, {})
+            return resp['status'] == '200'
+        except Exception as e:
+            LOG.warning('Healthcheck API not discovered giving %s', e)
+            return False
+
     def check_service_status(self, conf):
         """Use healthcheck api to check the service status
 
@@ -74,12 +83,12 @@ class ObjectStorageService(Service):
                 return False
             return True
         except configparser.NoSectionError:
-            # discoverability wasn't set by python-tempestconf,
-            # let's discover it
-            # Turning http://.../v1/foobar into http://.../
-            self.client.accounts.skip_path()
-            resp, _ = self.client.accounts.get("healthcheck", {})
-            return resp['status'] == '200'
+            # On swift, healthcheck is under http://.../healthcheck, while in
+            # ceph is under http://.../swift/healthcheck, we check both cases
+            return_value = self._check_health_check('healthcheck')
+            if not return_value:
+                return_value = self._check_health_check('swift/healthcheck')
+            return return_value
 
     def set_default_tempest_options(self, conf):
         """Set default values for swift
