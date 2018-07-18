@@ -2,6 +2,7 @@
 *.pyc
 cirros*
 tempest.conf
+etc/
 
 # Packages
 *.egg*
