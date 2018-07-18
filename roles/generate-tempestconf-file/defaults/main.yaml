@@ -5,3 +5,4 @@ url_cirros_image: "http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-di
 aditional_tempestconf_params: ""
 test_demo_user: False
 test_accounts_file: /etc/openstack/accounts.yaml
+create_accounts_file: False

@@ -42,7 +42,7 @@
       zuul_copy_output:
         '{{ devstack_base_dir }}/tempest/tempest.log': 'logs'
         '{{ devstack_base_dir }}/tempest/etc/tempest.conf': 'logs'
-        '/etc/openstack/accounts.yaml': 'logs'
+        '{{ zuul.project.src_dir }}/etc/accounts.yaml': 'logs'
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -65,6 +65,7 @@
       - zuul: openstack/tempest
       - zuul: openstack-dev/devstack
     vars:
+      tempest_concurrency: 2
       scenario: scenario000
       zuul_copy_output:
         '/opt/stack/tempest/etc/tempest.conf': 'logs'
@@ -85,6 +86,7 @@
     vars:
       user: admin
       cloud_user: devstack-admin
+      tempest_concurrency: 2
 
 - job:
     name: python-tempestconf-tempest-devstack-demo
@@ -97,6 +99,9 @@
       cloud_user: devstack
       test_demo: True
       cloud_admin: devstack-admin
+      # concurrency is reduced in this job, because a minimal accounts
+      # file is used
+      tempest_concurrency: 1
 
 - job:
     name: python-tempestconf-tempest-packstack-admin

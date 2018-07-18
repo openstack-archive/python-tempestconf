@@ -12,8 +12,10 @@ discover-tempest-config \
 {% else %}
 --non-admin \
 {% endif %}
-{% if test_demo_user %}
+{% if test_demo_user and not create_accounts_file %}
 --test-accounts {{ test_accounts_file }} \
+{% elif test_demo_user and create_accounts_file %}
+--create-accounts-file ./etc/accounts.yaml \
 {% endif %}
 identity.uri $OS_AUTH_URL \
 auth.admin_password $OS_PASSWORD \

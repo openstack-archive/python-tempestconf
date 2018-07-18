@@ -13,7 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import os
 import yaml
 
 
@@ -28,7 +27,6 @@ def create_accounts_file(create, accounts_path, conf):
                         conf.get(section, prefix + 'username'),
                         conf.get(section, prefix + 'password'),
                         conf.get(section, prefix + 'project_name'))
-    conf.set("auth", "test_accounts_file", os.path.abspath(accounts_path))
 
 
 def write_accounts_file(path, username, password, project_name):
