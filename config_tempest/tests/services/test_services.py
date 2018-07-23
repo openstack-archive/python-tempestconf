@@ -106,6 +106,19 @@ class TestServices(BaseConfigTempestTest):
         url = services.parse_endpoints(ep, 'ServiceName')
         self.assertEqual('https://10.0.0.101:13000/identity/v2', url)
 
+    def test_parse_endpoints_not_ip_hostname(self):
+        services = self._create_services_instance()
+        services.public_url = "url"
+        url = "https://identity-my.cloud.com:35456/v2.0"
+        ep = {
+            'url': url,
+            'interface': 'public',
+            'region': 'regioneOne',
+        }
+        services._clients.auth_provider.auth_url = "35456"
+        url_resp = services.parse_endpoints(ep, "ServiceName")
+        self.assertEqual(url, url_resp)
+
     def test_edit_identity_url(self):
         services = self._create_services_instance()
         url_port = 'https://10.0.0.101:13000/v2.0'

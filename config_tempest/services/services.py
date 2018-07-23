@@ -136,7 +136,7 @@ class Services(object):
             C.LOG.info("Service %s has no endpoints", name)
         else:
             url = ep[self.public_url]
-        if 'identity' in url:
+        if 'identity' in urllib.parse.urlparse(url).path:
             url = self.edit_identity_url(ep[self.public_url])
         return url
 
@@ -147,7 +147,6 @@ class Services(object):
         :type url: string
         :rtype: string
         """
-
         # self._clients.auth_provider.auth_url stores identity.uri(_v3) value
         # from TempestConf
         port = urllib.parse.urlparse(self._clients.auth_provider.auth_url).port
