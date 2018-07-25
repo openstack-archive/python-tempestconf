@@ -19,7 +19,7 @@ import shutil
 from six.moves import urllib
 from tempest.lib import exceptions
 
-from config_tempest.constants import LOG
+from config_tempest import constants as C
 from config_tempest.services.base import VersionedService
 
 
@@ -52,9 +52,15 @@ class ImageService(VersionedService):
         # for an image which will be uploaded to the glance.
         # image.http_image and image.image_path can be 2 different images.
         # If image.http_image wasn't set as an override, it will be set to
-        # image.image_path
-        conf.set('image', 'http_image', conf.get_defaulted('image',
-                                                           'image_path'))
+        # image.image_path or to DEFAULT_IMAGE
+        image_path = conf.get_defaulted('image', 'image_path')
+        if self._find_image_by_name(image_path) is None:
+            conf.set('image', 'http_image', image_path)
+        else:
+            # image.image_path is name of the image already present in glance,
+            # this value can't be set to image.http_image, therefor set the
+            # default value
+            conf.set('image', 'http_image', C.DEFAULT_IMAGE)
 
     def set_versions(self):
         super(ImageService, self).set_versions(top_level=False)
@@ -107,17 +113,29 @@ class ImageService(VersionedService):
         image = self._find_image(image_id, image_name)
 
         if image:
-            LOG.info("(no change) Found image '%s'", image['name'])
+            C.LOG.info("(no change) Found image '%s'", image['name'])
             path = os.path.abspath(image_dest)
             if not os.path.isfile(path):
                 self._download_image(image['id'], path)
         else:
-            LOG.info("Creating image '%s'", image_name)
+            C.LOG.info("Creating image '%s'", image_name)
             if image_source.startswith("http:") or \
                image_source.startswith("https:"):
                     self._download_file(image_source, image_dest)
             else:
-                shutil.copyfile(image_source, image_dest)
+                try:
+                    shutil.copyfile(image_source, image_dest)
+                except IOError:
+                    # let's try if this is the case when a user uses already
+                    # existing image in glance which is not uploaded as *_alt
+                    if image_name[-4:] == "_alt":
+                        image = self._find_image(None, image_name[:-4])
+                        if image:
+                            path = os.path.abspath(image_dest)
+                            if not os.path.isfile(path):
+                                self._download_image(image['id'], path)
+                    else:
+                        raise IOError
             image = self._upload_image(image_name, image_dest)
         return image['id']
 
@@ -132,12 +150,19 @@ class ImageService(VersionedService):
                 return self.client.show_image(image_id)
             except exceptions.NotFound:
                 pass
-        found = [x for x in self.client.list_images()['images']
-                 if x['name'] == image_name]
-        if found:
-            return found[0]
-        else:
-            return None
+        return self._find_image_by_name(image_name)
+
+    def _find_image_by_name(self, image_name):
+        """Find image by name.
+
+        :type image_name: string
+        :return: Information in a dict about the found image
+        :rtype: dict or None if image was not found
+        """
+        for x in self.client.list_images()['images']:
+            if x['name'] == image_name:
+                return x
+        return None
 
     def _upload_image(self, name, path):
         """Upload image file from `path` into Glance with `name`.
@@ -145,8 +170,8 @@ class ImageService(VersionedService):
         :type name: string
         :type path: string
         """
-        LOG.info("Uploading image '%s' from '%s'",
-                 name, os.path.abspath(path))
+        C.LOG.info("Uploading image '%s' from '%s'",
+                   name, os.path.abspath(path))
         if self.non_admin:
             visibility = 'community'
         else:
@@ -166,9 +191,9 @@ class ImageService(VersionedService):
         :type id: string
         :type path: string
         """
-        LOG.info("Downloading image %s to %s", id, path)
+        C.LOG.info("Downloading image %s to %s", id, path)
         body = self.client.show_image_file(id)
-        LOG.debug(type(body.data))
+        C.LOG.debug(type(body.data))
         with open(path, 'wb') as out:
             out.write(body.data)
 
@@ -179,9 +204,9 @@ class ImageService(VersionedService):
         :type destination: string
         """
         if os.path.exists(destination):
-            LOG.info("Image '%s' already fetched to '%s'.", url, destination)
+            C.LOG.info("Image '%s' already fetched to '%s'.", url, destination)
             return
-        LOG.info("Downloading '%s' and saving as '%s'", url, destination)
+        C.LOG.info("Downloading '%s' and saving as '%s'", url, destination)
         f = urllib.request.urlopen(url)
         data = f.read()
         with open(destination, "wb") as dest:

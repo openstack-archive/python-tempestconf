@@ -251,10 +251,10 @@ def get_arg_parser():
                         help="""a format of an image to be uploaded to glance.
                                 Default is '%s'""" % C.DEFAULT_IMAGE_FORMAT)
     parser.add_argument('--image', default=C.DEFAULT_IMAGE,
-                        help="""an image to be uploaded to glance. The name of
-                                the image is the leaf name of the path which
-                                can be either a filename or url. Default is
-                                '%s'""" % C.DEFAULT_IMAGE)
+                        help="""An image name/path/url to be uploaded to
+                                glance if it's not already there. The name of
+                                the image is the leaf name of the path. Default
+                                is '%s'""" % C.DEFAULT_IMAGE)
     parser.add_argument('--network-id',
                         help="""The ID of an existing network in our openstack
                                 instance with external connectivity""")
