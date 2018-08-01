@@ -33,6 +33,18 @@ class VolumeService(VersionedService):
         body = json.loads(body)
         self.versions = self.deserialize_versions(body)
 
+    def get_supported_versions(self):
+        return ['v2', 'v3']
+
+    def get_catalog(self):
+        return 'volumev3'
+
+    def get_feature_name(self):
+        return 'volume'
+
+    def get_unversioned_service_name(self):
+        return 'volume'
+
 
 def check_volume_backup_service(conf, volume_client, is_volumev3):
     """Verify if the cinder backup service is enabled"""

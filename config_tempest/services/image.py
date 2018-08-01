@@ -62,6 +62,12 @@ class ImageService(VersionedService):
             # default value
             conf.set('image', 'http_image', C.DEFAULT_IMAGE)
 
+    def get_supported_versions(self):
+        return ['v1', 'v2']
+
+    def get_catalog(self):
+        return 'image'
+
     def set_versions(self):
         super(ImageService, self).set_versions(top_level=False)
 
