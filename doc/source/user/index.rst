@@ -1,5 +1,5 @@
-Usage
-=====
+User Guide
+==========
 
 .. toctree::
   :maxdepth: 2
@@ -7,3 +7,4 @@ Usage
 
   usage
   import
+  default
