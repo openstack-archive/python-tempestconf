@@ -13,7 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+
+from ssl import CertificateError
+
 from six.moves import urllib
+
+from config_tempest import constants as C
 
 
 def configure_horizon(conf):
@@ -28,6 +33,11 @@ def configure_horizon(conf):
         urllib.request.urlopen(base)
     except urllib.error.URLError:
         has_horizon = False
+    except CertificateError as ex:
+        C.LOG.info('Certificate Error while discovering Horizon: %s', (ex))
+        has_horizon = False
+
     conf.set('service_available', 'horizon', str(has_horizon))
-    conf.set('dashboard', 'dashboard_url', base + '/')
-    conf.set('dashboard', 'login_url', base + '/auth/login/')
+    if has_horizon:
+        conf.set('dashboard', 'dashboard_url', base + '/')
+        conf.set('dashboard', 'login_url', base + '/auth/login/')

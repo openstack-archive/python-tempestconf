@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from ssl import CertificateError
+
 from fixtures import MonkeyPatch
 import mock
 
@@ -48,3 +50,13 @@ class TestConfigTempest(BaseConfigTempestTest):
                          "http://[::1]/dashboard/")
         self.assertEqual(self.conf.get('dashboard', 'login_url'),
                          "http://[::1]/dashboard/auth/login/")
+
+    def test_configure_horizon_certificate_error(self):
+        mock_function = mock.Mock(return_value=True)
+        mock_function.side_effect = CertificateError
+        self.useFixture(MonkeyPatch('six.moves.urllib.request.urlopen',
+                                    mock_function))
+        horizon.configure_horizon(self.conf)
+        self.assertEqual(self.conf.get('service_available', 'horizon'),
+                         "False")
+        self.assertFalse(self.conf.has_section('dashboard'))
