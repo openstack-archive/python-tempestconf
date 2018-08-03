@@ -264,7 +264,11 @@ class Services(object):
 
     def set_service_extensions(self):
         postfix = "-feature-enabled"
-        keystone_v3_support = self._conf.get('identity' + postfix, 'api_v3')
+        try:
+            keystone_v3_support = self._conf.getboolean('identity' + postfix,
+                                                        'api_v3')
+        except ValueError:
+            keystone_v3_support = False
         if keystone_v3_support:
             self.get_service('identity').set_identity_v3_extensions()
 
