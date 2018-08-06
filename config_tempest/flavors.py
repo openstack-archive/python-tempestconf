@@ -119,7 +119,7 @@ class Flavors(object):
         :param flavor_name: [m1.nano, m1.micro]
         """
         LOG.warning("Flavor '%s' not found and creation is not allowed. "
-                    "Tying to autodetect the smallest flavor available.",
+                    "Trying to autodetect the smallest flavor available.",
                     flavor_name)
         flavors = []
         for flavor in self.flavor_list:
@@ -139,4 +139,4 @@ class Flavors(object):
         LOG.warning("Found '%s' flavor (id: '%s', ram: '%s', disk: '%s', "
                     "vcpus: '%s') ", f[0], f[1], f[2], f[3], f[4])
         # return flavor's id
-        return f[0]
+        return f[1]
