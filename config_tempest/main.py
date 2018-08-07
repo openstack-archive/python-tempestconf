@@ -214,41 +214,69 @@ def get_arg_parser():
     cloud_config = os_client_config.OpenStackConfig()
     cloud_config.register_argparse_arguments(parser, sys.argv)
     parser.add_argument('--create', action='store_true', default=False,
-                        help='create default tempest resources')
+                        help="""Create Tempest resources
+                                Make *python-tempestconf* to create Tempest
+                                resources such as flavors needed for running
+                                Tempest tests.""")
     parser.add_argument('--out', default="etc/tempest.conf",
-                        help='the tempest.conf file to write')
+                        help="""Output file
+                                A name of the file where the discovered Tempest
+                                configuration will be written to.""")
     parser.add_argument('--deployer-input', default=None,
-                        help="""A file in the format of tempest.conf that will
-                                override the default values. The
-                                deployer-input file is an alternative to
+                        help="""Path to deployer file
+                                A file in the format of tempest.conf that will
+                                override the default values. It is usually
+                                created by an installer and contains
+                                environment specific options.
+
+                                The deployer-input file is an alternative to
                                 providing key/value pairs. If there are also
                                 key/value pairs they will be applied after the
                                 deployer-input file.
-                        """)
+
+                                If the option is **not defined** and
+                                **--no-default-deployer** is **not used**,
+                                python-tempestconf **will try** to look for the
+                                file in `$HOME/tempest-deployer-input.conf`
+                                location.""")
     parser.add_argument('--no-default-deployer', action='store_true',
                         default=False,
                         help="""Do not check for the default deployer input in
-                                $home/tempest-deployer-input.conf
-                            """)
+                                `$HOME/tempest-deployer-input.conf`""")
     parser.add_argument('overrides', nargs='*', default=[],
-                        help="""key value pairs to modify. The key is
-                                section.key where section is a section header
-                                in the conf file.
-                                For example: identity.username myname
-                                 identity.password mypass""")
+                        help="""Override options
+                                Key value pairs used to hardcode values in
+                                `tempest.conf`. The key is a section.key where
+                                section is a section header in the conf file.
+                                For example:
+                                 $ discover-tempest-config \\
+                                  identity.username myname \\
+                                  identity.password mypass""")
     parser.add_argument('--debug', action='store_true', default=False,
-                        help='Print debugging information')
+                        help='Print debugging information.')
     parser.add_argument('--verbose', '-v', action='store_true', default=False,
-                        help='Print more information about the execution')
+                        help='Print more information about the execution.')
     parser.add_argument('--non-admin', action='store_true', default=False,
-                        help='Run without admin creds')
+                        help="""Simulate non-admin credentials.
+                                When True, the credentials are used as
+                                non-admin ones. No resources are created.""")
     parser.add_argument('--test-accounts', default=None, metavar='PATH',
-                        help='Use accounts from accounts.yaml')
+                        help="""Tempest accounts.yaml file
+                                Defines a path to a Tempest accounts.yaml
+                                file.
+                                For example:
+                                 --test-accounts $HOME/tempest/accounts.yaml
+                             """)
     parser.add_argument('--create-accounts-file', default=None,
-                        metavar='PATH', help="""Generate test accounts file
-                        in the specified path.""")
+                        metavar='PATH',
+                        help="""Generate Tempest accounts file
+                                Minimal accounts file will be created in the
+                                specified path.
+                                For example:
+                                  --create-accounts-file $HOME/accounts.yaml
+                             """)
     parser.add_argument('--image-disk-format', default=C.DEFAULT_IMAGE_FORMAT,
-                        help="""a format of an image to be uploaded to glance.
+                        help="""A format of an image to be uploaded to glance.
                                 Default is '%s'""" % C.DEFAULT_IMAGE_FORMAT)
     parser.add_argument('--image', default=C.DEFAULT_IMAGE,
                         help="""An image name/path/url to be uploaded to
@@ -256,14 +284,18 @@ def get_arg_parser():
                                 the image is the leaf name of the path. Default
                                 is '%s'""" % C.DEFAULT_IMAGE)
     parser.add_argument('--network-id',
-                        help="""The ID of an existing network in our openstack
-                                instance with external connectivity""")
+                        help="""Specify which network with external connectivity
+                                should be used by the tests.""")
     parser.add_argument('--remove', action='append', default=[],
                         metavar="SECTION.KEY=VALUE[,VALUE]",
-                        help="""key value pair to be removed from
+                        help="""Remove values from tempest.conf
+                                Key value pair to be removed from the
                                 configuration file.
-                                For example: --remove identity.username=myname
-                                --remove feature-enabled.api_ext=http,https""")
+                                For example:
+                                 $ discover-tempest-config \\
+                                  --remove identity.username=myname \\
+                                  --remove feature-enabled.api_ext=http,https
+                             """)
     return parser
 
 

@@ -23,6 +23,7 @@ Content:
 
    overview
    install/index
+   cli/index
    user/index
    admin/index
    contributor/index
