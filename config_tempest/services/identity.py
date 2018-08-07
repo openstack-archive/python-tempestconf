@@ -54,6 +54,12 @@ class IdentityService(VersionedService):
         # rather prefer to set empty list here for now.
         self.extensions = []
 
+    def get_supported_versions(self):
+        return ['v2', 'v3']
+
+    def get_catalog(self):
+        return 'identity'
+
     def set_identity_v3_extensions(self):
         """Returns discovered identity v3 extensions
 

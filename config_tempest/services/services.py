@@ -67,36 +67,29 @@ class Services(object):
             service.set_extensions()
             # discover versions of the service
             service.set_versions()
+            self.merge_exts_multiversion_service(service)
 
             # default tempest options
             service.set_default_tempest_options(self._conf)
 
             self._services.append(service)
 
-        service_name = 'volume'
-        versions = C.SERVICE_VERSIONS[service_name]['supported_versions']
-        self.merge_exts_multiversion_service(service_name, versions)
-
-    def merge_exts_multiversion_service(self, name, versions):
+    def merge_exts_multiversion_service(self, service):
         """Merges extensions of a service given by its name
 
         Looking for extensions from all versions of the service
         defined by name and merges them to that provided service.
 
-        :param name: Name of the service
-        :type name: string
-        :param versions: Supported versions
-        :type versions: list
+        :param service: Service object
         """
-        if not self.is_service(name):
-            return
-        s = self.get_service(name)
+        versions = service.get_supported_versions()
+        service_name = service.get_unversioned_service_name()
         services_lst = []
         for v in versions:
-            if self.is_service(name + v):
-                services_lst.append(self.get_service(name + v))
-        services_lst.append(s)
-        s.extensions = self.merge_extensions(services_lst)
+            if self.is_service(service_name + v):
+                services_lst.append(self.get_service(service_name + v))
+        services_lst.append(service)
+        service.extensions = self.merge_extensions(services_lst)
 
     def get_endpoints(self, entry):
         for ep in entry['endpoints']:
@@ -195,7 +188,6 @@ class Services(object):
         if self._conf.has_option('services', 'volume'):
             if not self._conf.getboolean('services', 'volume'):
                 C.SERVICE_NAMES.pop('volume')
-                C.SERVICE_VERSIONS.pop('volume')
         # check availability of volume backup service
         volume.check_volume_backup_service(self._conf,
                                            self._clients.volume_client,
@@ -233,21 +225,16 @@ class Services(object):
 
     def set_supported_api_versions(self):
         # set supported API versions for services with more of them
-        for service, service_info in C.SERVICE_VERSIONS.iteritems():
-            service_object = self.get_service(service_info['catalog'])
-            if service_object is None:
-                supported_versions = []
-            else:
-                supported_versions = service_object.get_versions()
-            # FIXME: object-store config param object-storage needs to be
-            # handled here In future this should be removed from Services class
-            if service == 'object-store':
-                service = 'object-storage'
-            section = service + '-feature-enabled'
-            for version in service_info['supported_versions']:
-                is_supported = any(version in item
-                                   for item in supported_versions)
-                self._conf.set(section, 'api_' + version, str(is_supported))
+        for service in self._services:
+            versions = service.get_versions()
+            supported_versions = service.get_supported_versions()
+            if versions:
+                section = service.get_feature_name() + '-feature-enabled'
+                for s_version in supported_versions:
+                    is_supported = any(s_version in item
+                                       for item in versions)
+                    self._conf.set(
+                        section, 'api_' + s_version, str(is_supported))
 
     def merge_extensions(self, service_objects):
         """Merges extensions from all provided service objects
@@ -272,6 +259,8 @@ class Services(object):
         if keystone_v3_support:
             self.get_service('identity').set_identity_v3_extensions()
 
+        # TODO(arxcruz): We already have a service.get_feature_name so we
+        # don't need this special case in object-store
         for service, ext_key in C.SERVICE_EXTENSION_KEY.iteritems():
             if not self.is_service(service):
                 continue
@@ -282,4 +271,5 @@ class Services(object):
             # handled here In future this should be removed from Services class
             if service == 'object-store':
                 service = 'object-storage'
-            self._conf.set(service + postfix, ext_key, extensions)
+            service_name = service_object.get_unversioned_service_name()
+            self._conf.set(service_name + postfix, ext_key, extensions)

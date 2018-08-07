@@ -57,6 +57,9 @@ class ObjectStorageService(Service):
                     LOG.info("Role %s already exists", key_value)
         conf.set('object-storage', 'operator_role', 'admin')
 
+    def get_feature_name(self):
+        return 'object-storage'
+
     def _check_health_check(self, path):
         try:
             self.client.accounts.skip_path()

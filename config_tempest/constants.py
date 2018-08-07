@@ -63,22 +63,6 @@ SERVICE_NAMES = {
     'load-balancer': 'octavia',
 }
 
-# what API versions could the service have and should be enabled/disabled
-# depending on whether they get discovered as supported. Services with only one
-# version don't need to be here, neither do service versions that are not
-# configurable in tempest.conf
-# TODO(mkopec) since Queens, there are only image v2, identity v3 and
-# volume v3 versions, however, for backward compatibility let's keep
-# all versions here
-# TODO(mkopec) Move this information about supported versions somewhere else,
-# so that we don't have to have this global object, for example move the
-# information to service classes
-SERVICE_VERSIONS = {
-    'image': {'supported_versions': ['v1', 'v2'], 'catalog': 'image'},
-    'identity': {'supported_versions': ['v2', 'v3'], 'catalog': 'identity'},
-    'volume': {'supported_versions': ['v2', 'v3'], 'catalog': 'volumev3'}
-}
-
 # Keep track of where the extensions are saved for that service.
 # This is necessary because the configuration file is inconsistent - it uses
 # different option names for service extension depending on the service.
@@ -86,6 +70,6 @@ SERVICE_EXTENSION_KEY = {
     'compute': 'api_extensions',
     'object-store': 'discoverable_apis',
     'network': 'api_extensions',
-    'volume': 'api_extensions',
+    'volumev3': 'api_extensions',
     'identity': 'api_extensions'
 }

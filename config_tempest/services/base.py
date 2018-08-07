@@ -74,10 +74,51 @@ class Service(object):
         return self.extensions
 
     def get_versions(self):
+        """Return the versions available for each service.
+
+        This doesn't means tempestconf support all these versions. Only that
+        the service have these api versions enabled.
+        """
         return self.versions
 
     def set_default_tempest_options(self, conf):
         pass
+
+    def get_supported_versions(self):
+        """Return the versions supported by tempestconf.
+
+        The server might have older or newer versions that could not be
+        supported by tempestconf.
+        """
+        return []
+
+    def get_catalog(self):
+        """Return the catalog name of a service.
+
+        Usually the catalog has the same name of the service, in some cases
+        this is not true, like in volume, that we have volumev3 and volumev2
+        for example.
+        """
+        return self.name
+
+    def get_feature_name(self):
+        """Return the name of service used in <service>-feature-enabled.
+
+        Some services have the -feature-enabled option in tempest, that
+        diverges from the service name. The main example is object-store
+        service where the <service>-feature-enabled is object-storage.
+        """
+        return self.name
+
+    def get_unversioned_service_name(self):
+        """Return name of service without versions.
+
+        Some services are versioned like volumev2 and volumev3, we try to
+        discover these services checking the supported versions, so we need
+        to know the unversioned service name for this.
+        The default value is the name of the service.
+        """
+        return self.name
 
 
 class VersionedService(Service):
