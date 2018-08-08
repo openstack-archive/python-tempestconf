@@ -110,6 +110,10 @@ class Service(object):
         """
         return self.name
 
+    def get_service_extension_key(self):
+        """Return the extension key for a particular service"""
+        return None
+
     def get_unversioned_service_name(self):
         """Return name of service without versions.
 

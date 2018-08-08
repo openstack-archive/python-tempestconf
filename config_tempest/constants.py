@@ -62,14 +62,3 @@ SERVICE_NAMES = {
     'workflowv2': 'mistral',
     'load-balancer': 'octavia',
 }
-
-# Keep track of where the extensions are saved for that service.
-# This is necessary because the configuration file is inconsistent - it uses
-# different option names for service extension depending on the service.
-SERVICE_EXTENSION_KEY = {
-    'compute': 'api_extensions',
-    'object-store': 'discoverable_apis',
-    'network': 'api_extensions',
-    'volumev3': 'api_extensions',
-    'identity': 'api_extensions'
-}

@@ -259,17 +259,9 @@ class Services(object):
         if keystone_v3_support:
             self.get_service('identity').set_identity_v3_extensions()
 
-        # TODO(arxcruz): We already have a service.get_feature_name so we
-        # don't need this special case in object-store
-        for service, ext_key in C.SERVICE_EXTENSION_KEY.iteritems():
-            if not self.is_service(service):
-                continue
-            service_object = self.get_service(service)
-            if service_object is not None:
-                extensions = ','.join(service_object.get_extensions())
-            # FIXME: object-store config param object-storage needs to be
-            # handled here In future this should be removed from Services class
-            if service == 'object-store':
-                service = 'object-storage'
-            service_name = service_object.get_unversioned_service_name()
-            self._conf.set(service_name + postfix, ext_key, extensions)
+        for service in self._services:
+            ext_key = service.get_service_extension_key()
+            if ext_key:
+                extensions = ','.join(service.get_extensions())
+                service_name = service.get_feature_name()
+                self._conf.set(service_name + postfix, ext_key, extensions)

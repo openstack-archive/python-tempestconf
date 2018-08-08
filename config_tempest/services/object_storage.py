@@ -60,6 +60,9 @@ class ObjectStorageService(Service):
     def get_feature_name(self):
         return 'object-storage'
 
+    def get_service_extension_key(self):
+        return 'discoverable_apis'
+
     def _check_health_check(self, path):
         try:
             self.client.accounts.skip_path()

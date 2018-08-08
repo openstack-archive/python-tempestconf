@@ -50,6 +50,9 @@ class NetworkService(VersionedService):
             conf.set('network', 'floating_network_name',
                      self._public_network_name)
 
+    def get_service_extension_key(self):
+        return 'api_extensions'
+
     def _supplied_network(self):
         LOG.info("Looking for existing network id: {0}"
                  "".format(self._public_network_id))

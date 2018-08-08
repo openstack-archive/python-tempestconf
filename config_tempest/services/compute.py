@@ -43,6 +43,9 @@ class ComputeService(VersionedService):
         if self._get_number_of_hosts() >= 2:
             conf.set('compute-feature-enabled', 'resize', 'True')
 
+    def get_service_extension_key(self):
+        return 'api_extensions'
+
     def _get_number_of_hosts(self):
         # Right now the client returned is hosts, in the future
         # change it to a dict, and get the client as requested

@@ -33,6 +33,9 @@ class VolumeService(VersionedService):
         body = json.loads(body)
         self.versions = self.deserialize_versions(body)
 
+    def get_service_extension_key(self):
+        return 'api_extensions'
+
     def get_supported_versions(self):
         return ['v2', 'v3']
 
