@@ -2,31 +2,30 @@
 Use python-tempestconf as Python module
 =======================================
 
-`python-tempestconf` can be imported and used from a different Python project.
+``python-tempestconf`` can be imported and used from a different Python project.
 
 .. warning::
 
-    The import of config_tempest is possible only when the tool is installed
-    from **master branch** or via pip, however, **python-tempestconf-2.0.0.
-    or newer has to be installed**.
+    The import of config_tempest is possible **only when the version of the
+    tool is at least 2.0.0**.
 
 Installation
 ++++++++++++
 
-See our `Install Guide`_ on how to install `python-tempestconf`.
+See our `Install Guide`_ on how to install ``python-tempestconf``.
 
 .. _Install Guide: ../install/installation.html
 
 Import
 ++++++
 
-Import python-tempestconf in your project as follows:
+Import ``python-tempestconf`` in your project as follows:
 
 .. code-block:: Python
 
     from config_tempest import main as tempestconf
 
-python-tempestconf needs cloud credentials in order to create a tempest
+``python-tempestconf`` needs cloud credentials in order to create a tempest
 configuration file. There is a helper method for obtaining cloud credentials
 which uses
 `os-client-config <https://docs.openstack.org/os-client-config/latest/user/configuration.html>`_
@@ -55,9 +54,10 @@ the configuration tool:
 
 .. note::
 
-    If `args_namespace` contains **--os-cloud** argument, the `get_cloud_creds`
-    method returns cloud credentials related to that cloud, otherwise, returns
-    credentials of the current cloud (according to the sourced credentials).
+    If `args_namespace` contains ``--os-cloud`` argument, the `get_cloud_creds`
+    method returns cloud credentials related to that cloud, otherwise, it
+    returns credentials of the current cloud (according to the sourced
+    credentials).
 
 
 List of arguments which may be passed to `config_tempest`
@@ -89,7 +89,7 @@ List of arguments which may be passed to `config_tempest`
 Example implementation
 ++++++++++++++++++++++
 
-1. Save following code snippet as `example.py`:
+1. Save following code snippet as ``example.py``:
 
     .. code-block:: Python
 
@@ -99,7 +99,7 @@ Example implementation
         parser = argparse.ArgumentParser(description='Example implementation.')
         args = parser.parse_args()
 
-        # gets credentials of the current cloud according to
+        # get the credentials of the current cloud according to
         # the sourced credentials
         cloud_creds = tempestconf.get_cloud_creds(args)
 
@@ -130,7 +130,7 @@ Example implementation
         $ source overcloud_rc
 
 
-3. Run the `example.py`:
+3. Run ``example.py``:
 
     .. code-block:: Bash
 
@@ -140,8 +140,8 @@ Example implementation
 Example implementation with a named cloud
 +++++++++++++++++++++++++++++++++++++++++
 
-1. Let's say there is a `clouds.yaml` file located in `/etc/openstack/` with
-   the following content:
+1. Let's say there is a ``clouds.yaml`` file located in ``/etc/openstack/``
+   with the following content:
 
     .. code-block:: Bash
 
@@ -160,7 +160,7 @@ Example implementation with a named cloud
             volume_api_version: '2'
 
 
-2. Save following code snippet as an `example.py`:
+2. Save following code snippet as ``example.py``:
 
     .. code-block:: Python
 
@@ -173,14 +173,14 @@ Example implementation with a named cloud
         parser.add_argument('--os-cloud', help='Name of a named cloud.')
         args = parser.parse_args()
 
-        # gets credentials to the devstack cloud
+        # get the credentials to the devstack cloud
         cloud_creds = tempestconf.get_cloud_creds(args)
 
         tempestconf.config_tempest(non_admin=True,
                                    out='./etc/tempest.conf',
                                    cloud_creds=cloud_creds)
 
-3. Run the `example.py`:
+3. Run ``example.py``:
 
     .. code-block:: Bash
 
@@ -189,5 +189,5 @@ Example implementation with a named cloud
     .. note::
 
         In this example you **don't need** to source cloud credentials. The
-        credentials are obtained from the `/etc/openstack/clouds.yaml`
-        thanks to `--os-cloud` argument.
+        credentials are obtained from the ``/etc/openstack/clouds.yaml`` file
+        thanks to ``--os-cloud`` argument.

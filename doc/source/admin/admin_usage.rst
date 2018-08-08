@@ -42,7 +42,7 @@ resources (`Flavors`_ and `Users`_) if they don't exist already:
 
 ``python-tempestconf`` can also create a minimal accounts file when
 ``--create-accounts-file`` is used. It can be useful when a user doesn't have
-any and wants to create it. It can be done with one call:
+any ``accounts.yaml`` and wants to create it. It can be done with one call:
 
 .. code-block:: shell-session
 
@@ -69,7 +69,7 @@ used, `see here`_. The generated accounts file will look similarly to this one:
       username: admin
 
 .. note::
-    More about accounts file can be in our documentation about
+    More about accounts file can be found in our documentation about
     `Usage with tempest accounts file`_
 
     .. _Usage with tempest accounts file: ../user/usage.html#usage-with-tempest-accounts-file

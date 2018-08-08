@@ -25,7 +25,7 @@ Examples of usage with sourced credentials
 step **as a prerequisite**:
 
   * Source your OpenStack RC file containing the cloud credentials. Let's say
-    you have a overcloud_rc file with the following content:
+    you have an overcloud_rc file with the following content:
 
     .. code-block:: shell-session
 
@@ -204,9 +204,9 @@ The generated tempest.conf will look like:
 non-admin argument
 ++++++++++++++++++
 
-If your credentials are **non-admin ones**, which means, you are
-**not allowed** to create any resources in your cloud, please, specify
-``--non-admin`` argument. When the argument is used, ``python-tempestconf``
+If your credentials are **non-admin ones**, which means that you are
+**not allowed** to create any resources in your cloud, then please specify
+``--non-admin`` argument. When this argument is used, ``python-tempestconf``
 will **not create** any resources.
 
 .. code-block:: shell-session
@@ -248,7 +248,8 @@ the following content:
         volume_api_version: '2'
 
 Then if you use ``--os-cloud`` argument you can run
-:command:`discover-tempest-config` **without** sourcing any OpenStack RC file.
+:command:`discover-tempest-config` **without** setting any OS_* environment
+variable (for example by sourcing any OpenStack RC file).
 
 ``--os-cloud`` defines specifies one of the cloud names located in the
 ``clouds.yaml`` file.
@@ -352,7 +353,7 @@ image. Then the image is uploaded to glance again and but
         --image /my/path/to/myImage.img
 
 In the following example, an `override`_  value is used to set
-**conpute.image_ref**, which means, that the image specified by  ``--image`` is
+**compute.image_ref**, which means that the image specified by  ``--image`` is
 uploaded and only **compute.image_alt_ref** is set to the ID of newly created
 image.
 

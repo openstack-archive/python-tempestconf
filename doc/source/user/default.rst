@@ -2,9 +2,9 @@
 Default values
 ==============
 
-``python-tempestconf`` defines some options by default in order to simplify
-general executions, because not so many options need to be defined in each
-run of ``python-tempestconf``, for example in CI.
+``python-tempestconf`` provides sensitive default values for many options in
+order to simplify its usage, reducing the amount of options that needs to be
+specified.
 
 Here is the list of tempest options, which are set by default:
 
