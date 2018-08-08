@@ -1,7 +1,7 @@
 - project:
     check:
       jobs:
-        - python-tempestconf-tox-cover
+        - openstack-tox-cover
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
@@ -14,17 +14,6 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - tripleo-ci-centos-7-scenario002-multinode-oooq-container
-
-- job:
-    name: python-tempestconf-tox-cover
-    parent: openstack-tox
-    description: Run tox code coverage tests.
-    irrelevant-files:
-      - ^.*\.rst$
-      - ^doc/.*$
-      - ^releasenotes/.*$
-    vars:
-      tox_envlist: cover
 
 - job:
     name: python-tempestconf-devstack-base
