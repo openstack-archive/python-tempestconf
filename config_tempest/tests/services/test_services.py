@@ -37,15 +37,15 @@ class TestServices(BaseConfigTempestTest):
         super(TestServices, self).setUp()
 
     @mock.patch('config_tempest.services.services.Services.discover')
-    def _create_services_instance(self, mock_discover):
+    def _create_services_instance(self, mock_discover, v2=False):
         conf = self._get_conf('v2', 'v3')
-        creds = self._get_creds(conf)
+        creds = self._get_creds(conf, v2=v2)
         clients = mock.Mock()
         services = Services(clients, conf, creds)
         return services
 
     def test_get_endpoints_api_2(self):
-        services = self._create_services_instance()
+        services = self._create_services_instance(v2=True)
         services._region = 'my_region'
         resp = services.get_endpoints(self.FAKE_ENTRY)
         self.assertEqual(resp, self.FAKE_ENTRY['endpoints'][0])
@@ -72,13 +72,13 @@ class TestServices(BaseConfigTempestTest):
         self.assertEqual(resp, [])
 
     def test_set_catalog_and_url(self):
-        services = self._create_services_instance()
         # api version = 2
+        services = self._create_services_instance(v2=True)
         services.set_catalog_and_url()
         self.assertEqual(services.service_catalog, 'serviceCatalog')
         self.assertEqual(services.public_url, 'publicURL')
         # api version = 3
-        services._creds.api_version = 3
+        services = self._create_services_instance()
         services.set_catalog_and_url()
         self.assertEqual(services.service_catalog, 'catalog')
         self.assertEqual(services.public_url, 'url')
@@ -101,10 +101,10 @@ class TestServices(BaseConfigTempestTest):
         url = services.parse_endpoints(ep, "ServiceName")
         self.assertEqual('http://10.0.0.107:8386/v1.1/96409a589d', url)
         ep['url'] = 'https://10.0.0.101/identity'
-        auth_url = 'https://10.0.0.101:13000/v2.0'
+        auth_url = 'https://10.0.0.101:13000/v3.0'
         services._clients.auth_provider.auth_url = auth_url
         url = services.parse_endpoints(ep, 'ServiceName')
-        self.assertEqual('https://10.0.0.101:13000/identity/v2', url)
+        self.assertEqual('https://10.0.0.101:13000/identity/v3', url)
 
     def test_parse_endpoints_not_ip_hostname(self):
         services = self._create_services_instance()
@@ -119,8 +119,24 @@ class TestServices(BaseConfigTempestTest):
         url_resp = services.parse_endpoints(ep, "ServiceName")
         self.assertEqual(url, url_resp)
 
-    def test_edit_identity_url(self):
+    def test_edit_identity_url_v3(self):
         services = self._create_services_instance()
+        url_port = 'https://10.0.0.101:13000/v3.0'
+        identity_url = 'https://10.0.0.101/identity'
+        url_no_port = 'https://10.0.0.101/v333'
+        services._clients.auth_provider.auth_url = url_port
+        url = services.edit_identity_url(url_port)
+        self.assertEqual(url_port, url)
+        url = services.edit_identity_url(identity_url)
+        self.assertEqual("https://10.0.0.101:13000/identity/v3", url)
+        url = services.edit_identity_url(url_no_port)
+        self.assertEqual(url_no_port, url)
+        services._clients.auth_provider.auth_url = url_no_port
+        url = services.edit_identity_url(identity_url)
+        self.assertEqual(identity_url + "/v3", url)
+
+    def test_edit_identity_url_v2(self):
+        services = self._create_services_instance(v2=True)
         url_port = 'https://10.0.0.101:13000/v2.0'
         identity_url = 'https://10.0.0.101/identity'
         url_no_port = 'https://10.0.0.101/v2.0'

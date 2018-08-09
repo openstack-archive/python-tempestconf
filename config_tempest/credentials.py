@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import re
+import requests
+from six.moves import urllib
 from tempest.lib import auth
 
 
@@ -62,16 +65,37 @@ class Credentials(object):
             # tool keeps them in identity section for further usage
             return self._conf.get_defaulted('identity', key)
 
+    def _get_base_url(self, endpoint):
+        """Return the base url.
+
+        :param key: endpoint
+        :type key: string
+        :returns: base_url
+        :rtype: string
+        """
+        url = urllib.parse.urlsplit(endpoint)
+        new_path = re.split(r'(^|/)+v\d+(\.\d+)?', url.path)[0]
+        url = list(url)
+        url[2] = new_path + '/'
+        return urllib.parse.urlunsplit(url)
+
+    def _list_versions(self, base_url):
+        resp = requests.get(base_url)
+        data = resp.json()
+        return data["versions"]["values"]
+
     def _get_identity_version(self):
         """Looks for identity version in TempestConf object.
 
         :returns: identity version
         :rtype: string
         """
-        if "v3" in self._conf.get("identity", "uri"):
-            return "v3"
-        else:
-            return "v2"
+        base_url = self._get_base_url(self._conf.get("identity", "uri"))
+        versions = self._list_versions(base_url)
+        for version in versions:
+            if version["status"] == "stable" and "v3" in version["id"]:
+                return "v3"
+        return "v2"
 
     def _get_creds_kwargs(self):
         """Creates kwargs.
@@ -111,6 +135,11 @@ class Credentials(object):
         :rtype: auth.KeystoneV2AuthProvider/auth.KeystoneV3AuthProvider
         """
         if isinstance(self.tempest_creds, auth.KeystoneV3Credentials):
+            # We set uri and uri_v3 to /v3 here because if the endpoint on the
+            # rc file don't set the /v3 it will fail with a error 404
+            uri = self._conf.get_defaulted('identity', 'uri_v3')
+            uri = self._get_base_url(uri) + 'v3'
+            self._conf.set('identity', 'uri_v3', uri)
             return auth.KeystoneV3AuthProvider(
                 self.tempest_creds,
                 self._conf.get_defaulted('identity', 'uri_v3'),
