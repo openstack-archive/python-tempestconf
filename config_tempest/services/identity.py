@@ -60,6 +60,10 @@ class IdentityService(VersionedService):
     def get_supported_versions(self):
         return ['v2', 'v3']
 
+    @staticmethod
+    def get_service_name():
+        return ['keystone']
+
     def get_catalog(self):
         return 'identity'
 

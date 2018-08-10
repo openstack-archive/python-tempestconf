@@ -37,7 +37,10 @@ class TestServices(BaseConfigTempestTest):
         super(TestServices, self).setUp()
 
     @mock.patch('config_tempest.services.services.Services.discover')
-    def _create_services_instance(self, mock_discover, v2=False):
+    @mock.patch('config_tempest.services.services.Services.'
+                'get_available_services')
+    def _create_services_instance(self, mock_avail, mock_discover, v2=False):
+        mock_avail.return_value = {'my_service': 'my_service'}
         conf = self._get_conf('v2', 'v3')
         creds = self._get_creds(conf, v2=v2)
         clients = mock.Mock()

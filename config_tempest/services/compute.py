@@ -56,3 +56,7 @@ class ComputeService(VersionedService):
         except exceptions.Forbidden:
             C.LOG.info('Can not retrieve hosts, user are not allowed')
             return 1
+
+    @staticmethod
+    def get_service_name():
+        return ['nova']

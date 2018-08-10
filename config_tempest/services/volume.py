@@ -63,6 +63,10 @@ class VolumeService(VersionedService):
     def get_unversioned_service_name(self):
         return 'volume'
 
+    @staticmethod
+    def get_service_name():
+        return ['cinderv2', 'cinderv3']
+
 
 def check_volume_backup_service(conf, volume_client, is_volumev3):
     """Verify if the cinder backup service is enabled"""

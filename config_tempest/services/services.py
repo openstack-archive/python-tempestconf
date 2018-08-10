@@ -14,31 +14,19 @@
 # under the License.
 
 
+import importlib
+import pkgutil
+import pyclbr
+
 from six.moves import urllib
 
 from config_tempest import constants as C
-from config_tempest.services.base import Service
-from config_tempest.services import boto
 from config_tempest.services import ceilometer
-from config_tempest.services.compute import ComputeService
 from config_tempest.services import horizon
-from config_tempest.services.identity import IdentityService
-from config_tempest.services.image import ImageService
-from config_tempest.services.network import NetworkService
-from config_tempest.services.object_storage import ObjectStorageService
-from config_tempest.services.octavia import LoadBalancerService
 from config_tempest.services import volume
+from tempest.lib import exceptions
 
-
-service_dict = {'compute': ComputeService,
-                'image': ImageService,
-                'network': NetworkService,
-                'object-store': ObjectStorageService,
-                'volumev3': volume.VolumeService,
-                'identity': IdentityService,
-                'ec2': boto.Ec2Service,
-                's3': boto.S3Service,
-                'load-balancer': LoadBalancerService}
+import config_tempest.services
 
 
 class Services(object):
@@ -49,30 +37,82 @@ class Services(object):
         self._ssl_validation = creds.disable_ssl_certificate_validation
         self._region = clients.identity_region
         self._services = []
+        self._service_classes = []
         self.set_catalog_and_url()
+        self.available_services = self.get_available_services()
 
         self.discover()
+
+    @property
+    def service_classes(self):
+        """Return the list of classes available under config_tempest.services.
+
+        This return the list of classes that inherit from base.Service
+        """
+        if not self._service_classes:
+            path = config_tempest.services.__path__
+            prefix = config_tempest.services.__name__ + '.'
+            for importer, modname, ispkg in pkgutil.walk_packages(
+                    path=path, prefix=prefix, onerror=lambda x: None):
+                module_info = pyclbr.readmodule(modname)
+                for item in module_info.values():
+                    m = importlib.import_module(modname)
+                    c = getattr(m, item.name)
+                    if issubclass(c, config_tempest.services.base.Service):
+                        self._service_classes.append(c)
+
+        return self._service_classes
+
+    def get_available_services(self):
+        try:
+            services = self._clients.service_client.list_services()['services']
+            return {s['name']: s['type'] for s in services}
+        except exceptions.Forbidden:
+            C.LOG.warning("User has no permissions to list services, using "
+                          "catalog. Services without endpoint will not be "
+                          "discovered.")
+            token, auth_data = self._clients.auth_provider.get_auth()
+            return {s['name']: s['type'] for s
+                    in auth_data[self.service_catalog]}
 
     def discover(self):
         token, auth_data = self._clients.auth_provider.get_auth()
 
-        for entry in auth_data[self.service_catalog]:
-            name = entry['type']
-            url = self.parse_endpoints(self.get_endpoints(entry), name)
+        auth_entries = {e['type']: e for e in auth_data[self.service_catalog]}
 
-            service_class = self.get_service_class(name)
-            service = service_class(name, url, token, self._ssl_validation,
-                                    self._clients.get_service_client(name))
-            # discover extensions of the service
-            service.set_extensions()
-            # discover versions of the service
-            service.set_versions()
-            self.merge_exts_multiversion_service(service)
+        # We loop through the classes we have for each service, and if we find
+        # a class that match a service enabled, we add it in our services list.
+        # some services doesn't have endpoints, so we need to check first
+        for s_class in self.service_classes:
+            s_names = s_class.get_service_name()
+            for s_name in s_names:
+                s_type = self.available_services.get(s_name, None)
+                if s_type:
+                    endpoint_data = auth_entries.get(s_type, None)
+                    url = None
+                    if not endpoint_data:
+                        C.LOG.Warning('No endpoint data found for {}'.format(
+                            s_name))
+                    else:
+                        url = self.parse_endpoints(self.get_endpoints(
+                            endpoint_data), s_type)
 
-            # default tempest options
-            service.set_default_tempest_options(self._conf)
+                    # Create the service class and add it to services list
+                    service = s_class(s_type, url, token,
+                                      self._ssl_validation,
+                                      self._clients.get_service_client(
+                                          s_type))
+                    # discover extensions of the service
+                    service.set_extensions()
 
-            self._services.append(service)
+                    # discover versions of the service
+                    service.set_versions()
+                    self.merge_exts_multiversion_service(service)
+
+                    # default tempest options
+                    service.set_default_tempest_options(self._conf)
+
+                    self._services.append(service)
 
     def merge_exts_multiversion_service(self, service):
         """Merges extensions of a service given by its name
@@ -150,16 +190,6 @@ class Services(object):
         replace_text = port + "/identity/" + self._creds.identity_version
         return url.replace("/identity", replace_text)
 
-    def get_service_class(self, name):
-        """Returns class name by the service name
-
-        :param name: Codename of a service
-        :type name: string
-        :return: Class name of the service
-        :rtype: string
-        """
-        return service_dict.get(name, Service)
-
     def get_service(self, name):
         """Finds and returns a service object
 
@@ -179,7 +209,7 @@ class Services(object):
         :type name: string
         :rtype: boolean
         """
-        if self.get_service(name) is None:
+        if name not in self.available_services.values():
             return False
         return True
 
@@ -246,7 +276,8 @@ class Services(object):
         """
         extensions = []
         for o in service_objects:
-            extensions += o.extensions
+            if o:
+                extensions += o.extensions
         return extensions
 
     def set_service_extensions(self):
