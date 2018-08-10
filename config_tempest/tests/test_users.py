@@ -23,6 +23,9 @@ from tempest.lib import exceptions
 class TestUsers(BaseConfigTempestTest):
 
     def setUp(self):
+        # TODO(arxcruz): All these tests are running on identity v2 only, we
+        # need to create tests for v3 too!
+        # Story 2003388
         super(TestUsers, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
         projects_client = self._get_clients(self.conf).projects

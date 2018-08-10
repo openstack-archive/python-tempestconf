@@ -29,6 +29,25 @@ class BaseConfigTempestTest(base.BaseTestCase):
 
     """Test case base class for all config_tempest unit tests"""
 
+    FAKE_V3_VERSIONS = (
+        [{
+            'status': 'stable',
+            'id': 'v3.8',
+        }, {
+            'status': 'deprecated',
+            'id': 'v2.0',
+        }]
+    )
+    FAKE_V2_VERSIONS = (
+        [{
+            'status': 'deprecated',
+            'id': 'v3.8',
+        }, {
+            'status': 'stable',
+            'id': 'v2.0',
+        }]
+    )
+
     def _get_conf(self, V2, V3):
         """Creates fake conf for testing purposes"""
         conf = tempest_conf.TempestConf()
@@ -63,14 +82,21 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "use_dynamic_credentials", "True")
         return conf
 
-    def _get_creds(self, conf, admin=False):
+    def _get_creds(self, conf, admin=False, v2=False):
+        # We return creds configured to v2 or v3
+        func2mock = 'config_tempest.credentials.Credentials._list_versions'
+        return_value = self.FAKE_V3_VERSIONS
+        if v2:
+            return_value = self.FAKE_V2_VERSIONS
+        mock_function = mock.Mock(return_value=return_value)
+        self.useFixture(MonkeyPatch(func2mock, mock_function))
         return Credentials(conf, admin)
 
     @mock.patch('os_client_config.cloud_config.CloudConfig')
     def _get_clients(self, conf, mock_args, creds=None):
         """Returns ClientManager instance"""
         if creds is None:
-            creds = self._get_creds(conf)
+            creds = self._get_creds(conf, v2=True)
         mock_function = mock.Mock(return_value=False)
         func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
         self.useFixture(MonkeyPatch(func2mock, mock_function))

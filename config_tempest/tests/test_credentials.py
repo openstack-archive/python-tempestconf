@@ -27,6 +27,7 @@ class TestCredentials(BaseConfigTempestTest):
         super(TestCredentials, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
         self.creds = self._get_creds(self.conf)
+        self.creds_v2 = self._get_creds(self.conf, v2=True)
 
     def test_get_credential(self):
         # set conf containing the newer values (admin creds in auth section)
@@ -39,7 +40,7 @@ class TestCredentials(BaseConfigTempestTest):
         self.assertEqual(resp, "admin")
 
     def test_get_identity_version_v2(self):
-        resp = self.creds._get_identity_version()
+        resp = self.creds_v2._get_identity_version()
         self.assertEqual(resp, 'v2')
 
     def test_get_identity_version_v3(self):
@@ -54,8 +55,8 @@ class TestCredentials(BaseConfigTempestTest):
             'password': 'secret',
             'project_name': 'demo'
         }
-        self.assertEqual(self.creds._get_creds_kwargs(), expected_resp)
-        self.creds.identity_version = 'v3'
+        self.assertEqual(self.creds_v2._get_creds_kwargs(), expected_resp)
+        self.creds_v2.identity_version = 'v3'
         expected_resp = {
             'username': 'demo',
             'password': 'secret',
@@ -69,10 +70,10 @@ class TestCredentials(BaseConfigTempestTest):
         mock_function = mock.Mock()
         function2mock = 'config_tempest.credentials.auth.get_credentials'
         self.useFixture(MonkeyPatch(function2mock, mock_function))
-        self.creds.username = "name"
-        self.creds.password = "pass"
-        self.creds.project_name = "Tname"
-        self.creds.set_credentials()
+        self.creds_v2.username = "name"
+        self.creds_v2.password = "pass"
+        self.creds_v2.project_name = "Tname"
+        self.creds_v2.set_credentials()
         mock_function.assert_called_with(
             auth_url=None, fill_in=False, identity_version='v2',
             disable_ssl_certificate_validation='true',
@@ -103,11 +104,11 @@ class TestCredentials(BaseConfigTempestTest):
         # mock V2Provider, if other provider is called, it fails
         func2mock = 'config_tempest.credentials.auth.KeystoneV2AuthProvider'
         self.useFixture(MonkeyPatch(func2mock, mock_function))
-        resp = self.creds.get_auth_provider()
+        resp = self.creds_v2.get_auth_provider()
         self.assertEqual(resp, mock_function())
         # check parameters of returned function
-        self.creds.get_auth_provider()
-        mock_function.assert_called_with(self.creds.tempest_creds,
+        self.creds_v2.get_auth_provider()
+        mock_function.assert_called_with(self.creds_v2.tempest_creds,
                                          'http://172.16.52.151:5000/v2.0',
                                          'true', None)
 
