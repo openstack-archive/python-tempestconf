@@ -67,10 +67,8 @@ is then copied to tempest directory.
 
    If checking of demo user abilities is desired to be enabled, set this
    variable to True.
-   When True, a set of tasks, where generation of tempest configuration is
-   intended to fail, is included. The set includes also tasks, which create
-   tempest resources. After that, the generation of the tempest configuration is
-   suppossed to pass.
+   When True, a set of tasks for testing demo user is included. The set
+   includes tasks, which create necessary tempest resources.
    NOTE: If the variable is set to True, it's needed to set cloud_admin variable
    as well, see info below.
 
