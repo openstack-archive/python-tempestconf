@@ -4,7 +4,6 @@
     args:
       chdir: "{{ tempestconf_src_relative_path }}"
       executable: /bin/bash
-    register: result
 
   - name: Create m1.nano and m1.micro flavors for demo user
     shell: |
