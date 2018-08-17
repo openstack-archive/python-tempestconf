@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Add support for volume api microversion.
+    It discovers the minimum and maximum the microversion and set them under
+    volume section in tempest.conf.
