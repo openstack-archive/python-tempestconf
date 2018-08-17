@@ -140,7 +140,7 @@ def read_deployer_input(deployer_input_file, conf):
 
 
 def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
-                test_accounts=None, cloud_creds=None,
+                accounts_path=None, cloud_creds=None,
                 no_default_deployer=False):
     """Set options in conf provided by different source.
 
@@ -159,8 +159,8 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
     :type image_path: string
     :param overrides: list of tuples: [(section, key, value)]
     :type overrides: list
-    :param test_accounts: Path to the accounts.yaml file
-    :type test_accounts: string
+    :param accounts_path: A path where accounts.yaml is or will be created.
+    :type accounts_path: string
     :param cloud_creds: Cloud credentials from client's config
     :type cloud_creds: dict
     """
@@ -190,11 +190,11 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
     if cloud_creds:
         set_cloud_config_values(non_admin, cloud_creds, conf)
 
-    if test_accounts:
+    if accounts_path:
         # new way for running using accounts file
         conf.set("auth", "use_dynamic_credentials", "False")
         conf.set("auth", "test_accounts_file",
-                 os.path.abspath(test_accounts))
+                 os.path.abspath(accounts_path))
 
     # set overrides - values specified in CLI
     for section, key, value in overrides:
@@ -306,6 +306,9 @@ def parse_arguments():
         raise Exception("Options '--create' and '--non-admin' cannot be used"
                         " together, since creating" " resources requires"
                         " admin rights")
+    if args.test_accounts and args.create_accounts_file:
+        raise Exception("Options '--test-accounts' and "
+                        "'--create-accounts-file' can't be used together.")
     args.overrides = parse_overrides(args.overrides)
     return args
 
@@ -420,12 +423,15 @@ def config_tempest(**kwargs):
     remove = parse_values_to_remove(kwargs.get('remove', []))
     set_logging(kwargs.get('debug', False), kwargs.get('verbose', False))
 
-    write_credentials = kwargs.get('test_accounts') is None
-    conf = TempestConf(write_credentials=write_credentials)
+    accounts_path = kwargs.get('test_accounts')
+    if kwargs.get('create_accounts_file') is not None:
+        accounts_path = kwargs.get('create_accounts_file')
+    conf = TempestConf(write_credentials=accounts_path is None)
     set_options(conf, kwargs.get('deployer_input'),
                 kwargs.get('non_admin', False),
                 kwargs.get('image_path', C.DEFAULT_IMAGE),
-                kwargs.get('overrides', []), kwargs.get('test_accounts'),
+                kwargs.get('overrides', []),
+                accounts_path,
                 kwargs.get('cloud_creds'))
 
     credentials = Credentials(conf, not kwargs.get('non_admin', False))
@@ -453,13 +459,11 @@ def config_tempest(**kwargs):
     services.set_supported_api_versions()
     services.set_service_extensions()
 
-    if kwargs.get('test_accounts') is None:
-        accounts_path = kwargs.get('create_accounts_file')
-        if accounts_path is not None:
-            LOG.info("Creating an accounts.yaml file in: %s", accounts_path)
-            accounts.create_accounts_file(kwargs.get('create', False),
-                                          accounts_path,
-                                          conf)
+    if accounts_path is not None and kwargs.get('test_accounts') is None:
+        LOG.info("Creating an accounts.yaml file in: %s", accounts_path)
+        accounts.create_accounts_file(kwargs.get('create', False),
+                                      accounts_path,
+                                      conf)
 
     # remove all unwanted values if were specified
     if remove != {}:

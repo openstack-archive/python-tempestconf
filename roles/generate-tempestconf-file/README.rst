@@ -99,3 +99,10 @@ is then copied to tempest directory.
    test_accounts_file option in auth section of tempest.conf, when
    test_demo_user is set to True.
 
+.. zuul:rolevar:: create_accounts_file
+   :type: Boolean
+   :default: False
+
+   If True and demo user is used a minimal accounts.yaml file will be generated
+   and used during tempest testing.
+

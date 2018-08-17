@@ -17,6 +17,7 @@ import mock
 import os
 
 from config_tempest import accounts
+from config_tempest import main
 from config_tempest.tests.base import BaseConfigTempestTest
 
 
@@ -33,6 +34,7 @@ class TestAccounts(BaseConfigTempestTest):
     @mock.patch('config_tempest.accounts.write_accounts_file')
     def test_create_accounts_file(self, mock_write):
         path = "./etc/accounts.yaml"
+        main.set_options(self.conf, None, False, "", accounts_path=path)
         # credentials under auth section
         accounts.create_accounts_file(True, path, self.conf)
         mock_write.assert_called_with(path, "admin", "adminPass",
