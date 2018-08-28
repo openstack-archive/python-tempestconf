@@ -91,3 +91,7 @@ class NetworkService(VersionedService):
             else:
                 raise Exception('fixed_network_name could not be '
                                 'discovered and must be specified')
+
+    @staticmethod
+    def get_service_name():
+        return ['neutron']

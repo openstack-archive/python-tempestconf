@@ -26,3 +26,7 @@ class LoadBalancerService(VersionedService):
         conf.set('load_balancer', 'member_role', '_member_')
         conf.set('load_balancer', 'admin_role', 'admin')
         conf.set('load_balancer', 'RBAC_test_type', 'owner_or_admin')
+
+    @staticmethod
+    def get_service_name():
+        return ['octavia']

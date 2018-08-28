@@ -65,6 +65,10 @@ class ImageService(VersionedService):
     def get_supported_versions(self):
         return ['v1', 'v2']
 
+    @staticmethod
+    def get_service_name():
+        return ['glance']
+
     def get_catalog(self):
         return 'image'
 

@@ -21,8 +21,16 @@ class Ec2Service(Service):
     def set_default_tempest_options(self, conf):
         conf.set('boto', 'ec2_url', self.service_url)
 
+    @staticmethod
+    def get_service_name():
+        return ['ec2']
+
 
 class S3Service(Service):
 
     def set_default_tempest_options(self, conf):
         conf.set('boto', 's3_url', self.service_url)
+
+    @staticmethod
+    def get_service_name():
+        return ['s3']

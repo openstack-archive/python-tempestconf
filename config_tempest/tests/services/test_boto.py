@@ -16,6 +16,8 @@
 import logging
 import mock
 
+from config_tempest.services.boto import Ec2Service
+from config_tempest.services.boto import S3Service
 from config_tempest.services.services import Services
 from config_tempest.tests.base import BaseConfigTempestTest
 
@@ -28,15 +30,16 @@ class TestEc2Service(BaseConfigTempestTest):
     FAKE_URL = "http://10.200.16.10:8774/"
 
     @mock.patch('config_tempest.services.services.Services.discover')
-    def setUp(self, mock_discover):
+    @mock.patch('config_tempest.services.services.Services.'
+                'get_available_services')
+    def setUp(self, mock_set_avail, mock_discover):
         super(TestEc2Service, self).setUp()
         conf = self._get_conf('v2', 'v3')
         self.clients = self._get_clients(conf)
         self.Services = Services(self.clients, conf, self._get_creds(conf))
 
     def test_set_default_tempest_options(self):
-        service_class = self.Services.get_service_class("ec2")
-        service = service_class("ec2", self.FAKE_URL, self.clients, False)
+        service = Ec2Service("ec2", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
         ec2_url = self.Services._conf.get("boto", "ec2_url")
         self.assertEqual(ec2_url, self.FAKE_URL)
@@ -47,15 +50,16 @@ class TestS3Service(BaseConfigTempestTest):
     FAKE_URL = "http://10.200.16.10:8774/"
 
     @mock.patch('config_tempest.services.services.Services.discover')
-    def setUp(self, mock_discover):
+    @mock.patch('config_tempest.services.services.Services.'
+                'get_available_services')
+    def setUp(self, mock_set_avail, mock_discover):
         super(TestS3Service, self).setUp()
         conf = self._get_conf('v2', 'v3')
         self.clients = self._get_clients(conf)
         self.Services = Services(self.clients, conf, self._get_creds(conf))
 
     def test_set_default_tempest_options(self):
-        service_class = self.Services.get_service_class("s3")
-        service = service_class("s3", self.FAKE_URL, self.clients, False)
+        service = S3Service("s3", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
         ec2_url = self.Services._conf.get("boto", "s3_url")
         self.assertEqual(ec2_url, self.FAKE_URL)

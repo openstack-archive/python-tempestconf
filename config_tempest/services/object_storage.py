@@ -105,3 +105,7 @@ class ObjectStorageService(Service):
         # Set roles based on service status
         if swift_status:
             self.list_create_roles(conf, self.client.roles)
+
+    @staticmethod
+    def get_service_name():
+        return ['swift']
