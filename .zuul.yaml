@@ -13,6 +13,7 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - tripleo-ci-centos-7-scenario002-multinode-oooq-container
+        - refstack-client-devstack-tempestconf
     gate:
       jobs:
         - python-tempestconf-tempest-devstack-admin
@@ -20,6 +21,7 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - tripleo-ci-centos-7-scenario002-multinode-oooq-container
+        - refstack-client-devstack-tempestconf
 
 - job:
     name: python-tempestconf-devstack-base
