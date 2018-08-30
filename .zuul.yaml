@@ -1,4 +1,9 @@
 - project:
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - publish-openstack-sphinx-docs
+      - release-notes-jobs
     check:
       jobs:
         - openstack-tox-cover
@@ -29,9 +34,9 @@
       - zuul: openstack-dev/devstack
     vars:
       zuul_copy_output:
-        '{{ devstack_base_dir }}/tempest/tempest.log': 'logs'
-        '{{ devstack_base_dir }}/tempest/etc/tempest.conf': 'logs'
-        '{{ zuul.project.src_dir }}/etc/accounts.yaml': 'logs'
+        '{{ devstack_base_dir }}/tempest/tempest.log': logs
+        '{{ devstack_base_dir }}/tempest/etc/tempest.conf': logs
+        '{{ zuul.project.src_dir }}/etc/accounts.yaml': logs
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -57,9 +62,9 @@
       tempest_concurrency: 2
       scenario: scenario000
       zuul_copy_output:
-        '/opt/stack/tempest/etc/tempest.conf': 'logs'
-        '/opt/stack/tempest/tempest.log': 'logs'
-        '/etc/openstack/accounts.yaml': 'logs'
+        /opt/stack/tempest/etc/tempest.conf: logs
+        /opt/stack/tempest/tempest.log: logs
+        /etc/openstack/accounts.yaml: logs
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -86,7 +91,7 @@
     vars:
       user: demo
       cloud_user: devstack
-      test_demo: True
+      test_demo: true
       cloud_admin: devstack-admin
       # concurrency is reduced in this job, because a minimal accounts
       # file is used
@@ -109,6 +114,6 @@
     run: playbooks/python-tempestconf-tempest-packstack.yaml
     vars:
       user: demo
-      test_demo: True
+      test_demo: true
       cloud_admin: packstack-admin
 
