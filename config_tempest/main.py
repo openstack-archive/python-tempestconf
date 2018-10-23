@@ -392,6 +392,8 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
             conf.set('auth', 'admin_password', cloud_creds['password'])
         conf.set('identity', 'uri', cloud_creds['auth_url'])
 
+        if 'region_name' in cloud_creds:
+            conf.set('identity', 'region', cloud_creds['region_name'])
     except cfg.NoSuchOptError:
         LOG.warning(
             'Could not load some identity options from cloud config file')
@@ -415,6 +417,9 @@ def get_cloud_creds(args_namespace):
     cloud = os_client_config.OpenStackConfig()
     cloud = cloud.get_one_cloud(argparse=args_namespace)
     cloud_creds = cloud.config.get('auth')
+    region_name = cloud.config.get('region_name')
+    if region_name:
+        cloud_creds['region_name'] = region_name
     return cloud_creds
 
 
