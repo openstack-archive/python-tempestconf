@@ -99,6 +99,9 @@
       # concurrency is reduced in this job, because a minimal accounts
       # file is used
       tempest_concurrency: 1
+      # skip until https://storyboard.openstack.org/#!/story/2004209
+      # is resolved
+      tempest_black_regex: 'tempest.api.compute.servers'
 
 - job:
     name: python-tempestconf-tempest-packstack-admin
