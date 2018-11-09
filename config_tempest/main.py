@@ -184,7 +184,7 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
         conf.set("auth", "admin_username", "")
         conf.set("auth", "admin_project_name", "")
         conf.set("auth", "admin_password", "")
-        conf.set("auth", "use_dynamic_credentials", "False")
+        conf.set("auth", "use_dynamic_credentials", "False", priority=True)
 
     # get and set auth data from client's config
     if cloud_creds:
@@ -192,7 +192,7 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
 
     if accounts_path:
         # new way for running using accounts file
-        conf.set("auth", "use_dynamic_credentials", "False")
+        conf.set("auth", "use_dynamic_credentials", "False", priority=True)
         conf.set("auth", "test_accounts_file",
                  os.path.abspath(accounts_path))
 

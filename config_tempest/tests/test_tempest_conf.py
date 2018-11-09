@@ -36,23 +36,28 @@ class TestTempestConf(BaseConfigTempestTest):
         # set value wihout priority (default: priority=False)
         resp = self.conf.set("section", "key", "value")
         # value should be overwritten, because it wasn't set with priority
-        resp = self.conf.set("section", "key", "value")
+        resp = self.conf.set("section", "key", "new_value")
         self.assertTrue(resp)
+        self.assertEqual(self.conf.get("section", "key"), "new_value")
 
     def test_set_value_overwrite_priority(self):
         resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key", "value")
+        resp = self.conf.set("sectionPriority", "key", "new_value")
         self.assertFalse(resp)
+        self.assertEqual(self.conf.get("sectionPriority", "key"), "value")
 
     def test_set_value_overwrite_by_priority(self):
         resp = self.conf.set("section", "key", "value")
-        resp = self.conf.set("section", "key", "value", priority=True)
+        resp = self.conf.set("section", "key", "new_value", priority=True)
         self.assertTrue(resp)
+        self.assertEqual(self.conf.get("section", "key"), "new_value")
 
     def test_set_value_overwrite_priority_by_priority(self):
         resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
+        resp = self.conf.set("sectionPriority", "key",
+                             "new_value", priority=True)
         self.assertTrue(resp)
+        self.assertEqual(self.conf.get("sectionPriority", "key"), "new_value")
 
     def test_get_bool_value(self):
         self.assertTrue(self.conf.get_bool_value("True"))

@@ -62,7 +62,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "admin_username", "admin")
         conf.set("auth", "admin_project_name", "adminProject")
         conf.set("auth", "admin_password", "adminPass")
-        conf.set("auth", "use_dynamic_credentials", "False")
+        conf.set("auth", "use_dynamic_credentials", "False", priority=True)
         return conf
 
     def _get_alt_conf(self, V2, V3):
@@ -79,7 +79,7 @@ class BaseConfigTempestTest(base.BaseTestCase):
         conf.set("auth", "admin_username", "admin")
         conf.set("auth", "admin_project_name", "adminProject")
         conf.set("auth", "admin_password", "adminPass")
-        conf.set("auth", "use_dynamic_credentials", "True")
+        conf.set("auth", "use_dynamic_credentials", "True", priority=True)
         return conf
 
     def _get_creds(self, conf, admin=False, v2=False):
