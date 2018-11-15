@@ -12,8 +12,8 @@ which may be there.
 
 **Role Variables**
 
-.. zuul:rolevar:: tempest_concurrency
-   :default: 2
+.. zuul:rolevar:: tempest_account_concurrency
+   :default: 3
 
    A number of parallel test processes.
 

@@ -46,7 +46,7 @@
         printenv
         tempest account-generator \
             --config-file ./etc/tempest.conf \
-            --concurrency {{ tempest_concurrency }} \
+            --concurrency {{ tempest_account_concurrency }} \
             etc/accounts.yaml
     args:
         executable: /bin/bash
