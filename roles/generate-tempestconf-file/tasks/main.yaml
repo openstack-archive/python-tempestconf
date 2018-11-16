@@ -40,7 +40,7 @@
         dest: "{{ tempestconf_src_relative_path }}/generate-tempestconf.sh"
         mode: 0744
 
-  - include: test-demo-user.yaml
+  - include_tasks: test-demo-user.yaml
     when: test_demo_user
 
   - name: Generate tempest configuration file
