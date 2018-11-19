@@ -43,10 +43,18 @@ class VolumeService(VersionedService):
     def set_default_tempest_options(self, conf):
         if 'v3' in self.service_url:
             microversions = self.set_api_microversion()
-            min_microversion = microversions['versions'][1]['min_version']
-            max_microversion = microversions['versions'][1]['version']
-            conf.set('volume', 'min_microversion', min_microversion)
-            conf.set('volume', 'max_microversion', max_microversion)
+            min_microversion = {
+                version['min_version'] for version in microversions['versions']
+                if version['id'] == 'v3.0'
+            }
+
+            max_microversion = {
+                version['version'] for version in microversions['versions']
+                if version['id'] == 'v3.0'
+            }
+
+            conf.set('volume', 'min_microversion', ''.join(min_microversion))
+            conf.set('volume', 'max_microversion', ''.join(max_microversion))
 
     def get_service_extension_key(self):
         return 'api_extensions'
