@@ -58,13 +58,15 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
                      'get_project_by_name')
         self.useFixture(MonkeyPatch(func2mock, mock_function))
 
-    def _obtain_client_config_data(self, non_admin):
+    def _obtain_client_config_data(self, non_admin=True, region_name=None):
         cloud_args = {
             'username': 'cloud_user',
             'password': 'cloud_pass',
             'project_name': 'cloud_project',
             'auth_url': 'http://auth.url.com/'
         }
+        if region_name:
+            cloud_args.update(region_name=region_name)
         # create an empty conf
         conf = tempest_conf.TempestConf()
         conf.set('identity', 'uri', cloud_args['auth_url'], priority=True)
@@ -84,12 +86,18 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
                              conf.get('auth', 'admin_password'))
             self.assertEqual(cloud_args['project_name'],
                              conf.get('auth', 'admin_project_name'))
+        if region_name:
+            self.assertEqual(cloud_args['region_name'],
+                             conf.get('identity', 'region'))
 
     def test_init_manager_client_config(self):
-        self._obtain_client_config_data(True)
+        self._obtain_client_config_data()
 
     def test_init_manager_client_config_as_admin(self):
-        self._obtain_client_config_data(False)
+        self._obtain_client_config_data(non_admin=False)
+
+    def test_init_manager_client_config_region_name(self):
+        self._obtain_client_config_data(region_name='regionOne')
 
     @mock.patch('os_client_config.cloud_config.CloudConfig')
     def test_init_manager_client_config_get_default(self, mock_args):
