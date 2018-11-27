@@ -255,13 +255,13 @@ class BaseServiceTest(base.BaseTestCase):
         FAKE_V3_EXTENSIONS = (
             {
                 'resources': {
-                    URL + 'OS-INHERIT/1.0/rel/domain_user_'
-                        + 'role_inherited_to_projects': "",
+                    URL + 'OS-INHERIT/1.0/rel/domain_user_' +
+                          'role_inherited_to_projects': "",
 
                     URL + 'OS-SIMPLE-CERT/1.0/rel/ca_certificate': "",
 
-                    URL + 'OS-EP-FILTER/1.0/rel/endpoint_group_to_'
-                        + 'project_association': "",
+                    URL + 'OS-EP-FILTER/1.0/rel/endpoint_group_to_' +
+                          'project_association': "",
 
                     URL + 'OS-EP-FILTER/1.0/rel/project_endpoint': "",
 
