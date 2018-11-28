@@ -27,37 +27,47 @@ class TestTempestConf(BaseConfigTempestTest):
         self.conf = tempest_conf.TempestConf()
 
     def test_set_value(self):
-        resp = self.conf.set("section", "key", "value")
+        conf = self._get_conf("v2.0", "v3")
+        resp = conf.set("section", "key", "value")
         self.assertTrue(resp)
-        self.assertEqual(self.conf.get("section", "key"), "value")
-        self.assertEqual(self.conf.get_defaulted("section", "key"), "value")
+        self.assertEqual(conf.get("section", "key"), "value")
+        self.assertEqual(conf.get_defaulted("section", "key"), "value")
 
     def test_set_value_overwrite(self):
-        # set value wihout priority (default: priority=False)
-        resp = self.conf.set("section", "key", "value")
-        # value should be overwritten, because it wasn't set with priority
-        resp = self.conf.set("section", "key", "new_value")
+        conf = self._get_conf("v2.0", "v3")
+        # set value without priority (default: priority=False)
+        resp = conf.set("section", "key", "value")
         self.assertTrue(resp)
-        self.assertEqual(self.conf.get("section", "key"), "new_value")
+        self.assertEqual(conf.get("section", "key"), "value")
+        # value should be overwritten, because it wasn't set with priority
+        resp = conf.set("section", "key", "new_value")
+        self.assertTrue(resp)
+        self.assertEqual(conf.get("section", "key"), "new_value")
 
     def test_set_value_overwrite_priority(self):
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key", "new_value")
+        conf = self._get_conf("v2.0", "v3")
+        resp = conf.set("sectionPriority", "key", "value", priority=True)
+        resp = conf.set("sectionPriority", "key", "new_value")
         self.assertFalse(resp)
-        self.assertEqual(self.conf.get("sectionPriority", "key"), "value")
+        self.assertEqual(conf.get("sectionPriority", "key"), "value")
 
     def test_set_value_overwrite_by_priority(self):
-        resp = self.conf.set("section", "key", "value")
-        resp = self.conf.set("section", "key", "new_value", priority=True)
+        conf = self._get_conf("v2.0", "v3")
+        resp = conf.set("section", "key", "value")
         self.assertTrue(resp)
-        self.assertEqual(self.conf.get("section", "key"), "new_value")
+        self.assertEqual(conf.get("section", "key"), "value")
+        resp = conf.set("section", "key", "new_value", priority=True)
+        self.assertTrue(resp)
+        self.assertEqual(conf.get("section", "key"), "new_value")
 
     def test_set_value_overwrite_priority_by_priority(self):
-        resp = self.conf.set("sectionPriority", "key", "value", priority=True)
-        resp = self.conf.set("sectionPriority", "key",
-                             "new_value", priority=True)
+        conf = self._get_conf("v2.0", "v3")
+        resp = conf.set("sectionPriority", "key", "value", priority=True)
         self.assertTrue(resp)
-        self.assertEqual(self.conf.get("sectionPriority", "key"), "new_value")
+        self.assertEqual(conf.get("sectionPriority", "key"), "value")
+        resp = conf.set("sectionPriority", "key", "new_value", priority=True)
+        self.assertTrue(resp)
+        self.assertEqual(conf.get("sectionPriority", "key"), "new_value")
 
     def test_get_bool_value(self):
         self.assertTrue(self.conf.get_bool_value("True"))
@@ -75,14 +85,14 @@ class TestTempestConf(BaseConfigTempestTest):
             "compute.image_ssh_user": ["rhel", "cirros"],
             "network-feature-enabled.api_extensions": remove_exts
         }
-        self.conf = self._get_conf("v2.0", "v3")
-        self.conf.set("compute", "image_ssh_user", "cirros")
-        self.conf.set("network-feature-enabled", "api_extensions", api_exts)
-        self.conf.remove_values(remove)
-        self.assertFalse(self.conf.has_option("identity", "username"))
-        self.assertTrue(self.conf.has_option("identity", "project_name"))
-        self.assertFalse(self.conf.has_option("compute", "image_ssh_user"))
-        conf_exts = self.conf.get("network-feature-enabled", "api_extensions")
+        conf = self._get_conf("v2.0", "v3")
+        conf.set("compute", "image_ssh_user", "cirros")
+        conf.set("network-feature-enabled", "api_extensions", api_exts)
+        conf.remove_values(remove)
+        self.assertFalse(conf.has_option("identity", "username"))
+        self.assertTrue(conf.has_option("identity", "project_name"))
+        self.assertFalse(conf.has_option("compute", "image_ssh_user"))
+        conf_exts = conf.get("network-feature-enabled", "api_extensions")
         conf_exts = conf_exts.split(',')
         for ext in api_exts.split(','):
             if ext in remove_exts:
@@ -94,12 +104,12 @@ class TestTempestConf(BaseConfigTempestTest):
         api_exts = "dvr, l3-flavors, rbac-policies, project-id"
         remove_exts = ["dvr", "project-id"]
         remove = {
-            "network-feature-enabled.api-extensions": remove_exts
+            "network-feature-enabled.api_extensions": remove_exts
         }
-        self.conf = self._get_conf("v2.0", "v3")
-        self.conf.set("network-feature-enabled", "api-extensions", api_exts)
-        self.conf.remove_values(remove)
-        conf_exts = self.conf.get("network-feature-enabled", "api-extensions")
+        conf = self._get_conf("v2.0", "v3")
+        conf.set("network-feature-enabled", "api_extensions", api_exts)
+        conf.remove_values(remove)
+        conf_exts = conf.get("network-feature-enabled", "api_extensions")
         conf_exts = conf_exts.split(',')
         for ext in api_exts.split(','):
             if ext in remove_exts:
