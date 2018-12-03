@@ -49,6 +49,7 @@ from config_tempest import constants as C
 from config_tempest.constants import LOG
 from config_tempest.credentials import Credentials
 from config_tempest.flavors import Flavors
+from config_tempest import profile
 from config_tempest.services.services import Services
 from config_tempest.tempest_conf import TempestConf
 from config_tempest.users import Users
@@ -274,6 +275,21 @@ def get_arg_parser():
                                 specified path.
                                 For example:
                                   --create-accounts-file $HOME/accounts.yaml
+                             """)
+    parser.add_argument('--profile', default=None, metavar='PATH',
+                        help="""python-tempestconf's profile.yaml file
+                                A file which contains definition of
+                                python-tempestconf's arguments.
+                                NOTE: If this argument is used, other
+                                arguments cannot be defined!""")
+    parser.add_argument('--generate-profile', default=None,
+                        metavar='PATH',
+                        help="""Generate a sample profile.yaml file.
+                                A sample profile.yaml will be generated in the
+                                specified path. After that python-tempestconf
+                                ends.
+                                For example:
+                                  --generate-profile $HOME/profile.yaml
                              """)
     parser.add_argument('--image-disk-format', default=C.DEFAULT_IMAGE_FORMAT,
                         help="""A format of an image to be uploaded to glance.
@@ -526,6 +542,16 @@ def config_tempest(**kwargs):
 
 def main():
     args = parse_arguments()
+    if args.generate_profile:
+        profile.generate_profile(args, args.generate_profile)
+        sys.exit(0)
+    if args.profile:
+        profile_args = profile.read_profile_file(args.profile)
+        # update default args by values gained from the profile
+        # Namespace can't be updated, so translate it to a dict first
+        args_dict = vars(args)
+        args_dict.update(profile_args)
+        args = argparse.Namespace(**args_dict)
     cloud_creds = get_cloud_creds(args)
     config_tempest(
         append=args.append,

@@ -7,4 +7,5 @@ User Guide
 
   usage
   import
+  profile
   default
