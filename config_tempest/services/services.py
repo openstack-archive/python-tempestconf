@@ -228,7 +228,7 @@ class Services(object):
 
         horizon.configure_horizon(self._conf)
 
-        for service, codename in C.SERVICE_NAMES.iteritems():
+        for service, codename in C.SERVICE_NAMES.items():
             # ceilometer is still transitioning from metering to telemetry
             if service == 'telemetry' and self.is_service('metering'):
                 service = 'metering'

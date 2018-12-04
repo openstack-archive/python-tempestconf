@@ -187,7 +187,7 @@ class ImageService(VersionedService):
         else:
             visibility = 'public'
 
-        with open(path) as data:
+        with open(path, 'rb') as data:
             image = self.client.create_image(name=name,
                                              disk_format=self.disk_format,
                                              container_format='bare',
