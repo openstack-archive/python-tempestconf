@@ -40,22 +40,21 @@ class ObjectStorageService(Service):
     def list_create_roles(self, conf, client):
         try:
             roles = client.list_roles()['roles']
+            for section_key in ["operator_role", "reseller_admin_role"]:
+                key_value = conf.get_defaulted("object-storage", section_key)
+                if key_value not in [r['name'] for r in roles]:
+                    LOG.info("Creating %s role", key_value)
+                    try:
+                        client.create_role(name=key_value)
+                    except exceptions.Conflict:
+                        LOG.info("Role %s already exists", key_value)
+            conf.set('object-storage', 'operator_role', 'admin')
         except exceptions.Forbidden:
-            LOG.info("Roles can't be listed - the user needs permissions.")
+            LOG.info("Roles can't be listed or created. The user doesn't have "
+                     "permissions.")
             # If is not admin, we set the operator_role to Member
             # otherwise we set to admin
             conf.set('object-storage', 'operator_role', 'Member')
-            return
-
-        for section_key in ["operator_role", "reseller_admin_role"]:
-            key_value = conf.get_defaulted("object-storage", section_key)
-            if key_value not in [r['name'] for r in roles]:
-                LOG.info("Creating %s role", key_value)
-                try:
-                    client.create_role(name=key_value)
-                except exceptions.Conflict:
-                    LOG.info("Role %s already exists", key_value)
-        conf.set('object-storage', 'operator_role', 'admin')
 
     def get_feature_name(self):
         return 'object-storage'
