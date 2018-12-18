@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    --append argument appends a value or values to the specified
+    section.key pair. It may be helpful in cases when a user wants to add
+    custom extensions to tempest.conf in an automated job.
+    Argument format for adding values:
+    [--append SECTION.KEY=VALUE[,VALUE]]
+
+    If a section or an option specified in CLI does not exist, tempestconf will
+    inform a user about that in logging output.

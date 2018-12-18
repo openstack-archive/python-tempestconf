@@ -103,13 +103,6 @@ The generated ``tempest.conf`` will look like:
     <omitted some content>
 
 
-.. note::
-
-    -\\-`remove`_ option will remove even values set as overrides
-
-    .. _remove: ./usage.html#prevent-some-key-value-pairs-to-be-set-in-tempest-conf
-
-
 Prevent some key-value pairs to be set in tempest.conf
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -157,6 +150,34 @@ removed.
     ``--remove`` option will remove even values set as `overrides`_
 
     .. _overrides: ./usage.html#override-values
+
+.. note::
+
+    This argument's functionality is opposite to ``--append`` one, see
+    `Append values to tempest.conf`_
+
+
+Append values to tempest.conf
++++++++++++++++++++++++++++++
+
+In a case when ``python-tempestconf`` is not able to discover some wanted
+api_extensions, you can make ``python-tempestconf`` append any extensions
+by using ``--append`` argument.
+
+The following will make ``python-tempestconf`` append my_ext extension to
+compute-feature-enabled.api_extensions and tag and tag-ext extensions to
+network-feature-enabled.api_extensions.
+
+.. code-block:: shell-session
+
+    $ discover-tempest-config \
+        --append compute-feature-enabled.api_extensions=my_ext \
+        --append network-feature-enabled.api_extensions=tag,tag-ext
+
+.. note::
+
+    This argument's functionality is opposite to ``--remove`` one, see
+    `Prevent some key-value pairs to be set in tempest.conf`_
 
 
 Usage with tempest accounts file

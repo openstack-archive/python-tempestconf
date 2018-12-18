@@ -1,4 +1,4 @@
-# Copyright 2016 Red Hat, Inc.
+# Copyright 2016, 2018 Red Hat, Inc.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -286,15 +286,29 @@ def get_arg_parser():
     parser.add_argument('--network-id',
                         help="""Specify which network with external connectivity
                                 should be used by the tests.""")
+    parser.add_argument('--append', action='append', default=[],
+                        metavar="SECTION.KEY=VALUE[,VALUE]",
+                        help="""Append values to tempest.conf
+                                Key value pair to be appended to the
+                                configuration file.
+                                NOTE: Multiple values are supposed to be
+                                divided by a COLON only, WITHOUT spaces.
+                                For example:
+                                 $ discover-tempest-config \\
+                                  --append features.ext=tag[,tag-ext] \\
+                                  --append section.ext=ext[,another-ext]
+                             """)
     parser.add_argument('--remove', action='append', default=[],
                         metavar="SECTION.KEY=VALUE[,VALUE]",
                         help="""Remove values from tempest.conf
                                 Key value pair to be removed from the
                                 configuration file.
+                                NOTE: Multiple values are supposed to be
+                                divided by a COLON only, WITHOUT spaces.
                                 For example:
                                  $ discover-tempest-config \\
                                   --remove identity.username=myname \\
-                                  --remove feature-enabled.api_ext=http,https
+                                  --remove feature-enabled.api_ext=http[,https]
                              """)
     return parser
 
@@ -327,13 +341,41 @@ def parse_values_to_remove(options):
         if len(argument.split('=')) == 2:
             section, values = argument.split('=')
             if len(section.split('.')) != 2:
-                raise Exception("Missing dot. The option --remove has to"
-                                "come in the format 'section.key=value,"
-                                " but got '%s'." % (argument))
+                raise Exception("Missing dot. The option --remove has to "
+                                "come in the format 'section.key=value[,value"
+                                "]', but got '%s'." % argument)
             parsed[section] = values.split(',')
         else:
             # missing equal sign, all values in section.key will be deleted
             parsed[argument] = []
+    return parsed
+
+
+def parse_values_to_append(options):
+    """Manual parsing of --append arguments.
+
+    :param options: list of arguments following --append argument.
+    :return: dictionary containing key paths with values to be added
+    :rtype: dict
+    """
+    parsed = {}
+    for argument in options:
+        if len(argument.split('=')) == 2:
+            section, values = argument.split('=')
+            if len(section.split('.')) != 2:
+                raise Exception("Missing dot. The option --append has to "
+                                "come in the format 'section.key=value[,value"
+                                "]', but got '%s'." % argument)
+            if values == '':
+                raise Exception("No values to append specified. The option "
+                                "--append has to come in the format "
+                                "'section.key=value[, value]', but got "
+                                "'%s'" % values)
+            parsed[section] = values.split(',')
+        else:
+            # missing equal sign, no values to add were specified, if a user
+            # wants to just create a section, it can be done so via overrides
+            raise Exception("Missing equal sign or more than just one found.")
     return parsed
 
 
@@ -426,6 +468,7 @@ def get_cloud_creds(args_namespace):
 def config_tempest(**kwargs):
     # convert a list of remove values to a dict
     remove = parse_values_to_remove(kwargs.get('remove', []))
+    add = parse_values_to_append(kwargs.get('append', []))
     set_logging(kwargs.get('debug', False), kwargs.get('verbose', False))
 
     accounts_path = kwargs.get('test_accounts')
@@ -474,6 +517,9 @@ def config_tempest(**kwargs):
     if remove != {}:
         LOG.info("Removing configuration: %s", str(remove))
         conf.remove_values(remove)
+    if add != {}:
+        LOG.info("Adding configuration: %s", str(add))
+        conf.append_values(add)
     out_path = kwargs.get('out', 'etc/tempest.conf')
     conf.write(out_path)
 
@@ -482,6 +528,7 @@ def main():
     args = parse_arguments()
     cloud_creds = get_cloud_creds(args)
     config_tempest(
+        append=args.append,
         cloud_creds=cloud_creds,
         create=args.create,
         create_accounts_file=args.create_accounts_file,

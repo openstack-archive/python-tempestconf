@@ -101,7 +101,7 @@ class TestTempestConf(BaseConfigTempestTest):
                 self.assertTrue(ext in conf_exts)
 
     def test_remove_values_having_hyphen(self):
-        api_exts = "dvr, l3-flavors, rbac-policies, project-id"
+        api_exts = "dvr,l3-flavors,rbac-policies,project-id"
         remove_exts = ["dvr", "project-id"]
         remove = {
             "network-feature-enabled.api_extensions": remove_exts
@@ -125,3 +125,41 @@ class TestTempestConf(BaseConfigTempestTest):
         self.conf.remove_values({"section.notExistKey": []})
         # check if LOG.error was called
         self.assertTrue(mock_logging.error.called)
+
+    def test_append_values(self):
+        api_exts = "dvr,l3-flavors,rbac-policies"
+        add_exts = ["dvr", "project-id"]
+        add = {
+            "compute-feature-enabled.api_extensions": add_exts
+        }
+        self.conf = self._get_conf("v2.0", "v3")
+        self.conf.set("compute-feature-enabled", "api_extensions", api_exts)
+        self.conf.append_values(add)
+        conf_exts = self.conf.get("compute-feature-enabled", "api_extensions")
+        conf_exts = conf_exts.split(',')
+        self.assertEqual(len(conf_exts), 4)
+        self.assertTrue("project-id" in conf_exts)
+
+    def test_append_values_with_overrides(self):
+        # Test if --add option can override an option which was
+        # passed to python-tempestconf as an override, it shouldn't
+        api_exts = "dvr,l3-flavors,rbac-policies"
+        add_exts = ["dvr", "project-id"]
+        add = {
+            "compute-feature-enabled.api_extensions": add_exts
+        }
+        self.conf = self._get_conf("v2.0", "v3")
+        # let's simulate a situation when the following apis were set
+        # via overrides => they are set with the priority
+        self.conf.set("compute-feature-enabled", "api_extensions",
+                      api_exts, priority=True)
+        self.conf.append_values(add)
+        conf_exts = self.conf.get("compute-feature-enabled", "api_extensions")
+        conf_exts = conf_exts.split(',')
+        # if there are still 3 extensions, no new was added
+        self.assertEqual(len(conf_exts), 3)
+        # option added via --add shouldn't be there
+        self.assertFalse("project-id" in conf_exts)
+        self.assertTrue("dvr" in conf_exts)
+        self.assertTrue("l3-flavors" in conf_exts)
+        self.assertTrue("rbac-policies" in conf_exts)

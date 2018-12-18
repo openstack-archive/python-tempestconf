@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 Red Hat, Inc.
+# Copyright 2016, 2017, 2018 Red Hat, Inc.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -138,6 +138,26 @@ class TempestConf(configparser.SafeConfigParser):
                     # and preserve the original order of items
                     conf_values = [v for v in conf_values if v not in remove]
                     self.set(section, key, ",".join(conf_values))
+            except configparser.NoOptionError:
+                # only inform a user, option specified by him doesn't exist
+                C.LOG.error(sys.exc_info()[1])
+            except configparser.NoSectionError:
+                # only inform a user, section specified by him doesn't exist
+                C.LOG.error(sys.exc_info()[1])
+
+    def append_values(self, to_append):
+        """Appends values to configuration file specified in arguments.
+
+        :param to_append: {'section.key': [values_to_be_added], ...}
+        :type to_append: dict
+        """
+        for key_path in to_append:
+            section, key = key_path.split('.')
+            try:
+                conf_val = self.get(section, key).split(',')
+                # omit duplicates if found any
+                conf_val += list(set(to_append[key_path]) - set(conf_val))
+                self.set(section, key, ",".join(conf_val))
             except configparser.NoOptionError:
                 # only inform a user, option specified by him doesn't exist
                 C.LOG.error(sys.exc_info()[1])
