@@ -79,6 +79,10 @@ List of arguments which may be passed to `config_tempest`
  * test_accounts
  * verbose
 
+ OR
+
+ * profile, see why **or** in `CLI documentation`_
+
 .. note::
 
     For detailed description of the options see our `CLI documentation`_

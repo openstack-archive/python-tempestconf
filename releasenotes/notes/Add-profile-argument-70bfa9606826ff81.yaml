@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    --profile argument specifies a path to a profile.yaml file which contains
+    definitions of python-tempestconf arguments.
+
+    NOTE: If this argument is used, other arguments cannot be defined, it means
+    a user uses either CLI arguments or profile.yaml file.
+
+    A user can generate a sample profile.yaml file using --generate-profile
+    argument. The sample contains definitions of all python-tempestconf
+    arguments set to their default values.
+
+    NOTE: If this argument is used, python-tempestconf ends right after the
+    a sample profile.yaml file is generated.

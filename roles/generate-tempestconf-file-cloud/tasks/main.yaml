@@ -44,6 +44,53 @@
         chdir: "{{ tempestconf_src_relative_path }}"
         executable: /bin/bash
 
+  - set_fact:
+        profile:
+            debug: true
+            out: etc/tempest_profile.conf
+            verbose: true
+            create: "{{ cloud_user == 'devstack-admin' }}"
+            non_admin: "{{ cloud_user == 'devstack' }}"
+            os_cloud: "{{ cloud_user }}"
+            overrides:
+                auth.tempest_roles: Member
+
+  - name: Generate sample profile.yaml file
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempestconf }}/bin/activate
+        printenv
+        discover-tempest-config \
+          --generate-profile ./etc/profile.yaml
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+        executable: /bin/bash
+
+  - name: Edit the profile.yaml file
+    copy:
+        content: "{{ profile | to_nice_yaml }}"
+        dest: "{{ tempestconf_src_relative_path }}/etc/profile.yaml"
+
+  - name: Generate tempest configuration file with profile.yaml
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempestconf }}/bin/activate
+        printenv
+        cat ./etc/profile.yaml
+        discover-tempest-config \
+          --profile ./etc/profile.yaml
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+        executable: /bin/bash
+
+  - name: Diff tempest.conf and tempest_profile.conf
+    shell: |
+        diff ./etc/cloud_tempest.conf ./etc/tempest_profile.conf
+    args:
+        chdir: "{{ tempestconf_src_relative_path }}"
+
   - name: Print generated tempest.conf
     shell: |
         set -ex
