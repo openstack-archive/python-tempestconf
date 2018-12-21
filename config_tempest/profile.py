@@ -33,6 +33,18 @@ def _convert_remove_append(options):
     return converted
 
 
+def _read_yaml_file(path):
+    """Read a .yaml file.
+
+    :param path: path to the profile.yaml file
+    :type path: string
+    :return: profile arguments
+    :rtype: dict
+    """
+    with open(path, 'r') as stream:
+        return yaml.load(stream)
+
+
 def read_profile_file(path):
     """Read python-tempestconf arguments from a .yaml file.
 
@@ -41,8 +53,7 @@ def read_profile_file(path):
     :return: profile arguments
     :rtype: dict
     """
-    with open(path, 'r') as stream:
-        profile_args = yaml.load(stream)
+    profile_args = _read_yaml_file(path)
     # convert overrides, to a list of tuples (s, k, v)
     overrides = []
     if 'overrides' in profile_args:
@@ -51,7 +62,7 @@ def read_profile_file(path):
             v = profile_args['overrides'][key]
             if isinstance(v, list):
                 v = ','.join(v)
-            overrides.append((s, k, v))
+            overrides.append((s, k, str(v)))
     profile_args['overrides'] = overrides
     # convert remove
     remove = []
