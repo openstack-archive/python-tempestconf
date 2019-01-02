@@ -2,6 +2,7 @@
   - name: Create python-tempestconf venv with latest pip, setuptools and pbr
     pip:
         virtualenv: "{{ virtualenvs.tempestconf }}"
+        virtualenv_python: "{{ tempestconf_pip_virtualenv_python|default(omit) }}"
         name: "{{ item }}"
         state: latest
     with_items:
@@ -22,6 +23,7 @@
         name: "."
         virtualenv: "{{ virtualenvs.tempestconf }}"
         chdir: "{{ tempestconf_src_relative_path }}"
+        virtualenv_python: "{{ tempestconf_pip_virtualenv_python|default(omit) }}"
 
   - name: Generate tempest configuration file
     shell: |

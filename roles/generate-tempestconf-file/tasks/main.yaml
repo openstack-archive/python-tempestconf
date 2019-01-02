@@ -7,6 +7,7 @@
         virtualenv: "{{ virtualenvs.tempestconf }}"
         name: "{{ item }}"
         state: latest
+        virtualenv_python: "{{ tempestconf_pip_virtualenv_python|default(omit) }}"
     with_items:
         - pip
         - setuptools
@@ -25,6 +26,7 @@
         name: "."
         virtualenv: "{{ virtualenvs.tempestconf }}"
         chdir: "{{ tempestconf_src_relative_path }}"
+        virtualenv_python: "{{ tempestconf_pip_virtualenv_python|default(omit) }}"
 
   - name: "Cat keystonerc_ file (only in packstack case)"
     shell: |
