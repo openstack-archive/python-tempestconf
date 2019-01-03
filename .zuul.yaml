@@ -12,7 +12,7 @@
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
-        - tripleo-ci-centos-7-scenario002-multinode-oooq-container
+        - tripleo-ci-centos-7-scenario002-standalone
         - refstack-client-devstack-tempestconf:
             voting: false
     gate:
@@ -21,7 +21,7 @@
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
-        - tripleo-ci-centos-7-scenario002-multinode-oooq-container
+        - tripleo-ci-centos-7-scenario002-standalone
         - refstack-client-devstack-tempestconf:
             voting: false
 
