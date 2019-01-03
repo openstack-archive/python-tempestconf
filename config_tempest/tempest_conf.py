@@ -14,6 +14,7 @@
 # under the License.
 
 import os
+import six
 import sys
 
 from config_tempest import constants as C
@@ -34,7 +35,10 @@ class TempestConf(configparser.SafeConfigParser):
 
     def __init__(self, write_credentials=True, **kwargs):
         self.write_credentials = write_credentials
-        configparser.SafeConfigParser.__init__(self, **kwargs)
+        if six.PY3:
+            configparser.ConfigParser.__init__(self, **kwargs)
+        else:
+            configparser.SafeConfigParser.__init__(self, **kwargs)
 
     def get_bool_value(self, value):
         """Returns boolean value of the string value given.
@@ -101,7 +105,10 @@ class TempestConf(configparser.SafeConfigParser):
         if priority:
             self.priority_sectionkeys.add((section, key))
         C.LOG.debug("Setting [%s] %s = %s", section, key, value)
-        configparser.SafeConfigParser.set(self, section, key, value)
+        if six.PY3:
+            configparser.ConfigParser.set(self, section, key, value)
+        else:
+            configparser.SafeConfigParser.set(self, section, key, value)
         return True
 
     def write(self, out_path):
@@ -111,7 +118,10 @@ class TempestConf(configparser.SafeConfigParser):
                        "writing credentials is disabled.")
             self.remove_values(C.ALL_CREDENTIALS_KEYS)
         with open(out_path, 'w') as f:
-            configparser.SafeConfigParser.write(self, f)
+            if six.PY3:
+                configparser.ConfigParser.write(self, f)
+            else:
+                configparser.SafeConfigParser.write(self, f)
 
     def remove_values(self, to_remove):
         """Remove values from configuration file specified in arguments.
