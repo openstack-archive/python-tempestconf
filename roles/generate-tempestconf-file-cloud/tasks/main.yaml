@@ -85,9 +85,9 @@
         chdir: "{{ tempestconf_src_relative_path }}"
         executable: /bin/bash
 
-  - name: Diff tempest.conf and tempest_profile.conf
+  - name: Compare tempest.conf and tempest_profile.conf
     shell: |
-        diff ./etc/cloud_tempest.conf ./etc/tempest_profile.conf
+        python ./roles/generate-tempestconf-file-cloud/tasks/compare-ini.py ./etc/cloud_tempest.conf ./etc/tempest_profile.conf
     args:
         chdir: "{{ tempestconf_src_relative_path }}"
 
