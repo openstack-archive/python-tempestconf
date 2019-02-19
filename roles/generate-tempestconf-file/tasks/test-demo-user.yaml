@@ -12,7 +12,7 @@
           --public \
           --ram {{ item.ram }} \
           --vcpus 1 \
-          --disk 0 \
+          --disk 1 \
           {{ item.name }}
     with_items:
       - { name: "m1.nano", ram: 64 }

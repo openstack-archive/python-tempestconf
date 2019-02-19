@@ -56,7 +56,7 @@ class Flavors(object):
                 flavor_id = self.create_flavor(pref['name'], ram=pref['ram'])
                 self._conf.set('compute', pref['key'], flavor_id)
 
-    def create_flavor(self, flavor_name, ram=64, vcpus=1, disk=0):
+    def create_flavor(self, flavor_name, ram=64, vcpus=1, disk=1):
         """Create flavors or try to discover two smallest ones available.
 
         :param flavor_name: flavor name to be created (usually m1.nano or
