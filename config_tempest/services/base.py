@@ -70,6 +70,18 @@ class Service(object):
     def set_versions(self):
         self.versions = []
 
+    def set_availability(self, conf, available):
+        """Sets service's availability.
+
+        The services's codename will be set to desired value under
+        [service_available] section in tempest.conf during the services
+        discovery process.
+        """
+        try:
+            conf.set('service_available', self.get_codename(), str(available))
+        except NotImplementedError:
+            pass
+
     def get_extensions(self):
         return self.extensions
 
@@ -77,7 +89,7 @@ class Service(object):
     def get_service_name():
         """Return the service name.
 
-        This return a list because you can have different services for the
+        This returns a list because you can have different services for the
         same type, like volume, volumev2, volumev3
         """
         return []
@@ -85,8 +97,8 @@ class Service(object):
     def get_versions(self):
         """Return the versions available for each service.
 
-        This doesn't means tempestconf support all these versions. Only that
-        the service have these api versions enabled.
+        This doesn't mean tempestconf supports all these versions. Only that
+        the service has these api versions enabled.
         """
         return self.versions
 
@@ -101,14 +113,15 @@ class Service(object):
         """
         return []
 
-    def get_catalog(self):
-        """Return the catalog name of a service.
+    @staticmethod
+    def get_codename():
+        """Return the service_available name of the service.
 
-        Usually the catalog has the same name of the service, in some cases
-        this is not true, like in volume, that we have volumev3 and volumev2
-        for example.
+        This name is used when setting service availability in
+        set_availability method. If the method is not implemented, service
+        availability is not set.
         """
-        return self.name
+        raise NotImplementedError
 
     def get_feature_name(self):
         """Return the name of service used in <service>-feature-enabled.

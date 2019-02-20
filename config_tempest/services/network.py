@@ -95,3 +95,7 @@ class NetworkService(VersionedService):
     @staticmethod
     def get_service_name():
         return ['neutron']
+
+    @staticmethod
+    def get_codename():
+        return 'neutron'
