@@ -28,6 +28,9 @@ Here is the list of tempest options, which are set by default:
     img_dir = etc
 
     [auth]
+    ; if _member_ role is not present in the system, python-tempestconf
+    ; looks for member role and if the member is also not present
+    ; tempest_roles option is not set
     tempest_roles = _member_
     admin_username = admin
     admin_project_name = admin
