@@ -32,6 +32,9 @@
     parent: devstack
     description: Base job for python-tempestconf on a devstack environment
     required-projects:
+      - openstack/manila
+      - openstack/manila-ui
+      - openstack/manila-tempest-plugin
       - openstack/python-tempestconf
       - openstack/tempest
       - openstack-dev/devstack
@@ -44,6 +47,11 @@
         '{{ devstack_base_dir }}/tempest/tempest.log': logs
         '{{ devstack_base_dir }}/tempest/etc/tempest.conf': logs
         '{{ zuul.project.src_dir }}/etc/accounts.yaml': logs
+      devstack_plugins:
+        manila: git://git.openstack.org/openstack/manila
+        manila-ui: git://git.openstack.org/openstack/manila-ui
+      devstack_localrc:
+        MANILA_USE_MOD_WSGI: False
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
