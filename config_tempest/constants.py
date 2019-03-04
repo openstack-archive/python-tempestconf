@@ -42,19 +42,3 @@ ALL_CREDENTIALS_KEYS = {
     "identity.alt_project_name": [],
     "identity.admin_domain_name": [],
 }
-
-# services, which don't have their own class implemented under
-# config_tempest/services, and their codenames
-# NOTE: if a service from the dict below gets implementation under
-# config_tempest/services it should be removed from the list
-SERVICE_NAMES = {
-    'baremetal': 'ironic',
-    'database': 'trove',
-    'data-processing': 'sahara',
-    'orchestration': 'heat',
-    'telemetry': 'ceilometer',
-    'messaging': 'zaqar',
-    'metric': 'gnocchi',
-    'event': 'panko',
-    'workflowv2': 'mistral',
-}
