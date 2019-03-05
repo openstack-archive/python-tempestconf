@@ -17,7 +17,6 @@ import json
 
 from config_tempest import constants as C
 from config_tempest.services.base import VersionedService
-from config_tempest.utils import get_base_url
 
 from tempest.lib import exceptions
 
@@ -31,30 +30,14 @@ class VolumeService(VersionedService):
     def set_versions(self):
         url, top_level = self.no_port_cut_url()
         body = self.do_get(url, top_level=top_level)
-        body = json.loads(body)
-        self.versions = self.deserialize_versions(body)
-
-    def set_api_microversion(self):
-        version_url = get_base_url(self.service_url)
-        body = self.do_get(version_url)
-        body = json.loads(body)
-        return body
+        self.versions_body = json.loads(body)
+        self.versions = self.deserialize_versions(self.versions_body)
 
     def set_default_tempest_options(self, conf):
         if 'v3' in self.service_url:
-            microversions = self.set_api_microversion()
-            min_microversion = {
-                version['min_version'] for version in microversions['versions']
-                if version['id'] == 'v3.0'
-            }
-
-            max_microversion = {
-                version['version'] for version in microversions['versions']
-                if version['id'] == 'v3.0'
-            }
-
-            conf.set('volume', 'min_microversion', ''.join(min_microversion))
-            conf.set('volume', 'max_microversion', ''.join(max_microversion))
+            m_vs = self.filter_api_microversions()
+            conf.set('volume', 'min_microversion', m_vs['min_microversion'])
+            conf.set('volume', 'max_microversion', m_vs['max_microversion'])
 
     def get_service_extension_key(self):
         return 'api_extensions'
