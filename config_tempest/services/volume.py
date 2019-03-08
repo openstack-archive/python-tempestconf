@@ -62,8 +62,9 @@ class VolumeService(VersionedService):
     def get_supported_versions(self):
         return ['v2', 'v3']
 
-    def get_catalog(self):
-        return 'volumev3'
+    @staticmethod
+    def get_codename():
+        return 'cinder'
 
     def get_feature_name(self):
         return 'volume'

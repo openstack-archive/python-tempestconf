@@ -108,3 +108,7 @@ class ObjectStorageService(Service):
     @staticmethod
     def get_service_name():
         return ['swift']
+
+    @staticmethod
+    def get_codename():
+        return 'swift'

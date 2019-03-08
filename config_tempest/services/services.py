@@ -112,7 +112,15 @@ class Services(object):
                     # default tempest options
                     service.set_default_tempest_options(self._conf)
 
+                    service.set_availability(self._conf, True)
+
                     self._services.append(service)
+                else:
+                    # service is not available
+                    # quickly instantiate a class in order to set
+                    # availability of the service
+                    s = s_class(None, None, None, None)
+                    s.set_availability(self._conf, False)
 
     def merge_exts_multiversion_service(self, service):
         """Merges extensions of a service given by its name
@@ -214,10 +222,6 @@ class Services(object):
         return True
 
     def set_service_availability(self):
-        # check if volume service is disabled
-        if self._conf.has_option('services', 'volume'):
-            if not self._conf.getboolean('services', 'volume'):
-                C.SERVICE_NAMES.pop('volume')
         # check availability of volume backup service
         volume.check_volume_backup_service(self._conf,
                                            self._clients.volume_client,

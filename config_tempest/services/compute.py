@@ -60,3 +60,7 @@ class ComputeService(VersionedService):
     @staticmethod
     def get_service_name():
         return ['nova']
+
+    @staticmethod
+    def get_codename():
+        return 'nova'

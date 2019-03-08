@@ -48,8 +48,9 @@ class ShareService(VersionedService):
     def get_unversioned_service_name(self):
         return 'share'
 
-    def get_catalog(self):
-        return 'sharev2'
+    @staticmethod
+    def get_codename():
+        return 'manila'
 
     def get_feature_name(self):
         return 'share'

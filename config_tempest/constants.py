@@ -43,22 +43,18 @@ ALL_CREDENTIALS_KEYS = {
     "identity.admin_domain_name": [],
 }
 
-# services and their codenames
+# services, which don't have their own class implemented under
+# config_tempest/services, and their codenames
+# NOTE: if a service from the dict below gets implementation under
+# config_tempest/services it should be removed from the list
 SERVICE_NAMES = {
     'baremetal': 'ironic',
-    'compute': 'nova',
     'database': 'trove',
     'data-processing': 'sahara',
-    'image': 'glance',
-    'network': 'neutron',
-    'object-store': 'swift',
     'orchestration': 'heat',
-    'share': 'manila',
     'telemetry': 'ceilometer',
-    'volume': 'cinder',
     'messaging': 'zaqar',
     'metric': 'gnocchi',
     'event': 'panko',
     'workflowv2': 'mistral',
-    'load-balancer': 'octavia',
 }

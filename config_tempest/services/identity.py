@@ -64,9 +64,6 @@ class IdentityService(VersionedService):
     def get_service_name():
         return ['keystone']
 
-    def get_catalog(self):
-        return 'identity'
-
     def set_identity_v3_extensions(self):
         """Returns discovered identity v3 extensions
 

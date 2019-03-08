@@ -69,8 +69,9 @@ class ImageService(VersionedService):
     def get_service_name():
         return ['glance']
 
-    def get_catalog(self):
-        return 'image'
+    @staticmethod
+    def get_codename():
+        return 'glance'
 
     def set_versions(self):
         super(ImageService, self).set_versions(top_level=False)
