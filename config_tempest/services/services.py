@@ -232,24 +232,6 @@ class Services(object):
 
         horizon.configure_horizon(self._conf)
 
-        for service, codename in C.SERVICE_NAMES.items():
-            # ceilometer is still transitioning from metering to telemetry
-            if service == 'telemetry' and self.is_service('metering'):
-                service = 'metering'
-            available = str(self.is_service(service))
-            self._conf.set('service_available', codename, available)
-
-        # TODO(arxcruz): Remove this once/if we get the following reviews
-        # merged in all branches supported by tempestconf, or once/if
-        # tempestconf do not support anymore the OpenStack release where
-        # those patches are not available.
-        # https://review.openstack.org/#/c/492526/
-        # https://review.openstack.org/#/c/492525/
-
-        if self.is_service('alarming'):
-            self._conf.set('service_available', 'aodh', 'True')
-            self._conf.set('service_available', 'aodh_plugin', 'True')
-
         # TODO(arxcruz): This should be set in compute service, not here,
         # however, it requires a refactor in the code, which is not our
         # goal right now
