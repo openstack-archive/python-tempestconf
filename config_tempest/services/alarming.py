@@ -18,16 +18,10 @@ from config_tempest.services.base import Service
 
 class AlarmingService(Service):
 
-    def set_availability(self, conf, available):
-        # TODO(arxcruz): Remove this once/if we get the following reviews
-        # merged in all branches supported by tempestconf, or once/if
-        # tempestconf do not support anymore the OpenStack release where
-        # those patches are not available.
-        # https://review.openstack.org/#/c/492526/
-        # https://review.openstack.org/#/c/492525/
-        conf.set('service_available', 'aodh', str(available))
-        conf.set('service_available', 'aodh_plugin', str(available))
-
     @staticmethod
     def get_service_name():
         return ['aodh']
+
+    @staticmethod
+    def get_codename():
+        return 'aodh'
