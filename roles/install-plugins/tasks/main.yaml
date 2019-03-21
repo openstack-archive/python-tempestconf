@@ -1,0 +1,16 @@
+- name: Prepare tempest venv
+  command: tox -r --notest -efull
+  args:
+    chdir: "{{devstack_base_dir}}/tempest"
+
+- name: Install plugins
+  command: tox -evenv-tempest -- pip install {{ item }}
+  with_items: "{{ plugins_paths }}"
+  args:
+    chdir: "{{devstack_base_dir}}/tempest"
+  when: plugins_paths is defined
+
+- name: List installed tempest plugins
+  command: tox -evenv-tempest -- tempest list-plugins
+  args:
+    chdir: "{{devstack_base_dir}}/tempest"
