@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    A support for heat-tempest-plugin is added to python-tempestconf which
+    means, that some options required by heat_plugin will be set automatically
+    in order to generate a tempest.conf which can pass at least some
+    heat-tempest-plugin tests and make user's life easier.
