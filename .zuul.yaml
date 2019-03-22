@@ -53,6 +53,7 @@
         manila: git://git.openstack.org/openstack/manila
         manila-ui: git://git.openstack.org/openstack/manila-ui
       devstack_localrc:
+        MANILA_USE_UWSGI: False
         MANILA_USE_MOD_WSGI: False
     irrelevant-files:
       - config_tempest/tests/.*$
