@@ -38,6 +38,7 @@ class Service(object):
 
         self.extensions = []
         self.versions = []
+        self.versions_body = {'versions': []}
 
     def do_get(self, url, top_level=False, top_level_path=""):
         parts = list(urllib.parse.urlparse(url))
@@ -150,8 +151,8 @@ class Service(object):
 class VersionedService(Service):
     def set_versions(self, top_level=True):
         body = self.do_get(self.service_url, top_level=top_level)
-        body = json.loads(body)
-        self.versions = self.deserialize_versions(body)
+        self.versions_body = json.loads(body)
+        self.versions = self.deserialize_versions(self.versions_body)
 
     def deserialize_versions(self, body):
         versions = []
@@ -159,6 +160,26 @@ class VersionedService(Service):
             if version['status'] != "DEPRECATED":
                 versions.append(version)
         return list(map(lambda x: x['id'], versions))
+
+    def filter_api_microversions(self):
+        min_microversion = ''
+        max_microversion = ''
+        for version in self.versions_body['versions']:
+            if version['status'] != "DEPRECATED":
+                if max_microversion == '':
+                    max_microversion = version['version']
+                else:
+                    max_microversion = max(max_microversion,
+                                           version['version'])
+                if 'min_version' not in version:
+                    continue
+                if min_microversion == '':
+                    min_microversion = version['min_version']
+                else:
+                    min_microversion = min(min_microversion,
+                                           version['min_version'])
+        return {'max_microversion': max_microversion,
+                'min_microversion': min_microversion}
 
     def no_port_cut_url(self):
         # if there is no port defined, cut the url from version to the end

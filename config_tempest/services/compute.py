@@ -30,8 +30,8 @@ class ComputeService(VersionedService):
     def set_versions(self):
         url, top_level = self.no_port_cut_url()
         body = self.do_get(url, top_level=top_level)
-        body = json.loads(body)
-        self.versions = self.deserialize_versions(body)
+        self.versions_body = json.loads(body)
+        self.versions = self.deserialize_versions(self.versions_body)
 
     def set_default_tempest_options(self, conf):
         conf.set('compute-feature-enabled', 'console_output', 'True')
@@ -42,6 +42,10 @@ class ComputeService(VersionedService):
         # compute nodes
         if self._get_number_of_hosts() >= 2:
             conf.set('compute-feature-enabled', 'resize', 'True')
+        # set microversions
+        m_versions = self.filter_api_microversions()
+        conf.set('compute', 'min_microversion', m_versions['min_microversion'])
+        conf.set('compute', 'max_microversion', m_versions['max_microversion'])
 
     def get_service_extension_key(self):
         return 'api_extensions'
