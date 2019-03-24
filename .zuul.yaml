@@ -50,8 +50,8 @@
         '{{ devstack_base_dir }}/tempest/etc/tempest.conf': logs
         '{{ zuul.project.src_dir }}/etc/accounts.yaml': logs
       devstack_plugins:
-        manila: git://git.openstack.org/openstack/manila
-        manila-ui: git://git.openstack.org/openstack/manila-ui
+        manila: https://git.openstack.org/openstack/manila
+        manila-ui: https://git.openstack.org/openstack/manila-ui
       devstack_localrc:
         MANILA_USE_MOD_WSGI: False
     irrelevant-files:
