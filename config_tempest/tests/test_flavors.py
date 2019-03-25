@@ -54,8 +54,8 @@ class TestFlavors(BaseConfigTempestTest):
         self.Service.create_tempest_flavors()
         self.assertEqual(self.conf.get('compute', 'flavor_ref'), "FakeID")
         self.assertEqual(self.conf.get('compute', 'flavor_ref_alt'), "FakeID")
-        calls = [mock.call('m1.nano', ram=64),
-                 mock.call('m1.micro', ram=128)]
+        calls = [mock.call('m1.nano', ram=64, no_rng=False),
+                 mock.call('m1.micro', ram=128, no_rng=False)]
         mock_function.assert_has_calls(calls, any_order=True)
 
     def check_call_of_discover_smallest_flavor(self):
@@ -110,14 +110,29 @@ class TestFlavors(BaseConfigTempestTest):
         # it should have ended in the except block above
         self.assertTrue(False)
 
-    def test_create_flavor(self):
+    def _test_create_flavor(self, no_rng=False):
         return_value = {"flavor": {"id": "MyFakeID", "name": "MyID"}}
         self.Service.flavor_list = []
+        client = self.CLIENT_MOCK
         mock_function = mock.Mock(return_value=return_value)
-        self.useFixture(MonkeyPatch(self.CLIENT_MOCK + '.create_flavor',
+        self.useFixture(MonkeyPatch(client + '.create_flavor', mock_function))
+        mock_function = mock.Mock(return_value={})
+        self.useFixture(MonkeyPatch(client + '.set_flavor_extra_spec',
                                     mock_function))
-        resp = self.Service.create_flavor(flavor_name="MyID")
+        resp = self.Service.create_flavor(flavor_name="MyID", no_rng=no_rng)
         self.assertEqual(resp, return_value['flavor']['id'])
+        return mock_function
+
+    def test_create_flavor_rng(self):
+        mock_function = self._test_create_flavor()
+        calls = [mock.call(flavor_id='MyFakeID', **{'hw_rng:allowed': 'True'})]
+        mock_function.assert_has_calls(calls, any_order=True)
+
+    def test_create_flavor_no_rng(self):
+        self.Service.no_rng = True
+        mock_function = self._test_create_flavor(no_rng=True)
+        calls = [mock.call(flavor_id='MyFakeID')]
+        mock_function.assert_has_calls(calls, any_order=True)
 
     def test_find_flavor_by_id(self):
         return_value = {"flavors": self.FLAVORS_LIST}

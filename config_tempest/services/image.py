@@ -31,7 +31,7 @@ class ImageService(VersionedService):
                                            disable_ssl_validation,
                                            client)
 
-    def set_image_preferences(self, disk_format, non_admin):
+    def set_image_preferences(self, disk_format, non_admin, no_rng=False):
         """Sets image prefferences.
 
         :type disk_format: string
@@ -39,6 +39,7 @@ class ImageService(VersionedService):
         """
         self.disk_format = disk_format
         self.non_admin = non_admin
+        self.no_rng = no_rng
 
     def set_default_tempest_options(self, conf):
         # When cirros is the image, set validation.image_ssh_user to cirros.
@@ -189,10 +190,12 @@ class ImageService(VersionedService):
             visibility = 'public'
 
         with open(path, 'rb') as data:
-            image = self.client.create_image(name=name,
-                                             disk_format=self.disk_format,
-                                             container_format='bare',
-                                             visibility=visibility)
+            args = {'name': name, 'disk_format': self.disk_format,
+                    'container_format': 'bare', 'visibility': visibility,
+                    'hw_rng_model': 'virtio'}
+            if self.no_rng:
+                args.pop('hw_rng_model')
+            image = self.client.create_image(**args)
             self.client.store_image_file(image['id'], data)
         return image
 
