@@ -14,7 +14,7 @@ of the following:
   * use ``clouds.yaml`` file and take advantage of ``os-client-config`` support
     and use a named cloud, see `Examples of usage with a named cloud`_
 
-If a user doesn't use ``--create``, no resources, which requires admin
+If a user doesn't use ``--create``, no resources, which require admin
 credentials, are created. See `Resources`_ section.
 
 
@@ -66,8 +66,8 @@ generated ``tempest.conf`` from one of the two following reasons:
   * ``python-tempestconf`` is able to discover it, but a user wants to set it
     differently
 
-Values specified as overrides will be set to tempest.conf no matter what if
-they were discovered or not. If a section or a key don't exist, they will be
+Values specified as overrides will be set to tempest.conf no matter if they
+were discovered or not. If a section or a key don't exist, they will be
 created.
 
 In the following example we make the tool to print debugging information, we
@@ -110,7 +110,7 @@ A user can define key-value pairs which are not wanted to be written to the
 generated ``tempest.conf``. This can be useful in case when
 ``python-tempestconf`` discovers something which is not wanted by a user to
 have in ``tempest.conf``. If the option is used, ``python-tempestconf`` will
-make sure, that the defined values are not written to tempest.conf no matter
+make sure that the defined values are not written to tempest.conf no matter
 if they were discovered or not.
 
 .. code-block:: shell-session
@@ -120,9 +120,9 @@ if they were discovered or not.
         --remove section2.key2=value \
         --remove section3.key3=value1,value2
 
-In the following case **all** api_extensions will be removed and tempest.conf
-will **not contain** the api_extensions key under compute-feature-enabled
-section.
+In the following case **all** api_extensions will be removed and
+``tempest.conf`` will **not contain** the api_extensions key under
+compute-feature-enabled section.
 
 .. code-block:: shell-session
 
@@ -190,7 +190,7 @@ links:
   * `how to generate it? <https://docs.openstack.org/tempest/latest/account_generator.html>`_
 
 When ``--test-accounts`` argument is used, ``python-tempestconf`` will not
-write any credentials to generated tempest.conf file, it will add a
+write any credentials to generated ``tempest.conf`` file, it will add a
 **test_accounts_file** key to **auth** section with value equal to the path
 provided by the ``--test-accounts`` argument. Also **use_dynamic_credentials**
 under **auth** section will be set to False as
@@ -210,7 +210,7 @@ If you already have the file created, you can run
         --out etc/tempest.conf \
         --test-accounts /path/to/my/accounts.yaml
 
-The generated tempest.conf will look like:
+The generated ``tempest.conf`` will look like:
 
 .. code-block:: shell-session
 
@@ -272,8 +272,8 @@ Then if you use ``--os-cloud`` argument you can run
 :command:`discover-tempest-config` **without** setting any OS_* environment
 variable (for example by sourcing any OpenStack RC file).
 
-``--os-cloud`` defines specifies one of the cloud names located in the
-``clouds.yaml`` file.
+``--os-cloud`` specifies one of the cloud names located in the ``clouds.yaml``
+file.
 
 .. code-block:: shell-session
     :emphasize-lines: 3
@@ -308,7 +308,7 @@ look like:
 Resources
 ---------
 
-Without specifying ``--create`` argument, no resources which requires admin
+Without specifying ``--create`` argument, no resources which require admin
 credentials are crated during the ``python-tempestconf`` execution. For the
 documentation on how to use ``--create`` argument see `Admin User Guide`_
 
@@ -405,10 +405,25 @@ image.
 Flavors
 +++++++
 
-``python-tempestconf`` looks for these two flavors:
+``python-tempestconf`` looks by default for these two flavors:
 
-  * m1.nano with 64 MB of RAM, which will be set as **compute.flavor_ref**
-  * m1.micro with 128 MB of RAM, which will be set as **compute.flavor_alt_ref**
+  * *m1.nano* with 64 MB of RAM, which will be set as **compute.flavor_ref**
+  * *m1.micro* with 128 MB of RAM, which will be set as
+    **compute.flavor_alt_ref**
+
+If a user used ``--flavor-min-mem`` argument, ``python-tempestconf`` will look
+for these two flavors:
+
+  * *custom*
+  * *custom_alt*
+
+    .. note::
+
+        ``python-tempestconf`` looks for flavors by name, so if a user has had
+        a flavor with name *custom*/*custom_alt* already created, those flavors'
+        IDs will be set as **compute.flavor_ref**/**compute.flavor_ref_alt**
+        without checking if theirs RAM size is equal to the one specified by
+        ``--flavor-min-mem``.
 
 If they are not found and ``--create`` argument is not used, the tool will try
 to auto discover two smallest flavors available in the system. If at least two
@@ -435,7 +450,7 @@ The generated tempest.conf will look like:
     flavor_alt_ref = <ID_2>
     <omitted some content>
 
-In the following example, a `override`_ option specifies **compute.flavor_ref**
+In the following example, an `override`_ option specifies **compute.flavor_ref**
 ID, which if it's found, the tool continues with looking for a **m1.micro**
 flavor to be set as **compute.flavor_alt_ref** as was explained above.
 

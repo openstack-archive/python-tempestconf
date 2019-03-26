@@ -39,6 +39,21 @@ resources (`Flavors`_ and `Users`_) if they don't exist already:
         --os-cloud devstack-admin \
         --create
 
+If a user wants to use a custom image (instead of the default cirros one),
+a minimum memory and disk size for new flavors can be defined by
+``--flavor-min-mem`` and ``--flavor-min-disk`` arguments.
+
+.. code-block:: shell-session
+
+    $ discover-tempest-config \
+        --image <path/url to custom image> \
+        --flavor-min-mem 1024 \
+        --flavor-min-disk 10
+
+In the example above ``python-tempestconf`` will create *custom* flavor with
+1024 MB of RAM and 10 GB of disk size and *custom_alt** flavor with 1024 + 1 MB
+of RAM and 10 GB of disk size.
+
 
 ``python-tempestconf`` can also create a minimal accounts file when
 ``--create-accounts-file`` is used. It can be useful when a user doesn't have

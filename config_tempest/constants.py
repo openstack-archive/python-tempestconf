@@ -27,6 +27,11 @@ DEFAULT_IMAGE = ("http://download.cirros-cloud.net/0.3.5/"
                  "cirros-0.3.5-x86_64-disk.img")
 DEFAULT_IMAGE_FORMAT = 'qcow2'
 
+DEFAULT_FLAVOR_RAM = 64
+DEFAULT_FLAVOR_RAM_ALT = 128
+DEFAULT_FLAVOR_DISK = 1
+DEFAULT_FLAVOR_VCPUS = 1
+
 # The dict holds the credentials, which are not supposed to be printed
 # to a tempest.conf when --test-accounts CLI parameter is used.
 ALL_CREDENTIALS_KEYS = {
