@@ -15,6 +15,7 @@
 
 import os
 import shutil
+import subprocess
 
 from six.moves import urllib
 from tempest.lib import exceptions
@@ -31,15 +32,19 @@ class ImageService(VersionedService):
                                            disable_ssl_validation,
                                            client)
 
-    def set_image_preferences(self, disk_format, non_admin, no_rng=False):
+    def set_image_preferences(self, disk_format, non_admin, no_rng=False,
+                              convert=False):
         """Sets image prefferences.
 
         :type disk_format: string
         :type non_admin: bool
+        :type no_rng: bool
+        :type convert: bool
         """
         self.disk_format = disk_format
         self.non_admin = non_admin
         self.no_rng = no_rng
+        self.convert = convert
 
     def set_default_tempest_options(self, conf):
         # When cirros is the image, set validation.image_ssh_user to cirros.
@@ -90,12 +95,13 @@ class ImageService(VersionedService):
         img_path = os.path.join(img_dir,
                                 os.path.basename(image_path))
         name = image_path[image_path.rfind('/') + 1:]
+        if self.convert and name[-4:] == ".img":
+            name = name[:-4] + ".raw"
         if not os.path.exists(img_dir):
             try:
                 os.makedirs(img_dir)
             except OSError:
                 raise
-        conf.set('scenario', 'img_file', name)
         alt_name = name + "_alt"
         image_id = None
         if conf.has_option('compute', 'image_ref'):
@@ -109,7 +115,9 @@ class ImageService(VersionedService):
         alt_image_id = self.find_or_upload_image(alt_image_id, alt_name,
                                                  image_source=image_path,
                                                  image_dest=img_path)
-
+        # get name of the image_id
+        image_id_name = self._find_image(image_id, '')['name']
+        conf.set('scenario', 'img_file', image_id_name)
         conf.set('compute', 'image_ref', image_id)
         conf.set('compute', 'image_ref_alt', alt_image_id)
 
@@ -182,6 +190,9 @@ class ImageService(VersionedService):
         :type name: string
         :type path: string
         """
+        if self.convert:
+            path = self.convert_image_to_raw(path)
+
         C.LOG.info("Uploading image '%s' from '%s'",
                    name, os.path.abspath(path))
         if self.non_admin:
@@ -225,3 +236,27 @@ class ImageService(VersionedService):
         data = f.read()
         with open(destination, "wb") as dest:
             dest.write(data)
+
+    def convert_image_to_raw(self, path):
+        """Converts given image to raw format.
+
+        :type path: string
+        :return: path of the converted image
+        :rtype: string
+        """
+        head, tail = os.path.split(path)
+        name = tail.rsplit('.', 1)[0] + '.raw'
+        raw_path = os.path.join(head, name)
+        # check if converted already
+        if os.path.exists(raw_path):
+            C.LOG.info("Image already converted in '%s'.", raw_path)
+        else:
+            C.LOG.info("Converting image '%s' to '%s'",
+                       os.path.abspath(path), os.path.abspath(raw_path))
+            rc = subprocess.call(['qemu-img', 'convert', path, raw_path])
+            if rc != 0:
+                raise Exception("Converting of the image has finished with "
+                                "non-zero return code. The return code was "
+                                "'%d'", rc)
+        self.disk_format = 'raw'
+        return raw_path

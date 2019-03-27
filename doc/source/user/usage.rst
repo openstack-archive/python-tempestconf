@@ -401,6 +401,24 @@ image.
 
     .. _CLI options: ../cli/cli_options.html
 
+Converting images to .raw format
+********************************
+
+By using ``--convert-to-raw`` argument you can make ``python-tempestconf``
+convert the image given by ``--image`` argument to **.raw** format before
+uploading it to glance. If Ceph is used as a backend, the boot time of the
+image will be faster when the image is already in **.raw** format.
+
+In the following example the ``/my/path/to/myImage.img`` image will be
+downloaded, then converted to **.raw** format and then uploaded to glance.
+
+.. code-block:: shell-session
+
+    $ discover-tempest-config \
+        --os-cloud myCloud \
+        --image /my/path/to/myImage.img \
+        --convert-to-raw
+
 
 Flavors
 +++++++
