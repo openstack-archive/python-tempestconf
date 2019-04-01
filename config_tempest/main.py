@@ -261,6 +261,9 @@ def get_arg_parser():
                         help='Print debugging information.')
     parser.add_argument('--verbose', '-v', action='store_true', default=False,
                         help='Print more information about the execution.')
+    parser.add_argument('--no-rng', action='store_true', default=False,
+                        help="""Create new flavors and upload images without
+                                random number generator device.""")
     parser.add_argument('--non-admin', action='store_true', default=False,
                         help="""Simulate non-admin credentials.
                                 When True, the credentials are used as
@@ -509,13 +512,15 @@ def config_tempest(**kwargs):
     if kwargs.get('create', False) and kwargs.get('test_accounts') is None:
         users = Users(clients.projects, clients.roles, clients.users, conf)
         users.create_tempest_users(services.is_service('orchestration'))
-    flavors = Flavors(clients.flavors, kwargs.get('create', False), conf)
+    flavors = Flavors(clients.flavors, kwargs.get('create', False), conf,
+                      no_rng=kwargs.get('no_rng', False))
     flavors.create_tempest_flavors()
 
     image = services.get_service('image')
     image.set_image_preferences(kwargs.get('image_disk_format',
                                            C.DEFAULT_IMAGE_FORMAT),
-                                kwargs.get('non_admin', False))
+                                kwargs.get('non_admin', False),
+                                no_rng=kwargs.get('no_rng', False))
     image.create_tempest_images(conf)
 
     has_neutron = services.is_service("network")
@@ -568,6 +573,7 @@ def main():
         image_path=args.image,
         network_id=args.network_id,
         non_admin=args.non_admin,
+        no_rng=args.no_rng,
         os_cloud=args.os_cloud,
         out=args.out,
         overrides=args.overrides,

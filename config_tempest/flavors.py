@@ -19,7 +19,7 @@ from config_tempest.constants import LOG
 
 
 class Flavors(object):
-    def __init__(self, client, allow_creation, conf):
+    def __init__(self, client, allow_creation, conf, no_rng=False):
         """Init.
 
         :type client: FlavorsClient object from tempest lib
@@ -29,6 +29,7 @@ class Flavors(object):
         self.client = client
         self.allow_creation = allow_creation
         self._conf = conf
+        self.no_rng = no_rng
         self.flavor_list = self.client.list_flavors()['flavors']
 
     def create_tempest_flavors(self):
@@ -53,10 +54,12 @@ class Flavors(object):
                                     " exist", pref['key'], flavor_id)
             else:
                 # create m1.nano/m1.micro flavor
-                flavor_id = self.create_flavor(pref['name'], ram=pref['ram'])
+                flavor_id = self.create_flavor(pref['name'], ram=pref['ram'],
+                                               no_rng=self.no_rng)
                 self._conf.set('compute', pref['key'], flavor_id)
 
-    def create_flavor(self, flavor_name, ram=64, vcpus=1, disk=1):
+    def create_flavor(self, flavor_name, ram=64, vcpus=1,
+                      disk=1, no_rng=False):
         """Create flavors or try to discover two smallest ones available.
 
         :param flavor_name: flavor name to be created (usually m1.nano or
@@ -64,6 +67,7 @@ class Flavors(object):
         :param ram: memory of created flavor in MB
         :param vcpus: number of VCPUs for the flavor
         :param disk: size of disk for flavor in GB
+        :param no_rng: boolean, if True, flavor will be created with RNG device
         """
         flavor_id = self.find_flavor_by_name(flavor_name)
         if flavor_id is not None:
@@ -74,6 +78,11 @@ class Flavors(object):
             resp = self.client.create_flavor(name=flavor_name,
                                              ram=ram, vcpus=vcpus,
                                              disk=disk, id=None)
+            args = {'flavor_id': resp['flavor']['id'],
+                    'hw_rng:allowed': 'True'}
+            if no_rng:
+                args.pop('hw_rng:allowed')
+            self.client.set_flavor_extra_spec(**args)
             return resp['flavor']['id']
         else:
             if len(self.flavor_list) < 2:
