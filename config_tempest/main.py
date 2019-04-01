@@ -306,6 +306,12 @@ def get_arg_parser():
                                 glance if it's not already there. The name of
                                 the image is the leaf name of the path. Default
                                 is '%s'""" % C.DEFAULT_IMAGE)
+    parser.add_argument('--flavor-min-mem', default=C.DEFAULT_FLAVOR_RAM,
+                        type=int, help="""Specify minimum memory for new
+                        flavours, default is '%s'.""" % C.DEFAULT_FLAVOR_RAM)
+    parser.add_argument('--flavor-min-disk', default=C.DEFAULT_FLAVOR_DISK,
+                        type=int, help="""Specify minimum disk size for new
+                        flavours, default is '%s'.""" % C.DEFAULT_FLAVOR_DISK)
     parser.add_argument('--network-id',
                         help="""Specify which network with external connectivity
                                 should be used by the tests.""")
@@ -513,6 +519,8 @@ def config_tempest(**kwargs):
         users = Users(clients.projects, clients.roles, clients.users, conf)
         users.create_tempest_users(services.is_service('orchestration'))
     flavors = Flavors(clients.flavors, kwargs.get('create', False), conf,
+                      kwargs.get('flavor_min_mem', C.DEFAULT_FLAVOR_RAM),
+                      kwargs.get('flavor_min_disk', C.DEFAULT_FLAVOR_DISK),
                       no_rng=kwargs.get('no_rng', False))
     flavors.create_tempest_flavors()
 
@@ -569,6 +577,8 @@ def main():
         create_accounts_file=args.create_accounts_file,
         debug=args.debug,
         deployer_input=args.deployer_input,
+        flavor_min_mem=args.flavor_min_mem,
+        flavor_min_disk=args.flavor_min_disk,
         image_disk_format=args.image_disk_format,
         image_path=args.image,
         network_id=args.network_id,

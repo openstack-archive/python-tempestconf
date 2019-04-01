@@ -15,11 +15,12 @@
 
 from operator import itemgetter
 
-from config_tempest.constants import LOG
+from config_tempest import constants as C
 
 
 class Flavors(object):
-    def __init__(self, client, allow_creation, conf, no_rng=False):
+    def __init__(self, client, allow_creation, conf, min_memory, min_disk,
+                 no_rng=False):
         """Init.
 
         :type client: FlavorsClient object from tempest lib
@@ -29,22 +30,31 @@ class Flavors(object):
         self.client = client
         self.allow_creation = allow_creation
         self._conf = conf
-        self.no_rng = no_rng
         self.flavor_list = self.client.list_flavors()['flavors']
+        min_memory_alt = C.DEFAULT_FLAVOR_RAM_ALT
+        name = 'm1.nano'
+        name_alt = 'm1.micro'
+        if min_memory != C.DEFAULT_FLAVOR_RAM:
+            min_memory_alt = min_memory + 1
+            name = 'custom'
+            name_alt = 'custom_alt'
+        self._conf.set('volume', 'volume_size', str(min_disk))
+        self.prefs = [
+            {'key': 'flavor_ref', 'name': name, 'ram': min_memory,
+             'disk': min_disk, 'no_rng': no_rng},
+            {'key': 'flavor_ref_alt', 'name': name_alt,
+             'ram': min_memory_alt, 'disk': min_disk, 'no_rng': no_rng}
+        ]
 
     def create_tempest_flavors(self):
         """Find or create flavors and set them in conf.
 
         If 'flavor_ref' and 'flavor_ref_alt' are specified in conf, it will
         try to find them, if not found, it raises an Exception.
-        Otherwise it will try finding or creating 'm1.nano' and 'm1.micro'
-        flavors and set their ids in conf.
+        Otherwise it will try finding or creating the required base flavors
+        (m1.nano and m1.micro by default) and set their ids in conf.
         """
-        prefs = [
-            {'key': 'flavor_ref', 'name': 'm1.nano', 'ram': 64},
-            {'key': 'flavor_ref_alt', 'name': 'm1.micro', 'ram': 128}
-        ]
-        for pref in prefs:
+        for pref in self.prefs:
             flavor_id = None
             if self._conf.has_option('compute', pref['key']):
                 flavor_id = self._conf.get('compute', pref['key'])
@@ -53,13 +63,13 @@ class Flavors(object):
                     raise Exception("%s id '%s' specified by user doesn't"
                                     " exist", pref['key'], flavor_id)
             else:
-                # create m1.nano/m1.micro flavor
-                flavor_id = self.create_flavor(pref['name'], ram=pref['ram'],
-                                               no_rng=self.no_rng)
+                flavor_id = self.create_flavor(pref['name'], pref['ram'],
+                                               C.DEFAULT_FLAVOR_VCPUS,
+                                               pref['disk'],
+                                               no_rng=pref['no_rng'])
                 self._conf.set('compute', pref['key'], flavor_id)
 
-    def create_flavor(self, flavor_name, ram=64, vcpus=1,
-                      disk=1, no_rng=False):
+    def create_flavor(self, flavor_name, ram, vcpus, disk, no_rng=False):
         """Create flavors or try to discover two smallest ones available.
 
         :param flavor_name: flavor name to be created (usually m1.nano or
@@ -71,10 +81,10 @@ class Flavors(object):
         """
         flavor_id = self.find_flavor_by_name(flavor_name)
         if flavor_id is not None:
-            LOG.info("(no change) Found flavor '%s'", flavor_name)
+            C.LOG.info("(no change) Found flavor '%s'", flavor_name)
             return flavor_id
         elif self.allow_creation:
-            LOG.info("Creating flavor '%s'", flavor_name)
+            C.LOG.info("Creating flavor '%s'", flavor_name)
             resp = self.client.create_flavor(name=flavor_name,
                                              ram=ram, vcpus=vcpus,
                                              disk=disk, id=None)
@@ -101,8 +111,8 @@ class Flavors(object):
         """
         found = [f for f in self.flavor_list if f['id'] == flavor_id]
         if found:
-            LOG.info("Found flavor '%s' by it's id '%s'",
-                     found[0]['name'], flavor_id)
+            C.LOG.info("Found flavor '%s' by it's id '%s'",
+                       found[0]['name'], flavor_id)
             # return flavor's id
             return found[0]['id']
         return None
@@ -127,9 +137,9 @@ class Flavors(object):
         smallest flavor found.
         :param flavor_name: [m1.nano, m1.micro]
         """
-        LOG.warning("Flavor '%s' not found and creation is not allowed. "
-                    "Trying to autodetect the smallest flavor available.",
-                    flavor_name)
+        C.LOG.warning("Flavor '%s' not found and creation is not allowed. "
+                      "Trying to autodetect the smallest flavor available.",
+                      flavor_name)
         flavors = []
         for flavor in self.flavor_list:
             f = self.client.show_flavor(flavor['id'])['flavor']
@@ -145,7 +155,7 @@ class Flavors(object):
             f = flavors[1]
         else:
             f = flavors[0]
-        LOG.warning("Found '%s' flavor (id: '%s', ram: '%s', disk: '%s', "
-                    "vcpus: '%s') ", f[0], f[1], f[2], f[3], f[4])
+        C.LOG.warning("Found '%s' flavor (id: '%s', ram: '%s', disk: '%s', "
+                      "vcpus: '%s') ", f[0], f[1], f[2], f[3], f[4])
         # return flavor's id
         return f[1]

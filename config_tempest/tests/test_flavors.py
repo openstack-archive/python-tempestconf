@@ -17,6 +17,7 @@ from fixtures import MonkeyPatch
 import logging
 import mock
 
+from config_tempest import constants as C
 from config_tempest.flavors import Flavors
 from config_tempest.tests.base import BaseConfigTempestTest
 
@@ -44,7 +45,7 @@ class TestFlavors(BaseConfigTempestTest):
         mock_function = mock.Mock(return_value=return_value)
         self.useFixture(MonkeyPatch(self.CLIENT_MOCK + '.list_flavors',
                                     mock_function))
-        self.Service = Flavors(self.client, True, self.conf)
+        self.Service = Flavors(self.client, True, self.conf, 64, 1)
 
     def test_create_tempest_flavors(self):
         self.Service.flavor_list = []
@@ -54,8 +55,8 @@ class TestFlavors(BaseConfigTempestTest):
         self.Service.create_tempest_flavors()
         self.assertEqual(self.conf.get('compute', 'flavor_ref'), "FakeID")
         self.assertEqual(self.conf.get('compute', 'flavor_ref_alt'), "FakeID")
-        calls = [mock.call('m1.nano', ram=64, no_rng=False),
-                 mock.call('m1.micro', ram=128, no_rng=False)]
+        calls = [mock.call('m1.nano', 64, 1, 1, no_rng=False),
+                 mock.call('m1.micro', 128, 1, 1, no_rng=False)]
         mock_function.assert_has_calls(calls, any_order=True)
 
     def check_call_of_discover_smallest_flavor(self):
@@ -65,7 +66,9 @@ class TestFlavors(BaseConfigTempestTest):
         func2mock = 'config_tempest.flavors.Flavors.discover_smallest_flavor'
         mock_function = mock.Mock()
         self.useFixture(MonkeyPatch(func2mock, mock_function))
-        self.Service.create_flavor('nano')
+        self.Service.create_flavor('nano', C.DEFAULT_FLAVOR_RAM,
+                                   C.DEFAULT_FLAVOR_VCPUS,
+                                   C.DEFAULT_FLAVOR_DISK)
         calls = [mock.call('nano')]
         mock_function.assert_has_calls(calls, any_order=True)
 
@@ -95,7 +98,9 @@ class TestFlavors(BaseConfigTempestTest):
         self.Service.allow_creation = False
         self.Service.flavor_list = []
         try:
-            self.Service.create_flavor('name')
+            self.Service.create_flavor('name', C.DEFAULT_FLAVOR_RAM,
+                                       C.DEFAULT_FLAVOR_VCPUS,
+                                       C.DEFAULT_FLAVOR_DISK)
         except Exception:
             return
         # it should have ended in the except block above
@@ -104,7 +109,9 @@ class TestFlavors(BaseConfigTempestTest):
         # not enough flavors found
         self.Service.flavor_list = [{'id': 'FAKE', 'name': 'fake_name'}]
         try:
-            self.Service.create_flavor('name')
+            self.Service.create_flavor('name', C.DEFAULT_FLAVOR_RAM,
+                                       C.DEFAULT_FLAVOR_VCPUS,
+                                       C.DEFAULT_FLAVOR_DISK)
         except Exception:
             return
         # it should have ended in the except block above
@@ -119,7 +126,10 @@ class TestFlavors(BaseConfigTempestTest):
         mock_function = mock.Mock(return_value={})
         self.useFixture(MonkeyPatch(client + '.set_flavor_extra_spec',
                                     mock_function))
-        resp = self.Service.create_flavor(flavor_name="MyID", no_rng=no_rng)
+        resp = self.Service.create_flavor("MyID", C.DEFAULT_FLAVOR_RAM,
+                                          C.DEFAULT_FLAVOR_VCPUS,
+                                          C.DEFAULT_FLAVOR_DISK,
+                                          no_rng=no_rng)
         self.assertEqual(resp, return_value['flavor']['id'])
         return mock_function
 
