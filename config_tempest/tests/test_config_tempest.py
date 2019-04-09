@@ -16,16 +16,12 @@
 # under the License.
 
 from fixtures import MonkeyPatch
-import logging
 import mock
 
 from config_tempest.clients import ClientManager
 from config_tempest import main as tool
 from config_tempest import tempest_conf
 from config_tempest.tests.base import BaseConfigTempestTest
-
-# disable logging when running unit tests
-logging.disable(logging.CRITICAL)
 
 
 class TestOsClientConfigSupport(BaseConfigTempestTest):

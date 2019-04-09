@@ -17,12 +17,16 @@
 
 from fixtures import MonkeyPatch
 import json
+import logging
 import mock
 from oslotest import base
 
 from config_tempest.clients import ClientManager
 from config_tempest.credentials import Credentials
 from config_tempest import tempest_conf
+
+# disable logging when running unit tests
+logging.disable(logging.CRITICAL)
 
 
 class BaseConfigTempestTest(base.BaseTestCase):

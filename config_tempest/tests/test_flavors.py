@@ -14,15 +14,11 @@
 # under the License.
 
 from fixtures import MonkeyPatch
-import logging
 import mock
 
 from config_tempest import constants as C
 from config_tempest.flavors import Flavors
 from config_tempest.tests.base import BaseConfigTempestTest
-
-# disable logging when running unit tests
-logging.disable(logging.CRITICAL)
 
 
 class TestFlavors(BaseConfigTempestTest):

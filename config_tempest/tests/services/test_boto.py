@@ -13,16 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import logging
 import mock
 
 from config_tempest.services.boto import Ec2Service
 from config_tempest.services.boto import S3Service
 from config_tempest.services.services import Services
 from config_tempest.tests.base import BaseConfigTempestTest
-
-# disable logging when running unit tests
-logging.disable(logging.CRITICAL)
 
 
 class TestEc2Service(BaseConfigTempestTest):
