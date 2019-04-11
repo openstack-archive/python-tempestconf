@@ -37,12 +37,15 @@ class TestVolumeService(BaseServiceTest):
         exp_resp = ['v2.0', 'v2.1']
         self._set_get_versions(self.Service, exp_resp, self.FAKE_VERSIONS)
 
+    @mock.patch('config_tempest.services.services.Services.is_service')
     @mock.patch('config_tempest.services.volume.C.LOG')
-    def test_check_volume_backup_service_no_volume(self, mock_logging):
-        volume.check_volume_backup_service(self.conf, None, False)
+    def test_post_configuration_no_volume(self, mock_logging, mock_is_service):
+        mock_is_service.return_value = False
+        self.Service.post_configuration(self.conf, mock_is_service)
         self.assertTrue(mock_logging.info.called)
 
-    def test_check_volume_backup_service_state_down(self):
+    @mock.patch('config_tempest.services.services.Services.is_service')
+    def test_post_configuration_state_down(self, mock_is_service):
         client_service_mock = self.FakeServiceClient(services={
             'services': [
                 {
@@ -50,16 +53,19 @@ class TestVolumeService(BaseServiceTest):
                 }
             ]
         })
-        volume.check_volume_backup_service(self.conf,
-                                           client_service_mock, True)
+        self.Service.client = client_service_mock
+        mock_is_service.return_value = True
+        self.Service.post_configuration(self.conf, mock_is_service)
         self.assertEqual(self.conf.get('volume-feature-enabled',
                          'backup'), 'False')
 
-    def test_check_volume_backup_service_no_service(self):
+    @mock.patch('config_tempest.services.services.Services.is_service')
+    def test_post_configuration_no_service(self, mock_is_service):
         client_service_mock = self.FakeServiceClient(services={
             'services': []
         })
-        volume.check_volume_backup_service(self.conf,
-                                           client_service_mock, True)
+        self.Service.client = client_service_mock
+        mock_is_service.return_value = True
+        self.Service.post_configuration(self.conf, mock_is_service)
         self.assertEqual(self.conf.get('volume-feature-enabled',
                          'backup'), 'False')

@@ -24,11 +24,16 @@ from config_tempest.tests.base import BaseServiceTest
 class TestCeilometerService(BaseServiceTest):
     def setUp(self):
         super(TestCeilometerService, self).setUp()
+        self.Service = ceilometer.MeteringService("ServiceName",
+                                                  self.FAKE_URL,
+                                                  self.FAKE_TOKEN,
+                                                  disable_ssl_validation=False)
         self.conf = TempestConf()
 
     def test_check_ceilometer_service(self):
         client_service_mock = self.FakeServiceClient(services={})
-        ceilometer.check_ceilometer_service(self.conf, client_service_mock)
+        self.Service.client = client_service_mock
+        self.Service.post_configuration(self.conf, client_service_mock)
 
         self._assert_conf_get_not_raises(configparser.NoSectionError,
                                          "service_available",
@@ -42,6 +47,8 @@ class TestCeilometerService(BaseServiceTest):
                 }
             ]
         })
-        ceilometer.check_ceilometer_service(self.conf, client_service_mock)
+        self.Service.client = client_service_mock
+        self.Service.post_configuration(self.conf, client_service_mock)
+        self.Service.post_configuration(self.conf, client_service_mock)
         self.assertEqual(self.conf.get('service_available', 'ceilometer'),
                          'True')

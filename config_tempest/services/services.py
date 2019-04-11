@@ -21,9 +21,7 @@ import pyclbr
 from six.moves import urllib
 
 from config_tempest import constants as C
-from config_tempest.services import ceilometer
 from config_tempest.services import horizon
-from config_tempest.services import volume
 from tempest.lib import exceptions
 
 import config_tempest.services
@@ -221,23 +219,11 @@ class Services(object):
             return False
         return True
 
-    def set_service_availability(self):
-        # check availability of volume backup service
-        volume.check_volume_backup_service(self._conf,
-                                           self._clients.volume_client,
-                                           self.is_service("volumev3"))
-
-        ceilometer.check_ceilometer_service(self._conf,
-                                            self._clients.service_client)
+    def post_configuration(self):
+        for s in self._services:
+            s.post_configuration(self._conf, self.is_service)
 
         horizon.configure_horizon(self._conf)
-
-        # TODO(arxcruz): This should be set in compute service, not here,
-        # however, it requires a refactor in the code, which is not our
-        # goal right now
-        self._conf.set('compute-feature-enabled',
-                       'attach_encrypted_volume',
-                       str(self.is_service('key-manager')))
 
     def set_supported_api_versions(self):
         # set supported API versions for services with more of them

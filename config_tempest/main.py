@@ -536,7 +536,7 @@ def config_tempest(**kwargs):
     network.create_tempest_networks(has_neutron, conf,
                                     kwargs.get('network_id'))
 
-    services.set_service_availability()
+    services.post_configuration()
     services.set_supported_api_versions()
     services.set_service_extensions()
 

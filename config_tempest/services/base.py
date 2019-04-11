@@ -147,6 +147,14 @@ class Service(object):
         """
         return self.name
 
+    def post_configuration(self, conf, is_service):
+        """Do post congiruation steps.
+
+        :param conf: config_tempest.tempest_conf.TempestConf
+        :param is_service: config_tempest.services.services.Services.is_service
+        """
+        return None
+
 
 class VersionedService(Service):
     def set_versions(self, top_level=True):

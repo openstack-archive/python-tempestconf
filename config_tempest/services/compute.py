@@ -61,6 +61,10 @@ class ComputeService(VersionedService):
             C.LOG.info('Can not retrieve hosts, user are not allowed')
             return 1
 
+    def post_configuration(self, conf, is_service):
+        conf.set('compute-feature-enabled', 'attach_encrypted_volume',
+                 str(is_service('key-manager')))
+
     @staticmethod
     def get_service_name():
         return ['nova']

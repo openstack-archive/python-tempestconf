@@ -59,24 +59,23 @@ class VolumeService(VersionedService):
     def get_service_name():
         return ['cinderv2', 'cinderv3']
 
+    def post_configuration(self, conf, is_service):
+        # Verify if the cinder backup service is enabled
+        if not is_service("volumev3"):
+            C.LOG.info("No volume service found, "
+                       "skipping backup service check")
+            return
+        try:
+            params = {'binary': 'cinder-backup'}
+            is_backup = self.client.list_services(**params)
+        except exceptions.Forbidden:
+            C.LOG.warning("User has no permissions to list services - "
+                          "cinder-backup service can't be discovered.")
+            return
 
-def check_volume_backup_service(conf, volume_client, is_volumev3):
-    """Verify if the cinder backup service is enabled"""
-    if not is_volumev3:
-        C.LOG.info("No volume service found, "
-                   "skipping backup service check")
-        return
-    try:
-        params = {'binary': 'cinder-backup'}
-        is_backup = volume_client.list_services(**params)
-    except exceptions.Forbidden:
-        C.LOG.warning("User has no permissions to list services - "
-                      "cinder-backup service can't be discovered.")
-        return
-
-    if is_backup:
-        # We only set backup to false if the service isn't running
-        # otherwise we keep the default value
-        service = is_backup['services']
-        if not service or service[0]['state'] == 'down':
-            conf.set('volume-feature-enabled', 'backup', 'False')
+        if is_backup:
+            # We only set backup to false if the service isn't running
+            # otherwise we keep the default value
+            service = is_backup['services']
+            if not service or service[0]['state'] == 'down':
+                conf.set('volume-feature-enabled', 'backup', 'False')

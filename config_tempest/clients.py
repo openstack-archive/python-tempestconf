@@ -241,6 +241,10 @@ class ClientManager(object):
             return self
         elif service_name == "compute":
             return self.hosts_client
+        elif "volume" in service_name:
+            return self.volume_client
+        elif service_name == "metering":
+            return self.service_client
         else:
             return None
 

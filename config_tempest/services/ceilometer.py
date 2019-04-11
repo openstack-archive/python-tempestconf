@@ -14,23 +14,29 @@
 # under the License.
 
 from config_tempest import constants as C
+from config_tempest.services.base import Service
 from tempest.lib import exceptions
 
 
-def check_ceilometer_service(conf, service_client):
-    """If a metering service is available, set it to conf
+class MeteringService(Service):
 
-    :type conf: TempestConf object
-    :type service_client: Tempest's identity.v3.services_client.ServicesClient
-    """
-    try:
-        params = {'type': 'metering'}
-        services = service_client.list_services(**params)
-    except exceptions.Forbidden:
-        C.LOG.warning("User has no permissions to list services - "
-                      "metering service can't be discovered.")
-        return
-    if services and len(services['services']):
-        metering = services['services'][0]
-        if 'ceilometer' in metering['name'] and metering['enabled']:
-            conf.set('service_available', 'ceilometer', 'True')
+    def post_configuration(self, conf, is_service):
+        try:
+            params = {'type': 'metering'}
+            services = self.client.list_services(**params)
+        except exceptions.Forbidden:
+            C.LOG.warning("User has no permissions to list services - "
+                          "metering service can't be discovered.")
+            return
+        if services and len(services['services']):
+            metering = services['services'][0]
+            if 'ceilometer' in metering['name'] and metering['enabled']:
+                conf.set('service_available', 'ceilometer', 'True')
+
+    @staticmethod
+    def get_service_name():
+        return ['ceilometer']
+
+    @staticmethod
+    def get_codename():
+        return 'ceilometer'
