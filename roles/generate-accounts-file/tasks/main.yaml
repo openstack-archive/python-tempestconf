@@ -77,4 +77,4 @@
     when: accounts_file_destination is defined
 
   vars:
-    tempest_src_relative_path: "{{ zuul.projects['git.openstack.org/openstack/tempest'].src_dir }}"
+    tempest_src_relative_path: "{{ zuul.projects['opendev.org/openstack/tempest'].src_dir }}"

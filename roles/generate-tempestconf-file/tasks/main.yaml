@@ -68,4 +68,4 @@
     when: output_path is defined
 
   vars:
-    tempestconf_src_relative_path: "{{ zuul.projects['git.openstack.org/openstack/python-tempestconf'].src_dir }}"
+    tempestconf_src_relative_path: "{{ zuul.projects['opendev.org/openstack/python-tempestconf'].src_dir }}"

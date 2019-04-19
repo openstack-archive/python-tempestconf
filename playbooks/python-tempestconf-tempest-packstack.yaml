@@ -3,12 +3,12 @@
     test_demo_user: "{{ test_demo is defined }}"
   tasks:
     # packstack-integration-tempest role is inherited from
-    # openstack/packstack project
+    # x/packstack project
     - name: Install packstack allinone
       include_role:
         name: packstack-integration-tempest
     # setup-tempest-user, setup-stack-user and setup-devstack-source-dirs
-    # are inherited from openstack-dev/devstack
+    # are inherited from openstack/devstack
     - name: Setup Stack user
       include_role:
         name: setup-stack-user

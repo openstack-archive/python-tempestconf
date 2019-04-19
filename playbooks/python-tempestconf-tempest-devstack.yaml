@@ -1,6 +1,6 @@
 - hosts: all
   roles:
-    # the role is inherited from openstack-dev/devstack project
+    # the role is inherited from openstack/devstack project
     - run-devstack
 
 - hosts: tempest
@@ -8,7 +8,7 @@
     # It's important that OS_AUTH_URL is in this format:
     # <protocol>://<host>/identity/v3
     # In some cases it can be only: <protocol>://<host>:5000
-    # https://github.com/openstack-dev/devstack/blob/2c9343e5db44fa7a41ca6924737331dd9088ef8f/openrc#L87-L89
+    # https://github.com/openstack/devstack/blob/2c9343e5db44fa7a41ca6924737331dd9088ef8f/openrc#L87-L89
     # (mkopec) That would end up with an HTTP MaxRetryError to <host>:5000,
     # therefor OS_AUTH_URL is defined manually
     set_auth_url: "OS_AUTH_URL=$SERVICE_PROTOCOL://$SERVICE_HOST/identity/v3"
