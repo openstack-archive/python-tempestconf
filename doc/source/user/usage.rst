@@ -243,7 +243,7 @@ Examples of usage with a named cloud
 ------------------------------------
 
 ``python-tempestconf`` supports
-`os-client-config <https://git.openstack.org/openstack/os-client-config>`__
+`os-client-config <https://opendev.org/openstack/os-client-config>`__
 so instead of sourcing an OpenStack RC file a user can use clouds.yml file.
 Location where this file should be stored and syntax which is used to define
 it can be found

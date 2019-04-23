@@ -77,7 +77,7 @@ used, `see here`_. The generated accounts file will look similarly to this one:
     # A minimal accounts.yaml file
     # Will likely not work with swift, since additional
     # roles are required. For more documentation see:
-    # https://git.openstack.org/cgit/openstack/tempest/tree/etc/accounts.yaml.sample
+    # https://opendev.org/openstack/tempest/src/branch/master/etc/accounts.yaml.sample
 
     - password: password
       project_name: admin
