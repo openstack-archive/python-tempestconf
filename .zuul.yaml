@@ -108,6 +108,7 @@
       Tempest job for python-tempestconf on a devstack environment as the demo user.
     run: playbooks/python-tempestconf-tempest-devstack.yaml
     vars:
+      aditional_tempestconf_params: "auth.tempest_roles member"
       user: demo
       cloud_user: devstack
       test_demo: true
@@ -163,6 +164,7 @@
       Tempest job for python-tempestconf on a devstack environment with python3 enabled
       for demo users.
     vars:
+      aditional_tempestconf_params: "auth.tempest_roles member"
       tempestconf_pip_virtualenv_python: "python3"
       devstack_localrc:
         USE_PYTHON3: true

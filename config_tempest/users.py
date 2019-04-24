@@ -71,6 +71,16 @@ class Users(object):
         user_ids = [u['id'] for u in users['users'] if u['name'] == username]
         user_id = user_ids[0]
         roles = self.roles_client.list_roles()
+        # check auth.tempest_roles
+        roles_names = [r['name'] for r in roles['roles']]
+        if self._conf.get('auth', 'tempest_roles') not in roles_names:
+            # try 'member', usually it's present in a system
+            if 'member' in roles_names:
+                self._conf.set('auth', 'tempest_roles', 'member')
+            else:
+                # the default role/role given by user or 'member' role are not
+                # present in the system, remove the option completely
+                self._conf.remove_option('auth', 'tempest_roles')
         role_ids = [r['id'] for r in roles['roles'] if r['name'] == role_name]
         if not role_ids:
             if role_required:

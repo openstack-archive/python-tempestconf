@@ -28,6 +28,7 @@ class TestUsers(BaseConfigTempestTest):
         # Story 2003388
         super(TestUsers, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
+        self.conf.set("auth", "tempest_roles", "_member_")
         projects_client = self._get_clients(self.conf).projects
         users_client = self._get_clients(self.conf).users
         roles_client = self._get_clients(self.conf).roles

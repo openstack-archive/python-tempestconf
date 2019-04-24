@@ -35,7 +35,6 @@
       vars:
         create_accounts_file: True
         source_credentials_commands: "export HOST_IP={{ ansible_default_ipv4.address }}; source {{ devstack_base_dir }}/devstack/openrc {{ user }} {{ user }}; {{ set_auth_url }}"
-        aditional_tempestconf_params: "auth.tempest_roles Member"
     - name: Generate tempest configuration file based on cloud credentials
       include_role:
         name: generate-tempestconf-file-cloud
