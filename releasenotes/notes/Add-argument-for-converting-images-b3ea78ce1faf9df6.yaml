@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    A new argument for converting images before uploading them to glance
+    is added. If the arugment is used, the images are converted to .raw format.
+    The feature will reduce boot time of the images in case ceph is the
+    backend.

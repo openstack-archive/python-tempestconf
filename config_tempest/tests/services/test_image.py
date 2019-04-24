@@ -38,6 +38,7 @@ class TestImageService(BaseServiceTest):
                                     disable_ssl_validation=False)
         self.Service.disk_format = ".format"
         self.Service.non_admin = False
+        self.Service.convert = False
         self.Service.client = self.FakeServiceClient()
 
         self.dir = "/img/"
@@ -46,11 +47,14 @@ class TestImageService(BaseServiceTest):
         self.conf.set("image", "image_path", "my_image.qcow2")
         self.conf.set("image", "http_image", "http_image.qcow2")
 
+    @mock.patch('config_tempest.services.image.ImageService._find_image')
     @mock.patch('config_tempest.services.image.ImageService'
                 '.find_or_upload_image')
     @mock.patch('os.makedirs')
-    def _test_create_tempest_images(self, mock_makedirs, mock_find_upload):
+    def _test_create_tempest_images(self, mock_makedirs, mock_find_upload,
+                                    mock_find_image):
         mock_find_upload.side_effect = ["id_c", "id_d"]
+        mock_find_image.return_value = {'name': 'my_image.qcow2'}
         self.Service.create_tempest_images(conf=self.conf)
         mock_makedirs.assert_called()
         self.assertEqual(self.conf.get('compute', 'image_ref'), 'id_c')
@@ -195,3 +199,15 @@ class TestImageService(BaseServiceTest):
         resp = self.Service._find_image(image_id="001",
                                         image_name="cirros")
         self.assertEqual(resp, expected_resp)
+
+    @mock.patch('subprocess.call')
+    @mock.patch('os.path.exists')
+    def test_convert_image_to_raw(self, mock_exists, mock_subcall):
+        path = '/path/of/my/image.qcow2'
+        raw_path = '/path/of/my/image.raw'
+        mock_exists.return_value = False
+        mock_subcall.return_value = 0
+        self.Service.convert_image_to_raw(path)
+        mock_subcall.assert_called_with(['qemu-img', 'convert',
+                                        path, raw_path])
+        self.assertEqual(self.Service.disk_format, 'raw')

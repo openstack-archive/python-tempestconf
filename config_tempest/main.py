@@ -312,6 +312,9 @@ def get_arg_parser():
     parser.add_argument('--flavor-min-disk', default=C.DEFAULT_FLAVOR_DISK,
                         type=int, help="""Specify minimum disk size for new
                         flavours, default is '%s'.""" % C.DEFAULT_FLAVOR_DISK)
+    parser.add_argument('--convert-to-raw', action='store_true', default=False,
+                        help="""Convert images to raw format before uploading
+                                to glance.""")
     parser.add_argument('--network-id',
                         help="""Specify which network with external connectivity
                                 should be used by the tests.""")
@@ -528,7 +531,8 @@ def config_tempest(**kwargs):
     image.set_image_preferences(kwargs.get('image_disk_format',
                                            C.DEFAULT_IMAGE_FORMAT),
                                 kwargs.get('non_admin', False),
-                                no_rng=kwargs.get('no_rng', False))
+                                no_rng=kwargs.get('no_rng', False),
+                                convert=kwargs.get('convert_to_raw', False))
     image.create_tempest_images(conf)
 
     has_neutron = services.is_service("network")
@@ -573,6 +577,7 @@ def main():
     config_tempest(
         append=args.append,
         cloud_creds=cloud_creds,
+        convert_to_raw=args.convert_to_raw,
         create=args.create,
         create_accounts_file=args.create_accounts_file,
         debug=args.debug,
