@@ -42,8 +42,8 @@ def write_accounts_file(path, username, password, project_name):
     comments = "# A minimal accounts.yaml file\n" \
                "# Will likely not work with swift, since additional\n" \
                "# roles are required. For more documentation see:\n" \
-               "# https://git.openstack.org/cgit/openstack/tempest/tree/etc/" \
-               "accounts.yaml.sample\n\n"
+               "# https://opendev.org/openstack/tempest/src/branch/master/" \
+               "etc/accounts.yaml.sample\n\n"
     accounts = []
     accounts.append({
         'username': username,

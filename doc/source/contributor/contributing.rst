@@ -47,7 +47,7 @@ Fixing bugs
    story, please, create one. Check `Reporting Bugs`_.
 
 2. Follow `Contributing Code`_ and submit a code review in
-   https://review.openstack.org/.
+   https://review.opendev.org/.
 
 
 Contributing Code
