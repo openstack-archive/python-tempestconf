@@ -28,7 +28,7 @@ class TestUsers(BaseConfigTempestTest):
         # Story 2003388
         super(TestUsers, self).setUp()
         self.conf = self._get_conf("v2.0", "v3")
-        self.conf.set("auth", "tempest_roles", "_member_")
+        self.conf.set("auth", "tempest_roles", "fake_role")
         projects_client = self._get_clients(self.conf).projects
         users_client = self._get_clients(self.conf).users
         roles_client = self._get_clients(self.conf).roles
@@ -300,3 +300,53 @@ class TestUsers(BaseConfigTempestTest):
         self.Service.give_role_to_user(
             username=self.username,
             role_name=self.role_name)
+
+    def _check_user_roles(self, user_roles, system_roles):
+        self.Service._conf.set('auth', 'tempest_roles', user_roles)
+        return self.Service.check_user_roles(system_roles)
+
+    @mock.patch('logging.Logger.debug')
+    def _check_user_role_does_not_exist(self, system_roles, LOG_mock,
+                                        default_role='member'):
+        roles = self._check_user_roles('doesNotExist', system_roles)
+        # check if it fell down to member
+        conf = self.Service._conf
+        self.assertEqual(conf.get('auth', 'tempest_roles'), default_role)
+        self.assertEqual(roles, [])
+        self.assertEqual(len(LOG_mock.mock_calls), 3)
+
+    def test_check_user_role_exists(self):
+        system_roles = {'roles': [{'name': 'role1'}, {'name': 'role2'}]}
+        roles = self._check_user_roles('role1', system_roles)
+        self.assertEqual(roles[0], 'role1')
+
+    @mock.patch('logging.Logger.debug')
+    def test_check_user_roles_one_exists(self, LOG_mock):
+        system_roles = {'roles': [{'name': 'role1'}, {'name': 'role2'}]}
+        roles = self._check_user_roles('role1, doesNotExist', system_roles)
+        self.assertEqual(roles[0], 'role1')
+        self.assertEqual(len(LOG_mock.mock_calls), 2)
+
+    @mock.patch('logging.Logger.debug')
+    def test_check_user_roles_two_exist(self, LOG_mock):
+        system_roles = {'roles': [{'name': 'role1'}, {'name': 'role2'}]}
+        roles = self._check_user_roles('role1,role2', system_roles)
+        self.assertEqual(roles[0], 'role1')
+        self.assertEqual(roles[1], 'role2')
+        self.assertEqual(len(LOG_mock.mock_calls), 1)
+
+    def test_check_user_role_does_not_exist_fall_to_member(self):
+        system_roles = {'roles': [{'name': 'role1'}, {'name': 'member'}]}
+        self._check_user_role_does_not_exist(system_roles)
+
+    def test_check_user_role_does_not_exist_fall_to_Member(self):
+        system_roles = {'roles': [{'name': 'role1'}, {'name': 'Member'}]}
+        self._check_user_role_does_not_exist(system_roles,
+                                             default_role='Member')
+
+    @mock.patch('logging.Logger.debug')
+    def test_check_user_role_does_not_exist_no_member(self, LOG_mock):
+        system_roles = {'roles': [{'name': 'role1'}]}
+        roles = self._check_user_roles('doesNotExist', system_roles)
+        self.assertEqual(roles, [])
+        self.assertEqual(len(LOG_mock.mock_calls), 4)
