@@ -57,29 +57,17 @@ class TestUsers(BaseConfigTempestTest):
     @mock.patch('config_tempest.users.Users.give_role_to_user')
     def _test_create_tempest_user(self,
                                   mock_give_role_to_user,
-                                  mock_create_user_with_project,
-                                  orchestration=False):
+                                  mock_create_user_with_project):
         alt_username = "my_user"
         alt_password = "my_pass"
         alt_project_name = "my_project"
         self.conf.set("identity", "alt_username", alt_username)
         self.conf.set("identity", "alt_password", alt_password)
         self.conf.set("identity", "alt_project_name", alt_project_name)
-        self.Service.create_tempest_users(orchestration)
-        if orchestration:
-            self.assertEqual(mock_give_role_to_user.mock_calls, [
-                mock.call(self.conf.get('auth',
-                                        'admin_username'),
-                          role_name='admin'),
-                mock.call(self.conf.get('identity',
-                                        'username'),
-                          role_name='heat_stack_owner',
-                          role_required=False),
-            ])
-        else:
-            mock_give_role_to_user.assert_called_with(
-                self.conf.get('auth', 'admin_username'),
-                role_name='admin')
+        self.Service.create_tempest_users()
+        mock_give_role_to_user.assert_called_with(
+            self.conf.get('auth', 'admin_username'),
+            role_name='admin')
         self.assertEqual(mock_create_user_with_project.mock_calls, [
             mock.call(self.conf.get('identity', 'username'),
                       self.conf.get('identity', 'password'),
@@ -90,10 +78,7 @@ class TestUsers(BaseConfigTempestTest):
         ])
 
     def test_create_tempest_user(self):
-        self._test_create_tempest_user(orchestration=False)
-
-    def test_create_tempest_user_with_orchestration(self):
-        self._test_create_tempest_user(orchestration=True)
+        self._test_create_tempest_user()
 
     @mock.patch('config_tempest.clients.ProjectsClient'
                 '.get_project_by_name')

@@ -31,10 +31,9 @@ class Users(object):
         self.users_client = users_client
         self._conf = conf
 
-    def create_tempest_users(self, orchestration=False):
+    def create_tempest_users(self):
         """Create users necessary for Tempest if they don't exist already.
 
-        :type orchestration: boolean
         """
         sec = 'identity'
         self.create_user_with_project(self._conf.get(sec, 'username'),
@@ -48,14 +47,6 @@ class Users(object):
         username = self._conf.get_defaulted('auth', 'admin_username')
 
         self.give_role_to_user(username, role_name='admin')
-
-        # Prior to juno, and with earlier juno defaults, users needed to have
-        # the heat_stack_owner role to use heat stack apis. We assign that role
-        # to the user if the role is present.
-        if orchestration:
-            self.give_role_to_user(self._conf.get('identity', 'username'),
-                                   role_name='heat_stack_owner',
-                                   role_required=False)
 
     def give_role_to_user(self, username, role_name,
                           role_required=True):

@@ -520,7 +520,7 @@ def config_tempest(**kwargs):
 
     if kwargs.get('create', False) and kwargs.get('test_accounts') is None:
         users = Users(clients.projects, clients.roles, clients.users, conf)
-        users.create_tempest_users(services.is_service('orchestration'))
+        users.create_tempest_users()
     flavors = Flavors(clients.flavors, kwargs.get('create', False), conf,
                       kwargs.get('flavor_min_mem', C.DEFAULT_FLAVOR_RAM),
                       kwargs.get('flavor_min_disk', C.DEFAULT_FLAVOR_DISK),
