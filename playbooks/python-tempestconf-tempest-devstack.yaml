@@ -42,3 +42,19 @@
     - name: Run Tempest Tests
       include_role:
         name: run-tempest
+      when: plugins_paths is not defined
+    - block:
+      - name: Install tempest plugins
+        include_role:
+          name: install-plugins
+      - name: Setup Tempest Run Directory
+        include_role:
+          name: setup-tempest-run-dir
+      - name: Run Tempest Tests including plugins
+        include_role:
+          name: run-tempest
+        vars:
+          tox_envlist: "all"
+          tempest_test_regex: "{{ test_regex|join('|') }}"
+          tempest_black_regex: "{{ black_regex|join('|') }}"
+      when: plugins_paths is defined
