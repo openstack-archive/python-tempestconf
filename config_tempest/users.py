@@ -62,16 +62,7 @@ class Users(object):
         user_ids = [u['id'] for u in users['users'] if u['name'] == username]
         user_id = user_ids[0]
         roles = self.roles_client.list_roles()
-        # check auth.tempest_roles
-        roles_names = [r['name'] for r in roles['roles']]
-        if self._conf.get('auth', 'tempest_roles') not in roles_names:
-            # try 'member', usually it's present in a system
-            if 'member' in roles_names:
-                self._conf.set('auth', 'tempest_roles', 'member')
-            else:
-                # the default role/role given by user or 'member' role are not
-                # present in the system, remove the option completely
-                self._conf.remove_option('auth', 'tempest_roles')
+        self.check_user_roles(roles)
         role_ids = [r['id'] for r in roles['roles'] if r['name'] == role_name]
         if not role_ids:
             if role_required:
@@ -87,6 +78,35 @@ class Users(object):
         except exceptions.Conflict:
             LOG.debug("(no change) User '%s' already has the '%s' role in"
                       " project '%s'", username, role_name, project_name)
+
+    def check_user_roles(self, roles):
+        """Check if roles provided by user (or the default one) exist.
+
+        :param roles: value returned by roles_client.list_roles
+        :type roles: dict
+        :return: List of the existing roles given by user (or by defaults)
+        :rtype: list
+        """
+        roles_names = [r['name'] for r in roles['roles']]
+        user_roles = self._conf.get('auth', 'tempest_roles').split(',')
+        available_roles = []
+        for r in user_roles:
+            if r in roles_names:
+                available_roles.append(r)
+            else:
+                LOG.debug("Provided %s role is not present in the system.", r)
+
+        if len(available_roles) == 0:
+            # try 'member' or 'Member', they might present in a system
+            if 'member' in roles_names:
+                self._conf.set('auth', 'tempest_roles', 'member')
+            elif 'Member' in roles_names:
+                self._conf.set('auth', 'tempest_roles', 'Member')
+            else:
+                LOG.debug("Setting auth.tempest_roles to an empty list "
+                          "because none of the provided roles exists.")
+                self._conf.set('auth', 'tempest_roles', "")
+        return available_roles
 
     def create_user_with_project(self, username, password, project_name):
         """Create a user and a project if it doesn't exist.
