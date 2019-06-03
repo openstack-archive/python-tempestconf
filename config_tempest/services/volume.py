@@ -61,9 +61,10 @@ class VolumeService(VersionedService):
 
     def post_configuration(self, conf, is_service):
         # Verify if the cinder backup service is enabled
-        if not is_service(**{"type": "volumev3"}):
+        if not is_service(name=self.name):
             C.LOG.info("No volume service found, "
                        "skipping backup service check")
+            conf.set('volume-feature-enabled', 'backup', 'False')
             return
         try:
             params = {'binary': 'cinder-backup'}
@@ -71,11 +72,17 @@ class VolumeService(VersionedService):
         except exceptions.Forbidden:
             C.LOG.warning("User has no permissions to list services - "
                           "cinder-backup service can't be discovered.")
+            conf.set('volume-feature-enabled', 'backup', 'False')
             return
 
         if is_backup:
-            # We only set backup to false if the service isn't running
-            # otherwise we keep the default value
             service = is_backup['services']
             if not service or service[0]['state'] == 'down':
                 conf.set('volume-feature-enabled', 'backup', 'False')
+            else:
+                # post_configuration method is called with every volume (v2,
+                # v3) service, therefore set the value with priority so that it
+                # can't be overrided by this method called from other instance
+                # of volume service
+                conf.set('volume-feature-enabled', 'backup', 'True',
+                         priority=True)

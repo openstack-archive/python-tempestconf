@@ -44,6 +44,8 @@ class TestVolumeService(BaseServiceTest):
         mock_is_service.return_value = False
         self.Service.post_configuration(self.conf, mock_is_service)
         self.assertTrue(mock_logging.info.called)
+        self.assertEqual(self.conf.get('volume-feature-enabled', 'backup'),
+                         'False')
 
     @mock.patch('config_tempest.services.services.Services.is_service')
     def test_post_configuration_state_down(self, mock_is_service):
