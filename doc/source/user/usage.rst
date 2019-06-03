@@ -84,6 +84,12 @@ some override values.
         identity.username MyOverrideUsername \
         section.key MyValue
 
+.. note::
+
+    Please, notice that override values are written together (only then they're
+    parsed correctly) and after all other arguments (that's due to better
+    readability).
+
 The generated ``tempest.conf`` will look like:
 
 .. code-block:: shell-session
