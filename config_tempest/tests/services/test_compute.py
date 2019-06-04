@@ -24,6 +24,7 @@ class TestComputeService(BaseServiceTest):
     def setUp(self):
         super(TestComputeService, self).setUp()
         self.Service = ComputeService("ServiceName",
+                                      "ServiceType",
                                       self.FAKE_URL,
                                       self.FAKE_TOKEN,
                                       disable_ssl_validation=False)

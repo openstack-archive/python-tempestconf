@@ -25,6 +25,7 @@ class TestObjectStorageService(BaseServiceTest):
     def setUp(self):
         super(TestObjectStorageService, self).setUp()
         self.Service = ObjectStorageService("ServiceName",
+                                            "ServiceType",
                                             self.FAKE_URL,
                                             self.FAKE_TOKEN,
                                             disable_ssl_validation=False)

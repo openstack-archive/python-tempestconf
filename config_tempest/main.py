@@ -535,7 +535,7 @@ def config_tempest(**kwargs):
                                 convert=kwargs.get('convert_to_raw', False))
     image.create_tempest_images(conf)
 
-    has_neutron = services.is_service("network")
+    has_neutron = services.is_service(**{"type": "network"})
     network = services.get_service("network")
     network.create_tempest_networks(has_neutron, conf,
                                     kwargs.get('network_id'))

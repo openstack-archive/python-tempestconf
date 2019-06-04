@@ -26,9 +26,9 @@ from config_tempest.services.base import VersionedService
 
 class ImageService(VersionedService):
 
-    def __init__(self, name, service_url, token, disable_ssl_validation,
-                 client=None):
-        super(ImageService, self).__init__(name, service_url, token,
+    def __init__(self, name, s_type, service_url, token,
+                 disable_ssl_validation, client=None):
+        super(ImageService, self).__init__(name, s_type, service_url, token,
                                            disable_ssl_validation,
                                            client)
 

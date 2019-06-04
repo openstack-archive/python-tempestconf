@@ -63,7 +63,7 @@ class ComputeService(VersionedService):
 
     def post_configuration(self, conf, is_service):
         conf.set('compute-feature-enabled', 'attach_encrypted_volume',
-                 str(is_service('key-manager')))
+                 str(is_service(**{'type': 'key-manager'})))
 
     @staticmethod
     def get_service_name():

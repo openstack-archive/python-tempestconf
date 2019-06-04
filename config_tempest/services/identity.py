@@ -23,10 +23,10 @@ from config_tempest.services.base import VersionedService
 
 
 class IdentityService(VersionedService):
-    def __init__(self, name, service_url, token, disable_ssl_validation,
-                 client=None):
+    def __init__(self, name, s_type, service_url, token,
+                 disable_ssl_validation, client=None):
         super(IdentityService, self).__init__(
-            name, service_url, token, disable_ssl_validation, client)
+            name, s_type, service_url, token, disable_ssl_validation, client)
         self.extensions_v3 = []
         version = ''
         if 'v2' in self.service_url:

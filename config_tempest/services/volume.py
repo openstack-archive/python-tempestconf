@@ -52,7 +52,7 @@ class VolumeService(VersionedService):
     def get_feature_name(self):
         return 'volume'
 
-    def get_unversioned_service_name(self):
+    def get_unversioned_service_type(self):
         return 'volume'
 
     @staticmethod
@@ -61,7 +61,7 @@ class VolumeService(VersionedService):
 
     def post_configuration(self, conf, is_service):
         # Verify if the cinder backup service is enabled
-        if not is_service("volumev3"):
+        if not is_service(**{"type": "volumev3"}):
             C.LOG.info("No volume service found, "
                        "skipping backup service check")
             return

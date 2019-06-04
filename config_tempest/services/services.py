@@ -96,7 +96,7 @@ class Services(object):
                             endpoint_data), s_type)
 
                     # Create the service class and add it to services list
-                    service = s_class(s_type, url, token,
+                    service = s_class(s_name, s_type, url, token,
                                       self._ssl_validation,
                                       self._clients.get_service_client(
                                           s_type))
@@ -117,7 +117,7 @@ class Services(object):
                     # service is not available
                     # quickly instantiate a class in order to set
                     # availability of the service
-                    s = s_class(None, None, None, None)
+                    s = s_class(None, None, None, None, None)
                     s.set_availability(self._conf, False)
 
     def merge_exts_multiversion_service(self, service):
@@ -129,11 +129,11 @@ class Services(object):
         :param service: Service object
         """
         versions = service.get_supported_versions()
-        service_name = service.get_unversioned_service_name()
+        service_type = service.get_unversioned_service_type()
         services_lst = []
         for v in versions:
-            if self.is_service(service_name + v):
-                services_lst.append(self.get_service(service_name + v))
+            if self.is_service(**{'type': service_type + v}):
+                services_lst.append(self.get_service(service_type + v))
         services_lst.append(service)
         service.extensions = self.merge_extensions(services_lst)
 
@@ -196,28 +196,34 @@ class Services(object):
         replace_text = port + "/identity/" + self._creds.identity_version
         return url.replace("/identity", replace_text)
 
-    def get_service(self, name):
+    def get_service(self, s_type):
         """Finds and returns a service object
 
-        :param name: Codename of a service
-        :type name: string
+        :param s_type: Type of a service
+        :type s_type: string
         :return: Service object
         """
         for service in self._services:
-            if service.name == name:
+            if service.s_type == s_type:
                 return service
         return None
 
-    def is_service(self, name):
+    def is_service(self, **kwargs):
         """Returns true if a service is available, false otherwise
 
-        :param name: Codename of a service
-        :type name: string
+        :param kwargs: Search parameters (accepts service name or type)
         :rtype: boolean
         """
-        if name not in self.available_services.values():
-            return False
-        return True
+        if kwargs.get('name'):
+            if kwargs.get('name') not in self.available_services.keys():
+                return False
+            return True
+
+        if kwargs.get('type'):
+            if kwargs.get('type') not in self.available_services.values():
+                return False
+            return True
+        return False
 
     def post_configuration(self):
         for s in self._services:

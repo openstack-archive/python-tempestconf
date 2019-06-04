@@ -42,6 +42,7 @@ class TestNetworkService(BaseServiceTest):
         super(TestNetworkService, self).setUp()
         self.conf = TempestConf()
         self.Service = NetworkService("ServiceName",
+                                      "ServiceType",
                                       self.FAKE_URL,
                                       self.FAKE_TOKEN,
                                       disable_ssl_validation=False)

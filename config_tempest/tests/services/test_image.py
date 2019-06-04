@@ -33,6 +33,7 @@ class TestImageService(BaseServiceTest):
     def setUp(self):
         super(TestImageService, self).setUp()
         self.Service = ImageService("ServiceName",
+                                    "ServiceType",
                                     self.FAKE_URL,
                                     self.FAKE_TOKEN,
                                     disable_ssl_validation=False)

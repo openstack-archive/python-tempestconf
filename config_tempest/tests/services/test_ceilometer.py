@@ -25,6 +25,7 @@ class TestCeilometerService(BaseServiceTest):
     def setUp(self):
         super(TestCeilometerService, self).setUp()
         self.Service = ceilometer.MeteringService("ServiceName",
+                                                  "ServiceType",
                                                   self.FAKE_URL,
                                                   self.FAKE_TOKEN,
                                                   disable_ssl_validation=False)

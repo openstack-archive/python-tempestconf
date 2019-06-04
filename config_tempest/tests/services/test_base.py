@@ -25,6 +25,7 @@ class TestService(BaseServiceTest):
     def setUp(self):
         super(TestService, self).setUp()
         self.Service = Service("ServiceName",
+                               "ServiceType",
                                self.FAKE_URL,
                                self.FAKE_TOKEN,
                                disable_ssl_validation=False)
@@ -75,6 +76,7 @@ class TestVersionedService(BaseServiceTest):
     def setUp(self):
         super(TestVersionedService, self).setUp()
         self.Service = VersionedService("ServiceName",
+                                        "ServiceType",
                                         self.FAKE_URL,
                                         self.FAKE_TOKEN,
                                         disable_ssl_validation=False)

@@ -25,6 +25,7 @@ class TestIdentityService(BaseServiceTest):
     def setUp(self):
         super(TestIdentityService, self).setUp()
         self.Service = IdentityService("ServiceName",
+                                       "ServiceType",
                                        self.FAKE_URL + 'v2.0/',
                                        self.FAKE_TOKEN,
                                        disable_ssl_validation=False)

@@ -28,9 +28,10 @@ class ServiceError(Exception):
 
 
 class Service(object):
-    def __init__(self, name, service_url, token, disable_ssl_validation,
-                 client=None):
+    def __init__(self, name, s_type, service_url, token,
+                 disable_ssl_validation, client=None):
         self.name = name
+        self.s_type = s_type
         self.service_url = service_url
         self.headers = {'Accept': 'application/json', 'X-Auth-Token': token}
         self.disable_ssl_validation = disable_ssl_validation
@@ -58,11 +59,11 @@ class Service(object):
             r = http.request('GET', url, headers=self.headers)
         except Exception as e:
             LOG.error("Request on service '%s' with url '%s' failed",
-                      (self.name, url))
+                      (self.s_type, url))
             raise e
         if r.status >= 400:
             raise ServiceError("Request on service '%s' with url '%s' failed"
-                               " with code %d" % (self.name, url, r.status))
+                               " with code %d" % (self.s_type, url, r.status))
         return r.data
 
     def set_extensions(self):
@@ -131,21 +132,21 @@ class Service(object):
         diverges from the service name. The main example is object-store
         service where the <service>-feature-enabled is object-storage.
         """
-        return self.name
+        return self.s_type
 
     def get_service_extension_key(self):
         """Return the extension key for a particular service"""
         return None
 
-    def get_unversioned_service_name(self):
-        """Return name of service without versions.
+    def get_unversioned_service_type(self):
+        """Return type of service without versions.
 
         Some services are versioned like volumev2 and volumev3, we try to
         discover these services checking the supported versions, so we need
-        to know the unversioned service name for this.
-        The default value is the name of the service.
+        to know the unversioned service type for this.
+        The default value is the type of the service.
         """
-        return self.name
+        return self.s_type
 
     def post_configuration(self, conf, is_service):
         """Do post congiruation steps.

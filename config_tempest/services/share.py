@@ -24,7 +24,7 @@ class ShareService(VersionedService):
             conf.set('share', 'min_api_microversion', m_vs['min_microversion'])
             conf.set('share', 'max_api_microversion', m_vs['max_microversion'])
 
-    def get_unversioned_service_name(self):
+    def get_unversioned_service_type(self):
         return 'share'
 
     @staticmethod

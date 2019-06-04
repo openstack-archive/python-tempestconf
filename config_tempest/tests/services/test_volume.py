@@ -24,6 +24,7 @@ class TestVolumeService(BaseServiceTest):
     def setUp(self):
         super(TestVolumeService, self).setUp()
         self.Service = volume.VolumeService("ServiceName",
+                                            "ServiceType",
                                             self.FAKE_URL,
                                             self.FAKE_TOKEN,
                                             disable_ssl_validation=False)

@@ -35,7 +35,7 @@ class TestEc2Service(BaseConfigTempestTest):
         self.Services = Services(self.clients, conf, self._get_creds(conf))
 
     def test_set_default_tempest_options(self):
-        service = Ec2Service("ec2", self.FAKE_URL, self.clients, False)
+        service = Ec2Service("ec2", "ec2", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
         ec2_url = self.Services._conf.get("boto", "ec2_url")
         self.assertEqual(ec2_url, self.FAKE_URL)
@@ -55,7 +55,7 @@ class TestS3Service(BaseConfigTempestTest):
         self.Services = Services(self.clients, conf, self._get_creds(conf))
 
     def test_set_default_tempest_options(self):
-        service = S3Service("s3", self.FAKE_URL, self.clients, False)
+        service = S3Service("s3", "s3", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
         ec2_url = self.Services._conf.get("boto", "s3_url")
         self.assertEqual(ec2_url, self.FAKE_URL)

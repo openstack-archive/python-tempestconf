@@ -40,7 +40,7 @@ class TestServices(BaseConfigTempestTest):
     @mock.patch('config_tempest.services.services.Services.'
                 'get_available_services')
     def _create_services_instance(self, mock_avail, mock_discover, v2=False):
-        mock_avail.return_value = {'my_service': 'my_service'}
+        mock_avail.return_value = {'my_service': 'my_type'}
         conf = self._get_conf('v2', 'v3')
         creds = self._get_creds(conf, v2=v2)
         clients = mock.Mock()
@@ -157,9 +157,9 @@ class TestServices(BaseConfigTempestTest):
     def test_get_service(self):
         services = self._create_services_instance()
         exp_resp = mock.Mock()
-        exp_resp.name = 'my_service'
+        exp_resp.s_type = 'my_service_type'
         services._services = [exp_resp]
-        resp = services.get_service('my_service')
+        resp = services.get_service('my_service_type')
         self.assertEqual(resp, exp_resp)
         resp = services.get_service('my')
         self.assertEqual(resp, None)
@@ -168,8 +168,13 @@ class TestServices(BaseConfigTempestTest):
         services = self._create_services_instance()
         service = mock.Mock()
         service.name = 'my_service'
+        service.s_type = 'my_type'
         services._services = [service]
-        resp = services.is_service('my_service')
+        resp = services.is_service(name='my_service')
         self.assertEqual(resp, True)
-        resp = services.is_service('other_service')
+        resp = services.is_service(name='other_service')
+        self.assertEqual(resp, False)
+        resp = services.is_service(**{'type': 'my_type'})
+        self.assertEqual(resp, True)
+        resp = services.is_service(**{'type': 'other_type'})
         self.assertEqual(resp, False)
