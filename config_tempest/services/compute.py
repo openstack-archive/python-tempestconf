@@ -22,11 +22,6 @@ from config_tempest.services.base import VersionedService
 
 
 class ComputeService(VersionedService):
-    def set_extensions(self):
-        body = self.do_get(self.service_url + '/extensions')
-        body = json.loads(body)
-        self.extensions = list(map(lambda x: x['alias'], body['extensions']))
-
     def set_versions(self):
         url, top_level = self.no_port_cut_url()
         body = self.do_get(url, top_level=top_level)
@@ -46,9 +41,6 @@ class ComputeService(VersionedService):
         m_versions = self.filter_api_microversions()
         conf.set('compute', 'min_microversion', m_versions['min_microversion'])
         conf.set('compute', 'max_microversion', m_versions['max_microversion'])
-
-    def get_service_extension_key(self):
-        return 'api_extensions'
 
     def _get_number_of_hosts(self):
         # Right now the client returned is hosts, in the future

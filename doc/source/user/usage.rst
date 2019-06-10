@@ -128,12 +128,12 @@ if they were discovered or not.
 
 In the following case **all** api_extensions will be removed and
 ``tempest.conf`` will **not contain** the api_extensions key under
-compute-feature-enabled section.
+volume-feature-enabled section.
 
 .. code-block:: shell-session
 
     $ discover-tempest-config \
-        --remove compute-feature-enabled.api_extensions
+        --remove volume-feature-enabled.api_extensions
 
 In the following case **only** NMN api extension will be removed from the
 api_extensions list.
@@ -141,7 +141,7 @@ api_extensions list.
 .. code-block:: shell-session
 
     $ discover-tempest-config \
-        --remove compute-feature-enabled.api_extensions=NMN
+        --remove volume-feature-enabled.api_extensions=NMN
 
 In the following case only NMN **and** OS-EXT-IPS api extensions will be
 removed.
@@ -149,7 +149,7 @@ removed.
 .. code-block:: shell-session
 
     $ discover-tempest-config \
-        --remove compute-feature-enabled.api_extensions=NMN,OS-EXT-IPS
+        --remove volume-feature-enabled.api_extensions=NMN,OS-EXT-IPS
 
 .. note::
 
@@ -171,13 +171,13 @@ api_extensions, you can make ``python-tempestconf`` append any extensions
 by using ``--append`` argument.
 
 The following will make ``python-tempestconf`` append my_ext extension to
-compute-feature-enabled.api_extensions and tag and tag-ext extensions to
+volume-feature-enabled.api_extensions and tag and tag-ext extensions to
 network-feature-enabled.api_extensions.
 
 .. code-block:: shell-session
 
     $ discover-tempest-config \
-        --append compute-feature-enabled.api_extensions=my_ext \
+        --append volume-feature-enabled.api_extensions=my_ext \
         --append network-feature-enabled.api_extensions=tag,tag-ext
 
 .. note::

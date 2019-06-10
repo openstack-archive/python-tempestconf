@@ -80,19 +80,19 @@ Generating a sample profile.yaml file
     verbose: false
     append: {}
       #identity.username: username
-      #compute-feature-enabled.api_extensions:
+      #network-feature-enabled.api_extensions:
       #  - dvr
       #  - extension
     overrides: {}
       #identity.username: username
       #identity.password:
       #  - my_password
-      #compute-feature-enabled.api_extensions:
+      #network-feature-enabled.api_extensions:
       #  - dvr
       #  - extension
     remove: {}
       #identity.username: username
-      #compute-feature-enabled.api_extensions:
+      #network-feature-enabled.api_extensions:
       #  - dvr
       #  - extension
 
@@ -117,11 +117,11 @@ what suits you better, either strings or lists:
       identity.username: my_override
       identity.password: my_password
       network-feature-enabled.api_extensions: all
-      compute-feature-enabled.api_extensions: dvr,mine
+      volume-feature-enabled.api_extensions: dvr,mine
     remove:
       auth.identity: username
       network-feature-enabled.api_extensions: ''
-      compute-feature-enabled.api_extensions: dvr,mine
+      volume-feature-enabled.api_extensions: dvr,mine
 
 
 .. code-block:: yaml
@@ -136,14 +136,14 @@ what suits you better, either strings or lists:
         - my_password
       network-feature-enabled.api_extensions:
         - all
-      compute-feature-enabled.api_extensions:
+      volume-feature-enabled.api_extensions:
         - dvr
         - mine
     remove:
       auth.identity: username
       network-feature-enabled.api_extensions:
         - ''
-      compute-feature-enabled.api_extensions:
+      volume-feature-enabled.api_extensions:
         - dvr
         - mine
 

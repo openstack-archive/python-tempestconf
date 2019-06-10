@@ -30,7 +30,7 @@ class TestComputeService(BaseServiceTest):
                                       disable_ssl_validation=False)
 
     def test_set_get_extensions(self):
-        exp_resp = ['NMN', 'OS-DCF']
+        exp_resp = []
         self._set_get_extensions(self.Service, exp_resp, self.FAKE_EXTENSIONS)
 
     def test_set_get_versions(self):

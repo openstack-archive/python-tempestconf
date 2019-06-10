@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    The *api_extensions* config option in the *compute-feature-enabled* group has
+    been deprecated since Tempest 14.0. Therefore the option will be no longer
+    set by python-tempestconf.
