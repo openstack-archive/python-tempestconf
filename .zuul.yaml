@@ -120,7 +120,7 @@
       user: admin
       cloud_user: devstack-admin
       plugins_paths:
-        - "~/{{ zuul.projects['opendev.org/openstack/heat-tempest-plugin'].src_dir }}"
+        - "{{ ansible_user_dir }}/{{ zuul.projects['opendev.org/openstack/heat-tempest-plugin'].src_dir }}"
       tempest_concurrency: 2
 
 - job:

@@ -55,6 +55,7 @@
   # tempest role which will run tests has tempest in {{ devstack_base_dir }}
   # location, therefore the file is copied there
   - name: Copy tempest.conf to the tempest directory
+    become: yes
     shell: |
         set -x
         cp {{ tempestconf_src_relative_path }}/etc/tempest.conf {{ devstack_base_dir }}/tempest/etc/tempest.conf

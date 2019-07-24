@@ -1,9 +1,11 @@
 - name: Prepare tempest venv
+  become: yes
   command: tox -r --notest -efull
   args:
     chdir: "{{devstack_base_dir}}/tempest"
 
 - name: Install plugins
+  become: yes
   command: tox -evenv-tempest -- pip install {{ item }}
   with_items: "{{ plugins_paths }}"
   args:
@@ -11,6 +13,7 @@
   when: plugins_paths is defined
 
 - name: List installed tempest plugins
+  become: yes
   command: tox -evenv-tempest -- tempest list-plugins
   args:
     chdir: "{{devstack_base_dir}}/tempest"
