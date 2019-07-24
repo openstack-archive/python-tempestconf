@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    When downloading of new file fails due to short and temporary
+    network issue then python-tempestconf does not end immediately
+    with an error but rather waits a few seconds and retries to
+    download the file again.

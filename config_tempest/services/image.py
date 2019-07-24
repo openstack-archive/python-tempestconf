@@ -13,9 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from functools import wraps
 import os
 import shutil
 import subprocess
+import time
 
 from six.moves import urllib
 from tempest.lib import exceptions
@@ -222,6 +224,55 @@ class ImageService(VersionedService):
         with open(path, 'wb') as out:
             out.write(body.data)
 
+    def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=None):
+        """Retry calling the decorated function using exponential backoff
+
+        http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
+        original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+
+        Licensed under the BSD 3-Clause "New" or "Revised" License
+        (https://github.com/saltycrane/retry-decorator/blob/master/LICENSE)
+
+        :param ExceptionToCheck: the exception to check
+        :type ExceptionToCheck: Exception or tuple
+        :param tries: number of times before giving up
+        :type type: int
+        :param delay: initial delay between retries in seconds
+        :type type: int
+        :param backoff: backoff multiplier e.g. value of 2 will double the
+            delay each retry
+        :type backoff: int
+        :param logger: logger to use. If None, print
+        :type logger: logging. Logger instance
+        """
+        def deco_retry(f):
+            @wraps(f)
+            def f_retry(*args, **kwargs):
+                mtries, mdelay = tries, delay
+                while mtries > 1:
+                    try:
+                        return f(*args, **kwargs)
+                    except ExceptionToCheck as e:
+                        msg = "%s, Retrying in %d seconds." % (str(e), mdelay)
+                        if logger:
+                            logger.warning(msg)
+                        else:
+                            print(msg)
+                        time.sleep(mdelay)
+                        mtries -= 1
+                        mdelay *= backoff
+                return f(*args, **kwargs)
+            return f_retry
+        return deco_retry
+
+    @retry(urllib.error.URLError, logger=C.LOG)
+    def retry_urlopen(self, url):
+        """Opens url using urlopen. If it fails, it will try again.
+
+        :type url: string
+        """
+        return urllib.request.urlopen(url)
+
     def _download_file(self, url, destination):
         """Downloads a file specified by `url` to `destination`.
 
@@ -232,7 +283,7 @@ class ImageService(VersionedService):
             C.LOG.info("Image '%s' already fetched to '%s'.", url, destination)
             return
         C.LOG.info("Downloading '%s' and saving as '%s'", url, destination)
-        f = urllib.request.urlopen(url)
+        f = self.retry_urlopen(url)
         data = f.read()
         with open(destination, "wb") as dest:
             dest.write(data)
