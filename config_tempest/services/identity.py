@@ -122,7 +122,7 @@ class IdentityService(VersionedService):
             major, minor = version.split('.')[:2]
             # Enable the domain specific roles feature flag.
             # For more information see:
-            # https://developer.openstack.org/api-ref/identity/v3
+            # https://docs.openstack.org/api-ref/identity/v3
             if major == 'v3' and int(minor) >= 6:
                 conf.set('identity-feature-enabled',
                          'forbid_global_implied_dsr',
