@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from six.moves import configparser
+
+from config_tempest.constants import LOG
 from config_tempest.services.base import Service
 
 
@@ -27,35 +30,39 @@ class OrchestrationService(Service):
         return 'heat'
 
     def set_default_tempest_options(self, conf):
-        uri = conf.get('identity', 'uri')
-        if 'v3' not in uri:
-            return
-        sec = 'heat_plugin'
-        # Tempest doesn't differentiate between admin or demo creds anymore
-        username = conf.get('auth', 'admin_username')
-        password = conf.get('auth', 'admin_password')
-        conf.set(sec, 'username', username)
-        conf.set(sec, 'password', password)
-        conf.set(sec, 'admin_username', username)
-        conf.set(sec, 'admin_password', password)
-        conf.set(sec, 'project_name', conf.get('identity', 'project_name'))
-        conf.set(sec, 'region', conf.get('identity', 'region'))
+        try:
+            uri = conf.get('identity', 'uri')
+            if 'v3' not in uri:
+                return
+            sec = 'heat_plugin'
+            # Tempest doesn't differentiate between admin or demo creds anymore
+            username = conf.get('auth', 'admin_username')
+            password = conf.get('auth', 'admin_password')
+            conf.set(sec, 'username', username)
+            conf.set(sec, 'password', password)
+            conf.set(sec, 'admin_username', username)
+            conf.set(sec, 'admin_password', password)
+            conf.set(sec, 'project_name', conf.get('identity', 'project_name'))
+            conf.set(sec, 'region', conf.get('identity', 'region'))
 
-        conf.set(sec, 'auth_url', uri)
-        v = '3' if conf.get('identity', 'auth_version') == 'v3' else '2'
-        conf.set(sec, 'auth_version', v)
+            conf.set(sec, 'auth_url', uri)
+            v = '3' if conf.get('identity', 'auth_version') == 'v3' else '2'
+            conf.set(sec, 'auth_version', v)
 
-        domain_name = conf.get('auth', 'admin_domain_name')
-        conf.set(sec, 'project_domain_name', domain_name)
-        conf.set(sec, 'user_domain_name', domain_name)
+            domain_name = conf.get('auth', 'admin_domain_name')
+            conf.set(sec, 'project_domain_name', domain_name)
+            conf.set(sec, 'user_domain_name', domain_name)
 
-        conf.set(sec, 'image_ssh_user', 'root')
-        conf.set(sec, 'network_for_ssh', 'public')
-        conf.set(sec, 'fixed_network_name', 'public')
+            conf.set(sec, 'image_ssh_user', 'root')
+            conf.set(sec, 'network_for_ssh', 'public')
+            conf.set(sec, 'fixed_network_name', 'public')
 
-        # should be set to True if using self-signed SSL certificates which
-        # is a general case
-        conf.set(sec, 'disable_ssl_certificate_validation', 'True')
+            # should be set to True if using self-signed SSL certificates which
+            # is a general case
+            conf.set(sec, 'disable_ssl_certificate_validation', 'True')
+        except configparser.NoOptionError:
+            LOG.warning("Be aware that an option required for "
+                        "heat_tempest_plugin cannot be set!")
 
     def post_configuration(self, conf, is_service):
         conf.set('heat_plugin', 'minimal_instance_type',
