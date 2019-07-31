@@ -14,7 +14,6 @@
 # under the License.
 
 import mock
-import unittest
 
 from config_tempest.services.base import Service
 from config_tempest.services.base import VersionedService
@@ -37,9 +36,14 @@ class TestService(BaseServiceTest):
                                           self.FAKE_HEADERS)
         return expected_resp.data
 
-    @unittest.skip('Failing due to Storyboard: 2001245')
-    @mock.patch('config_tempest.api_discovery.urllib3')
+    @mock.patch('config_tempest.services.base.urllib3')
     def test_do_get(self, mock_urllib3):
+        mock_http = mock.Mock()
+        mock_r = mock.Mock()
+        mock_r.status = 200
+        mock_http.request.return_value = mock_r
+        mock_urllib3.PoolManager.return_value = mock_http
+
         resp = self.Service.do_get(self.FAKE_URL)
         expected_resp = self._mocked_do_get(mock_urllib3)
         self.assertEqual(resp, expected_resp)

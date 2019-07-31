@@ -59,8 +59,9 @@ class Service(object):
             r = http.request('GET', url, headers=self.headers)
         except Exception as e:
             LOG.error("Request on service '%s' with url '%s' failed",
-                      (self.s_type, url))
+                      self.s_type, url)
             raise e
+
         if r.status >= 400:
             raise ServiceError("Request on service '%s' with url '%s' failed"
                                " with code %d" % (self.s_type, url, r.status))
