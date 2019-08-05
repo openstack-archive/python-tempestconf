@@ -11,7 +11,7 @@ of the following:
 
   * source OpenStack RC file before running :command:`discover-tempest-config`
     command, see `Examples of usage with sourced credentials`_
-  * use ``clouds.yaml`` file and take advantage of ``os-client-config`` support
+  * use ``clouds.yaml`` file and take advantage of ``openstacksdk`` support
     and use a named cloud, see `Examples of usage with a named cloud`_
 
 If a user doesn't use ``--create``, no resources, which require admin
@@ -48,7 +48,7 @@ step **as a prerequisite**:
 
     .. note::
         Thanks to
-        `os-client-config <https://docs.openstack.org/os-client-config/latest/index.html>`_
+        `openstacksdk <https://docs.openstack.org/openstacksdk/latest/>`_
         support, ``python-tempestconf`` is able to read cloud credentials from
         the shell environment, which means, they **don't need** to be
         explicitly passed via CLI.
@@ -249,11 +249,11 @@ Examples of usage with a named cloud
 ------------------------------------
 
 ``python-tempestconf`` supports
-`os-client-config <https://opendev.org/openstack/os-client-config>`__
+`openstacksdk <https://docs.openstack.org/openstacksdk/latest/>`__
 so instead of sourcing an OpenStack RC file a user can use clouds.yml file.
 Location where this file should be stored and syntax which is used to define
 it can be found
-`here <https://docs.openstack.org/os-client-config/latest/user/configuration.html#config-files>`__
+`here <https://docs.openstack.org/openstacksdk/latest/user/config/configuration.html>`__
 
 Let's say there is a ``clouds.yaml`` file located in ``/etc/openstack/`` with
 the following content:

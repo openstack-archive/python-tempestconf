@@ -28,7 +28,7 @@ Import ``python-tempestconf`` in your project as follows:
 ``python-tempestconf`` needs cloud credentials in order to create a tempest
 configuration file. There is a helper method for obtaining cloud credentials
 which uses
-`os-client-config <https://docs.openstack.org/os-client-config/latest/user/configuration.html>`_
+`openstacksdk <https://docs.openstack.org/openstacksdk/latest/user/config/configuration.html>`_
 for parsing the cloud for credentials.
 
 The following example shows how to get cloud credentials and how to pass it to

@@ -39,16 +39,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
         self.assertEqual(exp_pass, password)
         self.assertEqual(exp_project, project_name)
 
-    @mock.patch('os_client_config.cloud_config.CloudConfig')
-    def _override_setup(self, mock_args):
-        cloud_args = {
-            'username': 'cloud_user',
-            'password': 'cloud_pass',
-            'project_name': 'cloud_project'
-        }
-        mock_function = mock.Mock(return_value=cloud_args)
-        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
-        self.useFixture(MonkeyPatch(func2mock, mock_function))
+    def _override_setup(self):
         mock_function = mock.Mock(return_value={"id": "my_fake_id"})
         func2mock = ('config_tempest.clients.ProjectsClient.'
                      'get_project_by_name')
@@ -95,11 +86,7 @@ class TestOsClientConfigSupport(BaseConfigTempestTest):
     def test_init_manager_client_config_region_name(self):
         self._obtain_client_config_data(region_name='regionOne')
 
-    @mock.patch('os_client_config.cloud_config.CloudConfig')
-    def test_init_manager_client_config_get_default(self, mock_args):
-        mock_function = mock.Mock(return_value={})
-        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
-        self.useFixture(MonkeyPatch(func2mock, mock_function))
+    def test_init_manager_client_config_get_default(self):
         manager = ClientManager(self.conf, self._get_creds(self.conf))
         # cloud_args is empty => check if default credentials were used
         self._check_credentials(manager,

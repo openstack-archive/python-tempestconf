@@ -25,8 +25,8 @@ be discovered by the user. The file used here could be created by an installer,
 or manually if necessary.
 
 3. Values provided in client's cloud config file or as an environment
-variables, see documentation of os-client-config
-https://docs.openstack.org/developer/os-client-config/
+variables, see documentation of openstacksdk
+https://docs.openstack.org/openstacksdk/latest/
 
 4. Values provided on the command line. These override all other values.
 
@@ -40,7 +40,7 @@ import os
 import six
 import sys
 
-import os_client_config
+import openstack
 from oslo_config import cfg
 from six.moves import configparser
 
@@ -153,7 +153,7 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
     2. read a file provided by --deployer-input argument
     3. read default DEPLOYER_INPUT if --no-deployer-input is False and no
        deployer_input was passed
-    4. set values from client's config (os-client-config support) if provided
+    4. set values from client's config (openstacksdk support) if provided
     5. set overrides - may override values which were set in the steps above
 
     :param conf: TempestConf object
@@ -216,7 +216,7 @@ def set_options(conf, deployer_input, non_admin, image_path, overrides=[],
 
 def get_arg_parser():
     parser = argparse.ArgumentParser(__doc__)
-    cloud_config = os_client_config.OpenStackConfig()
+    cloud_config = openstack.config.OpenStackConfig()
     cloud_config.register_argparse_arguments(parser, sys.argv)
     parser.add_argument('--create', action='store_true', default=False,
                         help="""Create Tempest resources
@@ -444,7 +444,7 @@ def set_cloud_config_values(non_admin, cloud_creds, conf):
     Note: the values may be later overridden by values specified in CLI.
 
     :type non_admin: Boolean
-    :param cloud_creds: auth data from os-client-config
+    :param cloud_creds: auth data from openstacksdk
     :type cloud_creds: dict
     :param conf: TempestConf object
     """
@@ -488,12 +488,17 @@ def get_cloud_creds(args_namespace):
               'auth_url': 'http://172.16.52.8:5000/v3',
               'password': 'f0921edc3c2b4fc8', 'project_domain_name': 'Default'}
     """
-    cloud = os_client_config.OpenStackConfig()
-    cloud = cloud.get_one_cloud(argparse=args_namespace)
-    cloud_creds = cloud.config.get('auth')
-    region_name = cloud.config.get('region_name')
+    if args_namespace.os_cloud:
+        cloud = openstack.connect(cloud=args_namespace.os_cloud)
+    else:
+        cloud = openstack.connect(argparse=args_namespace)
+
+    cloud_creds = cloud.config.get_auth_args()
+    region_name = cloud.config.config['region_name']
+
     if region_name:
         cloud_creds['region_name'] = region_name
+
     return cloud_creds
 
 

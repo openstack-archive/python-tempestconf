@@ -1,0 +1,5 @@
+features:
+  - |
+    Openstacksdk module superseded os-client-config
+    module, therefore it is now used for parsing cloud
+    credentials instead of os-client-config module.
