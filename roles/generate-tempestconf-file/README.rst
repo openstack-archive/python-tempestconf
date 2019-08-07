@@ -6,6 +6,13 @@ is then copied to tempest directory.
 
 **Role Variables**
 
+.. zuul:rolevar:: branch
+   :type: string
+   :default: None
+
+   Branch name upper-constraints will be taken into accounts from when
+   python-tempestconf is installed in a venv.
+
 .. zuul:rolevar:: devstack_base_dir
    :type: string
    :default: /opt/stack

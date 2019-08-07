@@ -7,6 +7,13 @@ to the output after that.
 
 **Role Variables**
 
+.. zuul:rolevar:: branch
+   :type: string
+   :default: master
+
+   Branch name upper-constraints will be taken into account from when
+   python-tempestconf is installed in a venv.
+
 .. zuul:rolevar:: cloud_user
    :type: string
    :default: devstack

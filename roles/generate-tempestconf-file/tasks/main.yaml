@@ -21,12 +21,24 @@
     args:
         chdir: "{{ tempestconf_src_relative_path }}"
 
+  - name: Install python-tempestconf (with constraints)
+    shell: |
+        set -ex
+        export PATH=$PATH:/usr/local/sbin:/usr/sbin
+        source {{ virtualenvs.tempestconf }}/bin/activate
+        pip install -c https://opendev.org/openstack/requirements/raw/branch/{{ branch }}/upper-constraints.txt .
+    args:
+       chdir: "{{ tempestconf_src_relative_path }}"
+       executable: /bin/bash
+    when: branch is defined
+
   - name: Install python-tempestconf
     pip:
         name: "."
         virtualenv: "{{ virtualenvs.tempestconf }}"
         chdir: "{{ tempestconf_src_relative_path }}"
         virtualenv_python: "{{ tempestconf_pip_virtualenv_python|default(omit) }}"
+    when: branch is not defined
 
   - name: "Cat keystonerc_ file (only in packstack case)"
     shell: |
