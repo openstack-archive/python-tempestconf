@@ -96,14 +96,10 @@ class BaseConfigTempestTest(base.BaseTestCase):
         self.useFixture(MonkeyPatch(func2mock, mock_function))
         return Credentials(conf, admin)
 
-    @mock.patch('os_client_config.cloud_config.CloudConfig')
-    def _get_clients(self, conf, mock_args, creds=None):
+    def _get_clients(self, conf, creds=None):
         """Returns ClientManager instance"""
         if creds is None:
             creds = self._get_creds(conf, v2=True)
-        mock_function = mock.Mock(return_value=False)
-        func2mock = 'os_client_config.cloud_config.CloudConfig.config.get'
-        self.useFixture(MonkeyPatch(func2mock, mock_function))
         return ClientManager(conf, creds)
 
 
