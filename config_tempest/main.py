@@ -526,19 +526,23 @@ def config_tempest(**kwargs):
     if kwargs.get('create', False) and kwargs.get('test_accounts') is None:
         users = Users(clients.projects, clients.roles, clients.users, conf)
         users.create_tempest_users()
-    flavors = Flavors(clients.flavors, kwargs.get('create', False), conf,
-                      kwargs.get('flavor_min_mem', C.DEFAULT_FLAVOR_RAM),
-                      kwargs.get('flavor_min_disk', C.DEFAULT_FLAVOR_DISK),
-                      no_rng=kwargs.get('no_rng', False))
-    flavors.create_tempest_flavors()
 
-    image = services.get_service('image')
-    image.set_image_preferences(kwargs.get('image_disk_format',
-                                           C.DEFAULT_IMAGE_FORMAT),
-                                kwargs.get('non_admin', False),
-                                no_rng=kwargs.get('no_rng', False),
-                                convert=kwargs.get('convert_to_raw', False))
-    image.create_tempest_images(conf)
+    if services.is_service(**{"type": "compute"}):
+        flavors = Flavors(clients.flavors, kwargs.get('create', False), conf,
+                          kwargs.get('flavor_min_mem', C.DEFAULT_FLAVOR_RAM),
+                          kwargs.get('flavor_min_disk', C.DEFAULT_FLAVOR_DISK),
+                          no_rng=kwargs.get('no_rng', False))
+        flavors.create_tempest_flavors()
+
+    if services.is_service(**{"type": "image"}):
+        image = services.get_service('image')
+        image.set_image_preferences(kwargs.get('image_disk_format',
+                                               C.DEFAULT_IMAGE_FORMAT),
+                                    kwargs.get('non_admin', False),
+                                    no_rng=kwargs.get('no_rng', False),
+                                    convert=kwargs.get('convert_to_raw',
+                                                       False))
+        image.create_tempest_images(conf)
 
     has_neutron = services.is_service(**{"type": "network"})
     network = services.get_service("network")
