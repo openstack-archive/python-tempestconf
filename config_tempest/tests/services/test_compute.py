@@ -44,6 +44,9 @@ class TestComputeService(BaseServiceTest):
         conf = TempestConf()
         self.Service.set_default_tempest_options(conf)
         self.assertEqual(
+            conf.get('compute',
+                     'min_compute_nodes'), '2')
+        self.assertEqual(
             conf.get('compute-feature-enabled',
                      'resize'), 'True')
         self.assertEqual(

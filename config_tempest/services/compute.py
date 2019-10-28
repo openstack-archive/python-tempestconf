@@ -30,12 +30,16 @@ class ComputeService(VersionedService):
 
     def set_default_tempest_options(self, conf):
         conf.set('compute-feature-enabled', 'console_output', 'True')
+        num_compute = self._get_number_of_hosts()
+        # set min_compute_nodes to enable migration tests in env
+        # with multiple compute nodes
+        conf.set('compute', 'min_compute_nodes', str(num_compute))
         # Resize only works if it has at least 2 compute nodes
         # or if nova has the option allow_resize_to_same_host
         # set to true. Unfortunately we can't get this info from
         # nova api, so we only set it when we know there's 2
         # compute nodes
-        if self._get_number_of_hosts() >= 2:
+        if num_compute >= 2:
             conf.set('compute-feature-enabled', 'resize', 'True')
         # set microversions
         m_versions = self.filter_api_microversions()
