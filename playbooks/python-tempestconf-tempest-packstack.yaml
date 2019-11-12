@@ -2,11 +2,14 @@
   vars:
     test_demo_user: "{{ test_demo is defined }}"
   tasks:
+    # Disable packstack logs copy once packstack deployment finishes
     # packstack-integration-tempest role is inherited from
     # x/packstack project
     - name: Install packstack allinone
-      include_role:
+      import_role:
         name: packstack-integration-tempest
+      environment:
+        COPY_LOGS: false
     # setup-tempest-user, setup-stack-user and setup-devstack-source-dirs
     # are inherited from openstack/devstack
     - name: Setup Stack user

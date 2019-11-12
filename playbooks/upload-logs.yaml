@@ -1,5 +1,17 @@
 - hosts: all
   tasks:
+    # Copy openstack logs once tempest run finishes
+    - name: Copy openstack services logs once tempest run finish
+      shell:
+         cmd: |
+           set -e
+           set -x
+           source ./tools/copy-logs.sh
+           recover_default_logs
+         executable: /bin/bash
+         chdir: '{{ ansible_user_dir }}/workspace/packstack'
+      environment: '{{ zuul }}'
+
     - name: Create tempest directory in /tmp/logs
       file:
         path: /tmp/logs/tempest
