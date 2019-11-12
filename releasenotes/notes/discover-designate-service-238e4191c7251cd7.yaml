@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    discover-tempest-config can now discover Designate service automatically,
+    and configures service_available/designate based on that discovery result
+    so that it can enable/disable tests for Designate based on deployment
+    status.
