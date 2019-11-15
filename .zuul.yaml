@@ -57,6 +57,8 @@
       - openstack/python-tempestconf
       - openstack/tempest
       - openstack/devstack
+      - openstack/designate
+      - openstack/designate-tempest-plugin
     roles:
       - zuul: openstack/python-tempestconf
       - zuul: openstack/tempest
@@ -70,6 +72,7 @@
         heat: https://opendev.org/openstack/heat
         manila: https://opendev.org/openstack/manila
         manila-ui: https://opendev.org/openstack/manila-ui
+        designate: https://opendev.org/openstack/designate
       devstack_localrc:
         MANILA_USE_UWSGI: False
         MANILA_USE_MOD_WSGI: False
@@ -78,6 +81,12 @@
         h-api: True
         h-api-cfn: True
         h-api-cw: True
+        designate: True
+        designate-central: True
+        designate-api: True
+        designate-worker: True
+        designate-producer: True
+        designate-mdns: True
     irrelevant-files:
       - config_tempest/tests/.*$
       - ^doc/.*$
@@ -121,6 +130,7 @@
     vars:
       test_regex:
         - 'heat_tempest_plugin'
+        - 'designate_tempest_plugin'
       black_regex:
         - 'heat_tempest_plugin.tests.scenario.test_volumes.VolumeBackupRestoreIntegrationTest.test_cinder_volume_create_backup_restore'
         - 'heat_tempest_plugin.tests.scenario.test_server_software_config.SoftwareConfigIntegrationTest.test_server_software_config'
@@ -133,6 +143,7 @@
       cloud_user: devstack-admin
       plugins_paths:
         - "{{ ansible_user_dir }}/{{ zuul.projects['opendev.org/openstack/heat-tempest-plugin'].src_dir }}"
+        - "{{ ansible_user_dir }}/{{ zuul.projects['opendev.org/openstack/designate-tempest-plugin'].src_dir }}"
       tempest_concurrency: 2
 
 - job:
