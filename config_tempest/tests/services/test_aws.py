@@ -15,8 +15,8 @@
 
 import mock
 
-from config_tempest.services.boto import Ec2Service
-from config_tempest.services.boto import S3Service
+from config_tempest.services.aws import Ec2Service
+from config_tempest.services.aws import S3Service
 from config_tempest.services.services import Services
 from config_tempest.tests.base import BaseConfigTempestTest
 
@@ -37,7 +37,7 @@ class TestEc2Service(BaseConfigTempestTest):
     def test_set_default_tempest_options(self):
         service = Ec2Service("ec2", "ec2", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
-        ec2_url = self.Services._conf.get("boto", "ec2_url")
+        ec2_url = self.Services._conf.get("aws", "ec2_url")
         self.assertEqual(ec2_url, self.FAKE_URL)
 
 
@@ -57,5 +57,5 @@ class TestS3Service(BaseConfigTempestTest):
     def test_set_default_tempest_options(self):
         service = S3Service("s3", "s3", self.FAKE_URL, self.clients, False)
         service.set_default_tempest_options(self.Services._conf)
-        ec2_url = self.Services._conf.get("boto", "s3_url")
+        ec2_url = self.Services._conf.get("aws", "s3_url")
         self.assertEqual(ec2_url, self.FAKE_URL)

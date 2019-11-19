@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Rename boto section to aws one for ec2_url and s3_url options used by
+    ec2api-tempest-plugin.
