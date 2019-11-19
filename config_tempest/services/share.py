@@ -35,5 +35,5 @@ class ShareService(VersionedService):
         return 'share'
 
     @staticmethod
-    def get_service_name():
-        return ['manila', 'manilav2']
+    def get_service_type():
+        return ['share', 'sharev2']

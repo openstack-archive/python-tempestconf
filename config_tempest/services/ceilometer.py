@@ -34,8 +34,8 @@ class MeteringService(Service):
                 conf.set('service_available', 'ceilometer', 'True')
 
     @staticmethod
-    def get_service_name():
-        return ['ceilometer']
+    def get_service_type():
+        return ['metering']
 
     @staticmethod
     def get_codename():

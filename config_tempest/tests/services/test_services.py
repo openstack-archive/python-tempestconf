@@ -38,9 +38,12 @@ class TestServices(BaseConfigTempestTest):
 
     @mock.patch('config_tempest.services.services.Services.discover')
     @mock.patch('config_tempest.services.services.Services.'
+                'set_catalog_and_url')
+    @mock.patch('config_tempest.services.services.Services.'
                 'get_available_services')
-    def _create_services_instance(self, mock_avail, mock_discover, v2=False):
-        mock_avail.return_value = {'my_service': 'my_type'}
+    def _create_services_instance(self, mock_avail, mock_catalog,
+                                  mock_discover, v2=False):
+        mock_avail.return_value = [{'name': 'my_service', 'type': 'my_type'}]
         conf = self._get_conf('v2', 'v3')
         creds = self._get_creds(conf, v2=v2)
         clients = mock.Mock()
@@ -73,18 +76,6 @@ class TestServices(BaseConfigTempestTest):
         services = self._create_services_instance()
         resp = services.get_endpoints({'endpoints': []})
         self.assertEqual(resp, [])
-
-    def test_set_catalog_and_url(self):
-        # api version = 2
-        services = self._create_services_instance(v2=True)
-        services.set_catalog_and_url()
-        self.assertEqual(services.service_catalog, 'serviceCatalog')
-        self.assertEqual(services.public_url, 'publicURL')
-        # api version = 3
-        services = self._create_services_instance()
-        services.set_catalog_and_url()
-        self.assertEqual(services.service_catalog, 'catalog')
-        self.assertEqual(services.public_url, 'url')
 
     def test_parse_endpoints_empty(self):
         services = self._create_services_instance()

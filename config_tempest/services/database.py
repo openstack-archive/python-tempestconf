@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class DatabaseService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['trove']
+    def get_service_type():
+        return ['database']
 
     @staticmethod
     def get_codename():

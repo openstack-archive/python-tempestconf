@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class DnsService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['designate']
+    def get_service_type():
+        return ['dns']
 
     @staticmethod
     def get_codename():

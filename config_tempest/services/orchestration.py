@@ -22,8 +22,8 @@ from config_tempest.services.base import Service
 class OrchestrationService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['heat']
+    def get_service_type():
+        return ['orchestration']
 
     @staticmethod
     def get_codename():

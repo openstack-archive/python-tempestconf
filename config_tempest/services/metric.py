@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class MetricService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['gnocchi']
+    def get_service_type():
+        return ['metric']
 
     @staticmethod
     def get_codename():

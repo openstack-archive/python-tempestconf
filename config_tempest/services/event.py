@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class EventService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['panko']
+    def get_service_type():
+        return ['event']
 
     @staticmethod
     def get_codename():

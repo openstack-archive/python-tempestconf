@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class BaremetalService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['ironic']
+    def get_service_type():
+        return ['baremetal']
 
     @staticmethod
     def get_codename():

@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class DataProcessingService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['sahara']
+    def get_service_type():
+        return ['data-processing']
 
     @staticmethod
     def get_codename():

@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class Workflowv2Service(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['mistral']
+    def get_service_type():
+        return ['workflow']
 
     @staticmethod
     def get_codename():

@@ -93,8 +93,8 @@ class NetworkService(VersionedService):
                                 'discovered and must be specified')
 
     @staticmethod
-    def get_service_name():
-        return ['neutron']
+    def get_service_type():
+        return ['network']
 
     @staticmethod
     def get_codename():

@@ -27,8 +27,10 @@ class TestEc2Service(BaseConfigTempestTest):
 
     @mock.patch('config_tempest.services.services.Services.discover')
     @mock.patch('config_tempest.services.services.Services.'
+                'set_catalog_and_url')
+    @mock.patch('config_tempest.services.services.Services.'
                 'get_available_services')
-    def setUp(self, mock_set_avail, mock_discover):
+    def setUp(self, mock_set_avail, mock_catalog, mock_discover):
         super(TestEc2Service, self).setUp()
         conf = self._get_conf('v2', 'v3')
         self.clients = self._get_clients(conf)
@@ -47,8 +49,10 @@ class TestS3Service(BaseConfigTempestTest):
 
     @mock.patch('config_tempest.services.services.Services.discover')
     @mock.patch('config_tempest.services.services.Services.'
+                'set_catalog_and_url')
+    @mock.patch('config_tempest.services.services.Services.'
                 'get_available_services')
-    def setUp(self, mock_set_avail, mock_discover):
+    def setUp(self, mock_set_avail, mock_catalog, mock_discover):
         super(TestS3Service, self).setUp()
         conf = self._get_conf('v2', 'v3')
         self.clients = self._get_clients(conf)

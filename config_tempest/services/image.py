@@ -74,8 +74,8 @@ class ImageService(VersionedService):
         return ['v1', 'v2']
 
     @staticmethod
-    def get_service_name():
-        return ['glance']
+    def get_service_type():
+        return ['image']
 
     @staticmethod
     def get_codename():

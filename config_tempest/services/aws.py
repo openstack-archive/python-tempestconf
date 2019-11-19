@@ -22,7 +22,7 @@ class Ec2Service(Service):
         conf.set('aws', 'ec2_url', self.service_url)
 
     @staticmethod
-    def get_service_name():
+    def get_service_type():
         return ['ec2']
 
 
@@ -32,5 +32,5 @@ class S3Service(Service):
         conf.set('aws', 's3_url', self.service_url)
 
     @staticmethod
-    def get_service_name():
+    def get_service_type():
         return ['s3']

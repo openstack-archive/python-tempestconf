@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class MessagingService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['zaqar']
+    def get_service_type():
+        return ['messaging']
 
     @staticmethod
     def get_codename():

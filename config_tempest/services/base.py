@@ -89,11 +89,11 @@ class Service(object):
         return self.extensions
 
     @staticmethod
-    def get_service_name():
-        """Return the service name.
+    def get_service_type():
+        """Return the service type.
 
-        This returns a list because you can have different services for the
-        same type, like volume, volumev2, volumev3
+        This returns a list because you can have services with more types,
+        like volume, volumev2, volumev3.
         """
         return []
 

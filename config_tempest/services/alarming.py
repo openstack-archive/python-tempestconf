@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class AlarmingService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['aodh']
+    def get_service_type():
+        return ['alarming']
 
     @staticmethod
     def get_codename():

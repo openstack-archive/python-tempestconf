@@ -106,8 +106,8 @@ class ObjectStorageService(Service):
             self.list_create_roles(conf, self.client.roles)
 
     @staticmethod
-    def get_service_name():
-        return ['swift']
+    def get_service_type():
+        return ['object-store']
 
     @staticmethod
     def get_codename():

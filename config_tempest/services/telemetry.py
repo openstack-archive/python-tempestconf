@@ -19,8 +19,8 @@ from config_tempest.services.base import Service
 class TelemetryService(Service):
 
     @staticmethod
-    def get_service_name():
-        return ['ceilometer']
+    def get_service_type():
+        return ['telemetry']
 
     @staticmethod
     def get_codename():

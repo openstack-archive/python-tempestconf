@@ -64,39 +64,50 @@ class Services(object):
     def get_available_services(self):
         try:
             services = self._clients.service_client.list_services()['services']
-            return {s['name']: s['type'] for s in services}
         except exceptions.Forbidden:
             C.LOG.warning("User has no permissions to list services, using "
                           "catalog. Services without endpoint will not be "
                           "discovered.")
-            token, auth_data = self._clients.auth_provider.get_auth()
-            return {s['name']: s['type'] for s
-                    in auth_data[self.service_catalog]}
+            services = self.catalog
+        return services
+
+    def get_service_data(self, s_name, s_type):
+        for s in self.catalog:
+            if s['name'] == s_name and s['type'] == s_type:
+                return s
+        return None
 
     def discover(self):
-        token, auth_data = self._clients.auth_provider.get_auth()
-
-        auth_entries = {e['type']: e for e in auth_data[self.service_catalog]}
-
         # We loop through the classes we have for each service, and if we find
         # a class that match a service enabled, we add it in our services list.
         # some services doesn't have endpoints, so we need to check first
         for s_class in self.service_classes:
-            s_names = s_class.get_service_name()
-            for s_name in s_names:
-                s_type = self.available_services.get(s_name, None)
-                if s_type:
-                    endpoint_data = auth_entries.get(s_type, None)
+            s_types = s_class.get_service_type()
+            for s_type in s_types:
+                s_name = [t['name'] for t in self.available_services
+                          if t['type'] == s_type]
+                if s_name:
+                    # In the general case, there should only be one service in
+                    # a deployment per service type
+                    # https://docs.openstack.org/keystone/latest/contributor/
+                    # service-catalog.html#services
+                    if len(s_name) > 1:
+                        C.LOG.warning("There are more service names ('%s') for"
+                                      " '%s' service type, which is undefined"
+                                      " behavior. Continuing with '%s'.",
+                                      str(s_name), s_type, s_name[0])
+                    s_name = s_name[0]
+                    service_data = self.get_service_data(s_name, s_type)
                     url = None
-                    if not endpoint_data:
-                        C.LOG.Warning('No endpoint data found for {}'.format(
+                    if not service_data:
+                        C.LOG.warning('No endpoint data found for {}'.format(
                             s_name))
                     else:
                         url = self.parse_endpoints(self.get_endpoints(
-                            endpoint_data), s_type)
+                            service_data), s_type)
 
                     # Create the service class and add it to services list
-                    service = s_class(s_name, s_type, url, token,
+                    service = s_class(s_name, s_type, url, self.token,
                                       self._ssl_validation,
                                       self._clients.get_service_client(
                                           s_type))
@@ -153,11 +164,13 @@ class Services(object):
 
     def set_catalog_and_url(self):
         if self._creds.api_version == 3:
-            self.service_catalog = 'catalog'
+            service_catalog = 'catalog'
             self.public_url = 'url'
         else:
-            self.service_catalog = 'serviceCatalog'
+            service_catalog = 'serviceCatalog'
             self.public_url = 'publicURL'
+        self.token, auth_data = self._clients.auth_provider.get_auth()
+        self.catalog = auth_data[service_catalog]
 
     def parse_endpoints(self, ep, name):
         """Parse an endpoint(s).
@@ -214,15 +227,16 @@ class Services(object):
         :param kwargs: Search parameters (accepts service name or type)
         :rtype: boolean
         """
+        a_s = self.available_services
         if kwargs.get('name'):
-            if kwargs.get('name') not in self.available_services.keys():
-                return False
-            return True
+            if [s for s in a_s if s['name'] == kwargs.get('name')]:
+                return True
+            return False
 
         if kwargs.get('type'):
-            if kwargs.get('type') not in self.available_services.values():
-                return False
-            return True
+            if [s for s in a_s if s['type'] == kwargs.get('type')]:
+                return True
+            return False
         return False
 
     def post_configuration(self):

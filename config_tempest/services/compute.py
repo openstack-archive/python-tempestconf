@@ -62,8 +62,8 @@ class ComputeService(VersionedService):
                  str(is_service(**{'type': 'key-manager'})))
 
     @staticmethod
-    def get_service_name():
-        return ['nova']
+    def get_service_type():
+        return ['compute']
 
     @staticmethod
     def get_codename():

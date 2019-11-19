@@ -28,8 +28,8 @@ class LoadBalancerService(VersionedService):
         conf.set('load_balancer', 'RBAC_test_type', 'owner_or_admin')
 
     @staticmethod
-    def get_service_name():
-        return ['octavia']
+    def get_service_type():
+        return ['load-balancer']
 
     @staticmethod
     def get_codename():
