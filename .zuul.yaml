@@ -10,14 +10,17 @@
     check:
       jobs:
         - python-tempestconf-tempest-devstack-admin
+        - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-admin-py3
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-devstack-demo-py3
-        - python-tempestconf-tempest-packstack-admin
-        - python-tempestconf-tempest-packstack-demo
+        - python-tempestconf-tempest-packstack-admin:
+            voting: false
+        - python-tempestconf-tempest-packstack-demo:
+            voting: false
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
         - tripleo-ci-centos-7-standalone-os-tempest
@@ -25,20 +28,24 @@
     gate:
       jobs:
         - python-tempestconf-tempest-devstack-admin
+        - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-admin-py3
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-devstack-demo-py3
-        - python-tempestconf-tempest-packstack-admin
-        - python-tempestconf-tempest-packstack-demo
+        - python-tempestconf-tempest-packstack-admin:
+            voting: false
+        - python-tempestconf-tempest-packstack-demo:
+            voting: false
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
         - tripleo-ci-centos-7-standalone-os-tempest
         - refstack-client-devstack-tempestconf
     experimental:
       jobs:
+        - python-tempestconf-tempest-devstack-demo-train
         - python-tempestconf-tempest-devstack-demo-stein
         - python-tempestconf-tempest-devstack-demo-rocky
         - python-tempestconf-tempest-devstack-demo-queens
@@ -158,6 +165,13 @@
       tempest_concurrency: 2
 
 - job:
+    name: python-tempestconf-tempest-devstack-admin-train
+    parent: python-tempestconf-tempest-devstack-admin
+    override-checkout: stable/train
+    vars:
+      branch: stable/train
+
+- job:
     name: python-tempestconf-tempest-devstack-admin-stein
     parent: python-tempestconf-tempest-devstack-admin
     override-checkout: stable/stein
@@ -196,6 +210,13 @@
       # skip until https://storyboard.openstack.org/#!/story/2004209
       # is resolved
       tempest_black_regex: 'tempest.api.compute.servers'
+
+- job:
+    name: python-tempestconf-tempest-devstack-demo-train
+    parent: python-tempestconf-tempest-devstack-demo
+    override-checkout: stable/train
+    vars:
+      branch: stable/train
 
 - job:
     name: python-tempestconf-tempest-devstack-demo-stein
