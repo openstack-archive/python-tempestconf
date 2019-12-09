@@ -23,7 +23,7 @@
             voting: false
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
-        - tripleo-ci-centos-7-standalone-os-tempest
+        - tripleo-ci-centos-7-standalone
         - refstack-client-devstack-tempestconf
     gate:
       jobs:
@@ -41,7 +41,7 @@
             voting: false
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
-        - tripleo-ci-centos-7-standalone-os-tempest
+        - tripleo-ci-centos-7-standalone
         - refstack-client-devstack-tempestconf
     experimental:
       jobs:
