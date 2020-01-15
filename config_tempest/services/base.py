@@ -65,7 +65,7 @@ class Service(object):
         if r.status >= 400:
             raise ServiceError("Request on service '%s' with url '%s' failed"
                                " with code %d" % (self.s_type, url, r.status))
-        return r.data
+        return r.data.decode('utf-8')
 
     def set_extensions(self):
         self.extensions = []

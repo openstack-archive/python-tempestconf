@@ -34,7 +34,7 @@ class TestService(BaseServiceTest):
         expected_resp = mock_http.request('GET',
                                           self.FAKE_URL,
                                           self.FAKE_HEADERS)
-        return expected_resp.data
+        return expected_resp.data.decode('utf-8')
 
     @mock.patch('config_tempest.services.base.urllib3')
     def test_do_get(self, mock_urllib3):

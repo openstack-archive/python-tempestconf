@@ -270,8 +270,10 @@ class BaseServiceTest(base.BaseTestCase):
             }
         )
 
-        def __init__(self):
+        def __init__(self, bytes_content=False):
             self.content = json.dumps(self.FAKE_V3_EXTENSIONS)
+            if bytes_content:
+                self.content = self.content.encode('utf-8')
 
     class FakeServiceClient(object):
         def __init__(self, services=None):

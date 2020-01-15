@@ -50,7 +50,7 @@ class TestIdentityService(BaseServiceTest):
     def test_set_identity_v3_extensions(self):
         expected_resp = ['OS-INHERIT', 'OS-OAUTH1',
                          'OS-SIMPLE-CERT', 'OS-EP-FILTER']
-        fake_resp = self.FakeRequestResponse()
+        fake_resp = self.FakeRequestResponse(bytes_content=True)
         mocked_requests = mock.Mock()
         mocked_requests.return_value = fake_resp
         self.useFixture(MonkeyPatch('requests.get', mocked_requests))

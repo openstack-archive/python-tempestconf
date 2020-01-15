@@ -88,7 +88,8 @@ class IdentityService(VersionedService):
                                  headers={'Accept': 'application/json-home'})
 
         ext_h = 'https://docs.openstack.org/api/openstack-identity/3/ext/'
-        res = [x for x in json.loads(r.content)['resources'].keys()]
+        content = r.content.decode('utf-8')
+        res = [x for x in json.loads(content)['resources'].keys()]
         ext = [ex for ex in res if 'ext' in ex]
         ext = [str(e).replace(ext_h, '').split('/')[0] for e in ext]
         self.extensions_v3 = list(set(ext))
