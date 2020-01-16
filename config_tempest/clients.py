@@ -16,7 +16,6 @@
 from tempest.lib import exceptions
 from tempest.lib.services.compute import flavors_client
 from tempest.lib.services.compute import hosts_client
-from tempest.lib.services.compute import networks_client as nova_net_client
 from tempest.lib.services.compute import servers_client
 from tempest.lib.services.identity.v2 import identity_client
 from tempest.lib.services.identity.v2 import roles_client
@@ -158,12 +157,6 @@ class ClientManager(object):
 
         self.networks = None
 
-        def create_nova_network_client():
-            if self.networks is None:
-                self.networks = nova_net_client.NetworksClient(
-                    self.auth_provider, **compute_params)
-            return self.networks
-
         def create_neutron_client():
             if self.networks is None:
                 self.networks = networks_client.NetworksClient(
@@ -175,7 +168,6 @@ class ClientManager(object):
                     **default_params)
             return self.networks
 
-        self.get_nova_net_client = create_nova_network_client
         self.get_neutron_client = create_neutron_client
 
         # Set admin project id needed for keystone v3 tests.

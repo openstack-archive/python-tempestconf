@@ -544,13 +544,9 @@ def config_tempest(**kwargs):
                                                        False))
         image.create_tempest_images(conf)
 
-    # FIXME(chkumar246): Remove dead code of nova_network
-    # as it is deprecated long time ago.
-    has_neutron = services.is_service(**{"type": "network"})
-    if has_neutron:
+    if services.is_service(**{"type": "network"}):
         network = services.get_service("network")
-        network.create_tempest_networks(has_neutron, conf,
-                                        kwargs.get('network_id'))
+        network.create_tempest_networks(conf, kwargs.get('network_id'))
 
     services.post_configuration()
     services.set_supported_api_versions()
