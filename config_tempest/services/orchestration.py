@@ -65,16 +65,17 @@ class OrchestrationService(Service):
                         "heat_tempest_plugin cannot be set!")
 
     def post_configuration(self, conf, is_service):
-        compute_options = conf.options('compute')
-        if 'flavor_ref' in compute_options:
-            conf.set('heat_plugin', 'minimal_instance_type',
-                     conf.get('compute', 'flavor_ref'))
-        if 'flavor_ref_alt' in compute_options:
-            conf.set('heat_plugin', 'instance_type',
-                     conf.get('compute', 'flavor_ref_alt'))
-        if 'image_ref' in compute_options:
-            conf.set('heat_plugin', 'minimal_image_ref',
-                     conf.get('compute', 'image_ref'))
-        if 'image_ref_alt' in compute_options:
-            conf.set('heat_plugin', 'image_ref',
-                     conf.get('compute', 'image_ref_alt'))
+        if conf.has_section('compute'):
+            compute_options = conf.options('compute')
+            if 'flavor_ref' in compute_options:
+                conf.set('heat_plugin', 'minimal_instance_type',
+                         conf.get('compute', 'flavor_ref'))
+            if 'flavor_ref_alt' in compute_options:
+                conf.set('heat_plugin', 'instance_type',
+                         conf.get('compute', 'flavor_ref_alt'))
+            if 'image_ref' in compute_options:
+                conf.set('heat_plugin', 'minimal_image_ref',
+                         conf.get('compute', 'image_ref'))
+            if 'image_ref_alt' in compute_options:
+                conf.set('heat_plugin', 'image_ref',
+                         conf.get('compute', 'image_ref_alt'))
