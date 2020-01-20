@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    Python 2.7 and python 3.5 support have been dropped. Last release
+    of python-tempestconf to support python 2.7 and python 3.5 is
+    python-tempestconf 2.5.0. The minimum version of Python now supported
+    by python-tempestconf is Python 3.6.
