@@ -1,0 +1,6 @@
+---
+other:
+  - |
+    It removes the support of nova network.
+    It also removes the setting of following config in tempest.conf:
+    - compute.fixed_network_name

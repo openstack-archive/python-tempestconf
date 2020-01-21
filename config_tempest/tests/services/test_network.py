@@ -82,21 +82,3 @@ class TestNetworkService(BaseServiceTest):
         self.Service._discover_network()
         # check if LOG.error was called
         self.assertTrue(mock_logging.error.called)
-
-    def test_network_not_discovered(self):
-        FAKE_NETWORK_LIST = {
-            'networks': [{
-                'label': ""
-            }]
-        }
-        exception = Exception
-        self.Service.client.return_value = FAKE_NETWORK_LIST
-        self.assertRaises(exception,
-                          self.Service.create_tempest_networks_nova,
-                          conf=self.conf)
-
-    def test_create_fixed_network(self):
-        self.Service.client.return_value = self.FAKE_NETWORK_LIST
-        self.Service.create_tempest_networks_nova(conf=self.conf)
-        self.assertEqual(self.conf.get('compute', 'fixed_network_name'),
-                         'my_fake_label')

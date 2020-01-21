@@ -25,15 +25,10 @@ class NetworkService(VersionedService):
         body = json.loads(body)
         self.extensions = list(map(lambda x: x['alias'], body['extensions']))
 
-    def create_tempest_networks(self, has_neutron, conf, network_id):
+    def create_tempest_networks(self, conf, network_id):
         LOG.info("Setting up network")
-        LOG.debug("Is neutron present: {0}".format(has_neutron))
-        if has_neutron:
-            self.client = self.client.get_neutron_client()
-            self.create_tempest_networks_neutron(conf, network_id)
-        else:
-            self.client = self.client.get_nova_net_client()
-            self.create_tempest_networks_nova(conf)
+        self.client = self.client.get_neutron_client()
+        self.create_tempest_networks_neutron(conf, network_id)
 
     def create_tempest_networks_neutron(self, conf, public_network_id):
         self._public_network_name = None
@@ -81,16 +76,6 @@ class NetworkService(VersionedService):
             LOG.error("No external networks found. "
                       "Please note that any test that relies on external "
                       "connectivity would most likely fail.")
-
-    def create_tempest_networks_nova(self, conf):
-        networks = self.client.list_networks()
-        if networks:
-            label = networks['networks'][0]['label']
-            if label:
-                conf.set('compute', 'fixed_network_name', label)
-            else:
-                raise Exception('fixed_network_name could not be '
-                                'discovered and must be specified')
 
     @staticmethod
     def get_service_type():
