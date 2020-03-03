@@ -13,10 +13,8 @@
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-packstack-admin:
-            voting: false
-        - python-tempestconf-tempest-packstack-demo:
-            voting: false
+        - python-tempestconf-tempest-packstack-admin
+        - python-tempestconf-tempest-packstack-demo
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
         - tripleo-ci-centos-7-standalone
@@ -29,10 +27,8 @@
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-packstack-admin:
-            voting: false
-        - python-tempestconf-tempest-packstack-demo:
-            voting: false
+        - python-tempestconf-tempest-packstack-admin
+        - python-tempestconf-tempest-packstack-demo
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-7-scenario002-standalone
         - tripleo-ci-centos-7-standalone
@@ -98,7 +94,7 @@
 
 - job:
     name: python-tempestconf-packstack-base
-    parent: packstack-allinone
+    parent: packstack-centos8
     description: Base job for python-tempestconf on packstack environment
     required-projects:
       - x/packstack
