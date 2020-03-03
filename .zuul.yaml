@@ -1,8 +1,6 @@
 - project:
     templates:
       - openstack-cover-jobs
-      - openstack-python-jobs
-      - openstack-python35-jobs
       - openstack-python36-jobs
       - openstack-python37-jobs
       - publish-openstack-docs-pti
@@ -14,9 +12,7 @@
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
-        - python-tempestconf-tempest-devstack-admin-py3
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-devstack-demo-py3
         - python-tempestconf-tempest-packstack-admin:
             voting: false
         - python-tempestconf-tempest-packstack-demo:
@@ -32,9 +28,7 @@
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-admin-rocky
         - python-tempestconf-tempest-devstack-admin-queens
-        - python-tempestconf-tempest-devstack-admin-py3
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-devstack-demo-py3
         - python-tempestconf-tempest-packstack-admin:
             voting: false
         - python-tempestconf-tempest-packstack-demo:
@@ -75,15 +69,17 @@
         '{{ devstack_base_dir }}/tempest/tempest.log': logs
         '{{ devstack_base_dir }}/tempest/etc/tempest.conf': logs
         '{{ zuul.project.src_dir }}/etc/accounts.yaml': logs
+      tempestconf_pip_virtualenv_python: "python3"
       devstack_plugins:
         heat: https://opendev.org/openstack/heat
         manila: https://opendev.org/openstack/manila
         manila-ui: https://opendev.org/openstack/manila-ui
         designate: https://opendev.org/openstack/designate
       devstack_localrc:
+        USE_PYTHON3: True
         MANILA_USE_UWSGI: False
         MANILA_USE_MOD_WSGI: False
-      devstack_services:
+      devstack_services: &devstack_services
         h-eng: True
         h-api: True
         h-api-cfn: True
@@ -191,6 +187,13 @@
     override-checkout: stable/queens
     vars:
       branch: stable/queens
+      devstack_services:
+        <<: *devstack_services
+        # disable Swift services
+        s-account: false
+        s-container: false
+        s-object: false
+        s-proxy: false
 
 - job:
     name: python-tempestconf-tempest-devstack-demo
@@ -238,6 +241,13 @@
     override-checkout: stable/queens
     vars:
       branch: stable/queens
+      devstack_services:
+        <<: *devstack_services
+        # disable Swift services
+        s-account: false
+        s-container: false
+        s-object: false
+        s-proxy: false
 
 - job:
     name: python-tempestconf-tempest-packstack-admin
@@ -258,39 +268,3 @@
       user: demo
       test_demo: true
       cloud_admin: packstack-admin
-
-- job:
-    name: python-tempestconf-tempest-devstack-admin-py3
-    parent: python-tempestconf-tempest-devstack-admin
-    description: |
-      Tempest job for python-tempestconf on a devstack environment with python3 enabled.
-    vars:
-      tempestconf_pip_virtualenv_python: "python3"
-      devstack_localrc:
-        USE_PYTHON3: true
-      devstack_services:
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
-        # without Swift, c-bak cannot run (in the Gate at least)
-        c-bak: false
-
-- job:
-    name: python-tempestconf-tempest-devstack-demo-py3
-    parent: python-tempestconf-tempest-devstack-demo
-    description: |
-      Tempest job for python-tempestconf on a devstack environment with python3 enabled
-      for demo users.
-    vars:
-      aditional_tempestconf_params: "auth.tempest_roles member"
-      tempestconf_pip_virtualenv_python: "python3"
-      devstack_localrc:
-        USE_PYTHON3: true
-      devstack_services:
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
-        # without Swift, c-bak cannot run (in the Gate at least)
-        c-bak: false

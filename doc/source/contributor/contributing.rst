@@ -66,7 +66,7 @@ If you've made any changes in the documentation (under ``doc/``) run::
 
 If you've made any changes in the source code run unit tests as follows::
 
-    $ tox -epy27
+    $ tox -epy36
 
 and **pep8** check like following::
 

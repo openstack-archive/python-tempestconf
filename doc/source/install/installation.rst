@@ -21,16 +21,10 @@ Git
 
 4. *(optional)* Instead of manual installation described in steps 2 and 3
    above, tox can be used for installing the requirements as well.
-   To create python 2.7 environment run following::
+   To create python 3.6 environment run following::
 
-    $ tox -epy27
-    $ source .tox/py27/bin/activate
-
-   and python 3.5 environment can be created as follows::
-
-    $ tox -epy35
-    $ source .tox/py35/bin/activate
-
+    $ tox -epy36
+    $ source .tox/py36/bin/activate
 
 RPM Installation (RDO)
 ----------------------
