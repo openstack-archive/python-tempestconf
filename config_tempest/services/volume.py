@@ -14,6 +14,7 @@
 # under the License.
 
 import json
+import re
 
 from config_tempest import constants as C
 from config_tempest.services.base import VersionedService
@@ -33,11 +34,31 @@ class VolumeService(VersionedService):
         self.versions_body = json.loads(body)
         self.versions = self.deserialize_versions(self.versions_body)
 
+    def get_volume_pools(self):
+        body = self.do_get(self.service_url + '/scheduler-stats/get_pools')
+        body = json.loads(body)
+        return body
+
     def set_default_tempest_options(self, conf):
         if 'v3' in self.service_url:
             m_vs = self.filter_api_microversions()
             conf.set('volume', 'min_microversion', m_vs['min_microversion'])
             conf.set('volume', 'max_microversion', m_vs['max_microversion'])
+
+        try:
+            pools = self.get_volume_pools()['pools']
+        except exceptions.Forbidden:
+            C.LOG.warning("User has no permissions to list back-end storage "
+                          "pools - storage back-ends can't be discovered.")
+            return
+        if pools:
+            backends = [
+                re.findall(r'(\w*)@(\w*)', pool['name'])[0][1]
+                for pool in pools
+            ]
+            conf.set('volume', 'backend_names', ','.join(backends))
+            if len(backends) > 1:
+                conf.set('volume-feature-enabled', 'multi_backend', True)
 
     def get_service_extension_key(self):
         return 'api_extensions'

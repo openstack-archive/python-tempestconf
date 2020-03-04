@@ -20,6 +20,10 @@ import urllib3
 from six.moves import urllib
 
 from config_tempest.constants import LOG
+
+from tempest.lib import exceptions
+
+
 MULTIPLE_SLASH = re.compile(r'/+')
 
 
@@ -61,6 +65,11 @@ class Service(object):
             LOG.error("Request on service '%s' with url '%s' failed",
                       self.s_type, url)
             raise e
+
+        if r.status == 403:
+            raise exceptions.Forbidden("Request on service '%s' with url '%s' "
+                                       "failed with code 403" % (self.s_type,
+                                                                 url))
 
         if r.status >= 400:
             raise ServiceError("Request on service '%s' with url '%s' failed"
