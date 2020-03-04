@@ -1,0 +1,8 @@
+---
+features:
+  - |
+   discover-tempest-config can now discover Barbican service automatically,
+   and configures service_available/barbican based on that discovery result
+   so that it can enable/disable tests for Barbican based on deployment
+   status.
+
