@@ -42,7 +42,7 @@ def _read_yaml_file(path):
     :rtype: dict
     """
     with open(path, 'r') as stream:
-        return yaml.load(stream)
+        return yaml.safe_load(stream)
 
 
 def read_profile_file(path):
