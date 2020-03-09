@@ -58,7 +58,7 @@ class VolumeService(VersionedService):
             ]
             conf.set('volume', 'backend_names', ','.join(backends))
             if len(backends) > 1:
-                conf.set('volume-feature-enabled', 'multi_backend', True)
+                conf.set('volume-feature-enabled', 'multi_backend', 'True')
 
     def get_service_extension_key(self):
         return 'api_extensions'

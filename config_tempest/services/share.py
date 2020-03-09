@@ -46,7 +46,7 @@ class ShareService(VersionedService):
             ]
             conf.set('share', 'backend_names', ','.join(backends))
             if len(backends) > 1:
-                conf.set('share', 'multi_backend', True)
+                conf.set('share', 'multi_backend', 'True')
 
     def get_unversioned_service_type(self):
         return 'share'
