@@ -20,7 +20,7 @@ class Workflowv2Service(Service):
 
     @staticmethod
     def get_service_type():
-        return ['workflow']
+        return ['workflow', 'workflowv2']
 
     @staticmethod
     def get_codename():
