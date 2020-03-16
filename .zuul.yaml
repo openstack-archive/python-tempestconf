@@ -16,8 +16,8 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - python-tempestconf-tempest-devstack-admin-plugins
-        - tripleo-ci-centos-7-scenario002-standalone
-        - tripleo-ci-centos-7-standalone
+        - tripleo-ci-centos-8-scenario002-standalone
+        - tripleo-ci-centos-8-standalone
         - refstack-client-devstack-tempestconf
     gate:
       jobs:
@@ -30,8 +30,8 @@
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
         - python-tempestconf-tempest-devstack-admin-plugins
-        - tripleo-ci-centos-7-scenario002-standalone
-        - tripleo-ci-centos-7-standalone
+        - tripleo-ci-centos-8-scenario002-standalone
+        - tripleo-ci-centos-8-standalone
         - refstack-client-devstack-tempestconf
     experimental:
       jobs:
