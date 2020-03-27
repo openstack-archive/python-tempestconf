@@ -23,7 +23,6 @@ class LoadBalancerService(VersionedService):
 
     def set_default_tempest_options(self, conf):
         conf.set('load_balancer', 'enable_security_groups', 'True')
-        conf.set('load_balancer', 'member_role', '_member_')
         conf.set('load_balancer', 'admin_role', 'admin')
         conf.set('load_balancer', 'RBAC_test_type', 'owner_or_admin')
 
@@ -34,3 +33,7 @@ class LoadBalancerService(VersionedService):
     @staticmethod
     def get_codename():
         return 'octavia'
+
+    def post_configuration(self, conf, is_service):
+        conf.set('load_balancer', 'member_role',
+                 conf.get('auth', 'tempest_roles').split(',')[0])
