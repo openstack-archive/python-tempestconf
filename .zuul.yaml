@@ -10,8 +10,6 @@
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
-        - python-tempestconf-tempest-devstack-admin-rocky
-        - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
@@ -24,8 +22,6 @@
         - python-tempestconf-tempest-devstack-admin
         - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
-        - python-tempestconf-tempest-devstack-admin-rocky
-        - python-tempestconf-tempest-devstack-admin-queens
         - python-tempestconf-tempest-devstack-demo
         - python-tempestconf-tempest-packstack-admin
         - python-tempestconf-tempest-packstack-demo
@@ -37,8 +33,6 @@
       jobs:
         - python-tempestconf-tempest-devstack-demo-train
         - python-tempestconf-tempest-devstack-demo-stein
-        - python-tempestconf-tempest-devstack-demo-rocky
-        - python-tempestconf-tempest-devstack-demo-queens
 
 
 - job:
@@ -171,27 +165,6 @@
       branch: stable/stein
 
 - job:
-    name: python-tempestconf-tempest-devstack-admin-rocky
-    parent: python-tempestconf-tempest-devstack-admin
-    override-checkout: stable/rocky
-    vars:
-      branch: stable/rocky
-
-- job:
-    name: python-tempestconf-tempest-devstack-admin-queens
-    parent: python-tempestconf-tempest-devstack-admin
-    override-checkout: stable/queens
-    vars:
-      branch: stable/queens
-      devstack_services:
-        <<: *devstack_services
-        # disable Swift services
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
-
-- job:
     name: python-tempestconf-tempest-devstack-demo
     parent: python-tempestconf-devstack-base
     description: |
@@ -223,27 +196,6 @@
     override-checkout: stable/stein
     vars:
       branch: stable/stein
-
-- job:
-    name: python-tempestconf-tempest-devstack-demo-rocky
-    parent: python-tempestconf-tempest-devstack-demo
-    override-checkout: stable/rocky
-    vars:
-      branch: stable/rocky
-
-- job:
-    name: python-tempestconf-tempest-devstack-demo-queens
-    parent: python-tempestconf-tempest-devstack-demo
-    override-checkout: stable/queens
-    vars:
-      branch: stable/queens
-      devstack_services:
-        <<: *devstack_services
-        # disable Swift services
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
 
 - job:
     name: python-tempestconf-tempest-packstack-admin
