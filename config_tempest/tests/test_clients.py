@@ -15,8 +15,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from unittest import mock
+
 from fixtures import MonkeyPatch
-import mock
 
 from config_tempest.clients import ClientManager
 from config_tempest.clients import ProjectsClient

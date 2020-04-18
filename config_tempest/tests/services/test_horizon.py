@@ -14,9 +14,9 @@
 # under the License.
 
 from ssl import CertificateError
+from unittest import mock
 
 from fixtures import MonkeyPatch
-import mock
 
 from config_tempest.services import horizon
 from config_tempest.tests.base import BaseConfigTempestTest

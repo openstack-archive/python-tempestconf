@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import mock
+from unittest import mock
 
 from config_tempest import tempest_conf
 from config_tempest.tests.base import BaseConfigTempestTest

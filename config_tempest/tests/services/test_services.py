@@ -15,7 +15,7 @@
 
 from config_tempest.services.services import Services
 from config_tempest.tests.base import BaseConfigTempestTest
-import mock
+from unittest import mock
 
 
 class TestServices(BaseConfigTempestTest):
