@@ -15,10 +15,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from unittest import mock
+
 from fixtures import MonkeyPatch
 import json
 import logging
-import mock
 from oslotest import base
 
 from config_tempest.clients import ClientManager

@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import mock
+from unittest import mock
 
 from config_tempest.services.network import NetworkService
 from config_tempest.tempest_conf import TempestConf

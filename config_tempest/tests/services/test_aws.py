@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import mock
+from unittest import mock
 
 from config_tempest.services.aws import Ec2Service
 from config_tempest.services.aws import S3Service
