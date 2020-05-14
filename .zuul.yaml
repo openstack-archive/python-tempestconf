@@ -52,6 +52,7 @@
       - openstack/devstack
       - openstack/designate
       - openstack/designate-tempest-plugin
+      - openstack/requirements
     roles:
       - zuul: openstack/python-tempestconf
       - zuul: openstack/tempest
