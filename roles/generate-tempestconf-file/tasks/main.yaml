@@ -26,7 +26,7 @@
         set -ex
         export PATH=$PATH:/usr/local/sbin:/usr/sbin
         source {{ virtualenvs.tempestconf }}/bin/activate
-        pip install -c https://opendev.org/openstack/requirements/raw/branch/{{ branch }}/upper-constraints.txt .
+        pip install -c {{ ansible_user_dir }}/{{ zuul.projects['opendev.org/openstack/requirements'].src_dir }}/upper-constraints.txt .
     args:
        chdir: "{{ tempestconf_src_relative_path }}"
        executable: /bin/bash
