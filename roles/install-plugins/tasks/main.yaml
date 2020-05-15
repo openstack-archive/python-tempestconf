@@ -6,7 +6,11 @@
 
 - name: Install plugins
   become: yes
-  command: tox -evenv-tempest -- pip install {{ item }}
+  command:
+    cmd: >
+      tox -evenv-tempest --
+      pip install {{ item }}
+      --constraint {{ ansible_user_dir }}/{{ zuul.projects['opendev.org/openstack/requirements'].src_dir }}/upper-constraints.txt
   with_items: "{{ plugins_paths }}"
   args:
     chdir: "{{devstack_base_dir}}/tempest"
