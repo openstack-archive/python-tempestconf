@@ -27,9 +27,8 @@ extensions = [
 html_theme = 'openstackdocs'
 
 # openstackdocstheme options
-repository_name = 'openstack/python-tempestconf'
-bug_project = '912'
-bug_tag = 'doc'
+openstackdocs_repo_name = 'openstack/python-tempestconf'
+openstackdocs_use_storyboard = True
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
