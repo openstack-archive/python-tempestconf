@@ -1,0 +1,7 @@
+---
+features:
+  - |
+   Tempestconf now creates users with name that ends with '_tempestconf'.
+   This change makes sure that collisions are avoided. For example, if the
+   system already contains a user named 'demo_tempestconf' then it was
+   probably created by tempestconf.
