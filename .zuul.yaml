@@ -12,8 +12,10 @@
         - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-packstack-admin
-        - python-tempestconf-tempest-packstack-demo
+        - python-tempestconf-tempest-packstack-admin:
+            voting: false
+        - python-tempestconf-tempest-packstack-demo:
+            voting: false
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-8-scenario002-standalone
         - tripleo-ci-centos-8-standalone
@@ -25,8 +27,6 @@
         - python-tempestconf-tempest-devstack-admin-train
         - python-tempestconf-tempest-devstack-admin-stein
         - python-tempestconf-tempest-devstack-demo
-        - python-tempestconf-tempest-packstack-admin
-        - python-tempestconf-tempest-packstack-demo
         - python-tempestconf-tempest-devstack-admin-plugins
         - tripleo-ci-centos-8-scenario002-standalone
         - tripleo-ci-centos-8-standalone
